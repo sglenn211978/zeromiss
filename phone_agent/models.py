@@ -83,6 +83,11 @@ class ServiceBooking:
     contractor_ics_path: Optional[str] = None
     contractor_alert_sent: bool = False
     contractor_eml_path: Optional[str] = None
+    # Maximum-ROI Revenue & Payment Integration
+    payment_status: str = "PENDING_AUTHORIZATION"  # "PENDING_AUTHORIZATION", "PAID_VERIFIED", "EXEMPT"
+    stripe_payment_link: Optional[str] = None
+    sms_lead_recovery_sent: bool = False
+    estimated_job_value: float = 850.0
 
 
 @dataclass
