@@ -146,27 +146,33 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       background: linear-gradient(90deg, #0b1329, #131f37, #0b1329);
       border-bottom: 1px solid var(--card-border);
       padding: 12px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
+      width: 100%;
     }
-    .rev-metrics-wrap {
-      display: flex;
-      align-items: stretch;
+    .rev-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 14px;
-      flex-wrap: wrap;
+      width: 100%;
+    }
+    @media (max-width: 1100px) {
+      .rev-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 600px) {
+      .rev-metrics-grid {
+        grid-template-columns: 1fr;
+      }
     }
     .rev-metric-card {
       background: rgba(15, 23, 42, 0.7);
       border: 1px solid var(--card-border);
       border-radius: 10px;
-      padding: 8px 14px;
+      padding: 10px 14px;
       display: flex;
       flex-direction: column;
-      min-width: 195px;
-      position: relative;
+      justify-content: space-between;
+      min-height: 96px;
       transition: all 0.2s;
     }
     .rev-metric-card:hover {
@@ -179,7 +185,7 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       align-items: center;
       justify-content: space-between;
       gap: 6px;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
     .rev-label {
       font-size: 0.68rem;
@@ -187,85 +193,44 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.04em;
+      white-space: nowrap;
     }
-    .info-icon {
-      font-size: 0.75rem;
-      color: #64748b;
-      cursor: help;
+    .rev-pill-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
     }
     .rev-val {
       font-size: 1.25rem;
       font-weight: 800;
       color: #38bdf8;
       line-height: 1.2;
+      margin: 2px 0;
     }
     .rev-val.val-green { color: #4ade80; }
     .rev-val.val-gold { color: #fbbf24; }
     .rev-subtext {
       font-size: 0.7rem;
-      color: #94a3b8;
-      margin-top: 3px;
+      color: #cbd5e1;
       display: flex;
       align-items: center;
       gap: 4px;
+      font-weight: 600;
     }
-    .rev-action-hint {
-      font-size: 0.66rem;
-      color: #38bdf8;
-      font-weight: 700;
-      margin-top: 3px;
+    .rev-desc {
+      font-size: 0.67rem;
+      color: #64748b;
+      margin-top: 2px;
+      line-height: 1.25;
     }
-
-    /* Tooltip styles */
-    .has-tooltip { position: relative; }
-    .has-tooltip .tooltip-text {
-      visibility: hidden;
-      width: 250px;
-      background-color: #0f172a;
-      color: #f1f5f9;
-      text-align: left;
-      border-radius: 8px;
-      padding: 9px 12px;
-      position: absolute;
-      z-index: 200;
-      top: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      opacity: 0;
-      transition: opacity 0.2s;
-      font-size: 0.72rem;
-      line-height: 1.4;
-      border: 1px solid var(--accent);
-      box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.6);
-      font-weight: normal;
-      text-transform: none;
-      letter-spacing: normal;
-      pointer-events: none;
-    }
-    .has-tooltip:hover .tooltip-text {
-      visibility: visible;
-      opacity: 1;
-    }
-
-    .btn-roi-calc {
+    .btn-hdr-roi {
       background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 0.82rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
-      transition: all 0.2s;
     }
-    .btn-roi-calc:hover {
-      opacity: 0.95;
-      transform: translateY(-1px);
-    }
+    .btn-hdr-roi:hover { background: #047857; }
     .btn-hdr-guide {
       background: linear-gradient(135deg, #8b5cf6, #7c3aed);
     }
@@ -1447,6 +1412,9 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       <button class="btn-hdr-action btn-hdr-guide" onclick="openPitchModal()">
         💡 Sales Pitch & Demo Guide
       </button>
+      <button class="btn-hdr-action btn-hdr-roi" onclick="openRoiModal()">
+        📊 ROI Calculator
+      </button>
       <button class="btn-hdr-action btn-hdr-twilio" onclick="openTwilioModal()">
         📞 Connect Real Phone Number
       </button>
@@ -1460,69 +1428,51 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 
   <!-- EXECUTIVE REVENUE & ROI COMMAND BAR -->
   <div class="revenue-kpi-bar">
-    <div class="rev-metrics-wrap">
+    <div class="rev-metrics-grid">
       <!-- KPI 1: Pipeline Revenue -->
-      <div class="rev-metric-card has-tooltip">
+      <div class="rev-metric-card">
         <div class="rev-label-row">
-          <span class="rev-label">Pipeline Revenue Captured</span>
-          <span class="info-icon">ℹ️</span>
+          <span class="rev-label">Pipeline Revenue Won</span>
+          <span class="rev-pill-badge" style="background:rgba(74,222,128,0.15); color:#4ade80;">Live Won</span>
         </div>
         <span class="rev-val val-green" id="kpiPipelineRev">$2,450</span>
-        <span class="rev-subtext">⚡ Booked Service Value Won</span>
-        <div class="tooltip-text">
-          <strong>Pipeline Revenue Captured:</strong><br>
-          Total estimated value of jobs booked directly into your schedule by Sarah AI without a human dispatcher (e.g. Panel Upgrades $3,200, Emergencies $1,850, EV Chargers $1,450).
-        </div>
+        <span class="rev-subtext">⚡ Booked Service Value</span>
+        <span class="rev-desc">Closed by Sarah AI without human dispatcher</span>
       </div>
 
       <!-- KPI 2: Upfront Fees -->
-      <div class="rev-metric-card has-tooltip">
+      <div class="rev-metric-card">
         <div class="rev-label-row">
-          <span class="rev-label">Diagnostic Fees Collected</span>
-          <span class="info-icon">ℹ️</span>
+          <span class="rev-label">Diagnostic Fees</span>
+          <span class="rev-pill-badge" style="background:rgba(251,191,36,0.15); color:#fbbf24;">Stripe Link</span>
         </div>
         <span class="rev-val val-gold" id="kpiFeesCol">$0</span>
-        <span class="rev-subtext" id="kpiFeesSubtext">💳 Upfront Stripe Deposits</span>
-        <div class="rev-action-hint">👉 Click "Authorize Fee" on phone to test</div>
-        <div class="tooltip-text">
-          <strong>Diagnostic Fees Collected:</strong><br>
-          Upfront deposits ($89 routine / $199 emergency) authorized via customer SMS Stripe checkout. Eliminates the industry 22% no-show rate.
-        </div>
+        <span class="rev-subtext" id="kpiFeesSubtext">💳 Upfront Deposits</span>
+        <span class="rev-desc" id="kpiFeesDesc">Eliminates 22% contractor no-shows</span>
       </div>
 
       <!-- KPI 3: Missed Calls -->
-      <div class="rev-metric-card has-tooltip">
+      <div class="rev-metric-card">
         <div class="rev-label-row">
-          <span class="rev-label">Missed Calls Recovered</span>
-          <span class="info-icon">ℹ️</span>
+          <span class="rev-label">Missed Calls Saved</span>
+          <span class="rev-pill-badge" style="background:rgba(56,189,248,0.15); color:#38bdf8;">3s Text-Back</span>
         </div>
         <span class="rev-val" id="kpiMissedRec">2 Recovered</span>
-        <span class="rev-subtext">📵 Automated 3s Text-Back</span>
-        <div class="rev-action-hint">👉 Click "Simulate Missed Call"</div>
-        <div class="tooltip-text">
-          <strong>Missed Calls Recovered:</strong><br>
-          Callers who hung up before leaving a voicemail, instantly saved within 3 seconds via automated SMS with self-service booking link.
-        </div>
+        <span class="rev-subtext">📵 Automated SMS</span>
+        <span class="rev-desc">Intercepts hang-ups before competitors</span>
       </div>
 
       <!-- KPI 4: Answer Speed -->
-      <div class="rev-metric-card has-tooltip">
+      <div class="rev-metric-card">
         <div class="rev-label-row">
-          <span class="rev-label">Zero-Miss Answer Speed</span>
-          <span class="info-icon">ℹ️</span>
+          <span class="rev-label">Zero-Miss Pickup</span>
+          <span class="rev-pill-badge" style="background:rgba(167,139,250,0.15); color:#a78bfa;">Twilio TwiML</span>
         </div>
         <span class="rev-val" style="color:#a78bfa;">0.8s (Ring 1)</span>
-        <span class="rev-subtext">📞 24/7 Live Carrier Answer</span>
-        <div class="tooltip-text">
-          <strong>Zero-Miss Answer Speed:</strong><br>
-          Live carrier pickup latency via Twilio TwiML. Sarah answers on Ring 1 (24/7/365) before customers hang up and dial your competitors.
-        </div>
+        <span class="rev-subtext">📞 24/7/365 Answer</span>
+        <span class="rev-desc">Zero voicemail customer drop-off</span>
       </div>
     </div>
-
-    <button class="btn-roi-calc" onclick="openRoiModal()">
-      📊 Interactive ROI Calculator
-    </button>
   </div>
 
   <!-- Portal Navigation Tabs -->
@@ -2333,7 +2283,7 @@ HTML_DASHBOARD = """<!DOCTYPE html>
         document.getElementById('kpiFeesCol').innerText = `$${fees.toLocaleString()}`;
         const feeSub = document.getElementById('kpiFeesSubtext');
         if (feeSub) {
-          feeSub.innerText = fees > 0 ? '✓ Verified Deposits Captured!' : '💳 Upfront Stripe Deposits';
+          feeSub.innerText = fees > 0 ? '✓ Verified Deposits' : '💳 Upfront Deposits';
         }
         document.getElementById('kpiMissedRec').innerText = `${roi.missed_recovered || 2} Recovered`;
 
