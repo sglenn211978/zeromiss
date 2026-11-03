@@ -1,0 +1,11 @@
+{
+  "confirmation_id": "ZM-BOOK-1004",
+  "recipient": "alex@gmail.com",
+  "customer_name": "Alex Rivera",
+  "subject": "Appointment Confirmed: ZeroMiss Electrical (ZM-BOOK-1004)",
+  "sent_at": "2026-11-03T15:05:00.616525",
+  "eml_path": "sent_emails/ZM-BOOK-1004_email.eml",
+  "ics_path": "calendar_events/ZM-BOOK-1004_calendar_invite.ics",
+  "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=ZeroMiss+Electrical+Service+%28ZM-BOOK-1004%29&dates=20261104T080000%2F20261104T120000&details=ZeroMiss+Electrical+Appointment%0A%0AConfirmation%3A+ZM-BOOK-1004%0ACustomer%3A+Alex+Rivera+%28alex%40gmail.com%29%0AAssigned+Electrician%3A+Sarah+Chen%0AArrival+Window%3A+08%3A00+AM+-+12%3A00+PM%0AFee+Structure%3A+Free+Estimate%0A%0AIssue+%2F+Scope%3A+Tomorrow+morning+works.+My+name+is+Alex+Rivera%2C+45+Innovation+Way+in+Cambridge%2C+555-829-1044%2C+alex%40gmail.com%0A%0AQuestions%3F+Call+24%2F7+Dispatch+at+%28800%29+555-MISS.&location=45+Innovation+Way+in+Cambridge&add=alex%40gmail.com",
+  "status": "DELIVERED"
+}

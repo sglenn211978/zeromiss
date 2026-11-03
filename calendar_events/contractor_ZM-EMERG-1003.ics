@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:contractor-ZM-EMERG-1003@zeromiss.com
+DTSTAMP:20261103T200400Z
+DTSTART:20261103T154900
+DTEND:20261103T174900
+SUMMARY:🚨 EMERGENCY: Resident / Caller - EMERGENCY: burning_rubber
+DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-EMERG-1003\nCustomer: Resident / Caller ((609) 972-4328)\nTechnician: Marcus Vance (Master Electrician On-Call)\nWindow: Within 45-60 Minutes (Priority Code Red)\nFee: $199 Diagnostic Fee\nScope: EMERGENCY: burning_rubber_insulation - HIGH HAZARD: Thermal/wire insulation degradation risk detected. Immediate circuit isolation advised. Expedited emergency dispatch initiated.\nNotes: Immediate Code Red Dispatch to 1313 Mockingbird Lane 08360. Callback: 609-972-4328\n24/7 Dispatch: (800) 555-MISS
+LOCATION:1313 Mockingbird Lane 08360
+ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Dispatch Alert: Service call starting in 30 minutes
+END:VALARM
+END:VEVENT
+END:VCALENDAR

@@ -1,0 +1,15 @@
+{
+  "confirmation_id": "ZM-BOOK-1012",
+  "contractor_email": "sean.glenn21@gmail.com",
+  "contractor_name": "Sean Glenn",
+  "customer_name": "Thomas Reed",
+  "customer_phone": "(555) 780-6612",
+  "service_address": "98 Canterbury Road, Arlington",
+  "urgency": "STANDARD",
+  "subject": "\u26a1 CONTRACTOR DISPATCH [STANDARD]: Thomas Reed @ 98 Canterbury Road, Arlington (ZM-BOOK-1012)",
+  "sent_at": "2026-11-02T20:25:39.112401",
+  "eml_path": "sent_emails/contractor_alert_ZM-BOOK-1012.eml",
+  "contractor_ics_path": "calendar_events/contractor_ZM-BOOK-1012.ics",
+  "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E2%9A%A1+ZeroMiss+Dispatch%3A+Thomas+Reed+%40+98+Canterbury+Road%2C+Arlington&dates=20261104T080000%2F20261104T120000&details=ZeroMiss+Electrical+Contractor+Dispatch+Dossier%0AContractor%3A+Sean+Glenn+%28sean.glenn21%40gmail.com%29%0AConfirmation%3A+ZM-BOOK-1012%0AUrgency%3A+STANDARD%0A%0ACUSTOMER+CONTACT%3A%0A%E2%80%A2+Name%3A+Thomas+Reed%0A%E2%80%A2+Phone%3A+%28555%29+780-6612%0A%E2%80%A2+Email%3A+Not+provided+by+caller%0A%E2%80%A2+Service+Address%3A+98+Canterbury+Road%2C+Arlington%0A%0ADISPATCH+DETAILS%3A%0A%E2%80%A2+Electrician%3A+Marcus+Vance%0A%E2%80%A2+Arrival+Window%3A+2026-11-04+%2808%3A00+AM+-+12%3A00+PM%29%0A%E2%80%A2+Fee+Structure%3A+%2489+Diagnostic+Fee%0A%E2%80%A2+Scope+of+Work%3A+Hello%2C+our+entire+house+just+went+pitch+dark%21+All+the+streetlights+and+neighbors+still+have+power%2C+so+it%27s+just+our+house.+There+is+no+fire+or+smoke.%0A%E2%80%A2+Access+Notes%3A+Standard+property+access%0A%0A24%2F7+Dispatch+Control%3A+%28800%29+555-MISS&location=98+Canterbury+Road%2C+Arlington&add=sean.glenn21%40gmail.com",
+  "status": "DELIVERED_TO_CONTRACTOR"
+}

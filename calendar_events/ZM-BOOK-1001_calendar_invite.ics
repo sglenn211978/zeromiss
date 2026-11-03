@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ZeroMiss Electrical//Voice Dispatch Agent v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:ZM-BOOK-1001@zeromiss.com
+DTSTAMP:20261103T012500Z
+DTSTART:20261104T080000
+DTEND:20261104T120000
+SUMMARY:ZeroMiss Electrical: what is the estimate pricing
+DESCRIPTION:ZeroMiss Electrical Service Call\nConfirmation: ZM-BOOK-1001\nCustomer: Sean Glenn\nTechnician: Marcus Vance\nArrival Window: 08:00 AM - 12:00 PM\nFee: $89 Diagnostic Fee\nScope: what is the estimate pricing\nSupport: (800) 555-MISS
+LOCATION:1212 homeless ave 08360
+ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN=Sean Glenn:mailto:sglenn21@msn.com
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT60M
+ACTION:DISPLAY
+DESCRIPTION:Reminder: Electrician arriving in 1 hour
+END:VALARM
+END:VEVENT
+END:VCALENDAR

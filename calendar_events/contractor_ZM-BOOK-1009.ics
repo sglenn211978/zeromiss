@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:contractor-ZM-BOOK-1009@zeromiss.com
+DTSTAMP:20261103T012500Z
+DTSTART:20261103T080000
+DTEND:20261103T120000
+SUMMARY:⚡ ZeroMiss: Brenda Miller - Hi, we are adding central
+DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-BOOK-1009\nCustomer: Brenda Miller ((555) 319-4820)\nTechnician: Marcus Vance\nWindow: 08:00 AM - 12:00 PM\nFee: Free Estimate\nScope: Hi, we are adding central air conditioning and heat pumps, and our home inspector told us our 100-amp electrical panel needs to be upgraded to 200 amps. Can you give us an estimate?\nNotes: None\n24/7 Dispatch: (800) 555-MISS
+LOCATION:307 Pine Hollow Road, Wellesley
+ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Dispatch Alert: Service call starting in 30 minutes
+END:VALARM
+END:VEVENT
+END:VCALENDAR

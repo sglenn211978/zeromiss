@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:contractor-ZM-BOOK-1019@zeromiss.com
+DTSTAMP:20261103T012500Z
+DTSTART:20261103T080000
+DTEND:20261103T120000
+SUMMARY:⚡ ZeroMiss: Arthur Pendelton - Hi Sarah, I run a distrib
+DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-BOOK-1019\nCustomer: Arthur Pendelton ((555) 552-8014)\nTechnician: Dave Miller\nWindow: 08:00 AM - 12:00 PM\nFee: $89 Diagnostic Fee\nScope: Hi Sarah, I run a distribution warehouse and we need 4 commercial-grade motion-activated LED floodlights installed around our loading docks and back parking lot.\nNotes: None\n24/7 Dispatch: (800) 555-MISS
+LOCATION:1200 Industrial Parkway, Woburn
+ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Dispatch Alert: Service call starting in 30 minutes
+END:VALARM
+END:VEVENT
+END:VCALENDAR

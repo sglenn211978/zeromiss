@@ -1,0 +1,15 @@
+{
+  "confirmation_id": "ZM-BOOK-1019",
+  "contractor_email": "sean.glenn21@gmail.com",
+  "contractor_name": "Sean Glenn",
+  "customer_name": "Arthur Pendelton",
+  "customer_phone": "(555) 552-8014",
+  "service_address": "1200 Industrial Parkway, Woburn",
+  "urgency": "STANDARD",
+  "subject": "\u26a1 CONTRACTOR DISPATCH [STANDARD]: Arthur Pendelton @ 1200 Industrial Parkway, Woburn (ZM-BOOK-1019)",
+  "sent_at": "2026-11-02T20:25:39.134973",
+  "eml_path": "sent_emails/contractor_alert_ZM-BOOK-1019.eml",
+  "contractor_ics_path": "calendar_events/contractor_ZM-BOOK-1019.ics",
+  "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E2%9A%A1+ZeroMiss+Dispatch%3A+Arthur+Pendelton+%40+1200+Industrial+Parkway%2C+Woburn&dates=20261103T080000%2F20261103T120000&details=ZeroMiss+Electrical+Contractor+Dispatch+Dossier%0AContractor%3A+Sean+Glenn+%28sean.glenn21%40gmail.com%29%0AConfirmation%3A+ZM-BOOK-1019%0AUrgency%3A+STANDARD%0A%0ACUSTOMER+CONTACT%3A%0A%E2%80%A2+Name%3A+Arthur+Pendelton%0A%E2%80%A2+Phone%3A+%28555%29+552-8014%0A%E2%80%A2+Email%3A+Not+provided+by+caller%0A%E2%80%A2+Service+Address%3A+1200+Industrial+Parkway%2C+Woburn%0A%0ADISPATCH+DETAILS%3A%0A%E2%80%A2+Electrician%3A+Dave+Miller%0A%E2%80%A2+Arrival+Window%3A+2026-11-03+%2808%3A00+AM+-+12%3A00+PM%29%0A%E2%80%A2+Fee+Structure%3A+%2489+Diagnostic+Fee%0A%E2%80%A2+Scope+of+Work%3A+Hi+Sarah%2C+I+run+a+distribution+warehouse+and+we+need+4+commercial-grade+motion-activated+LED+floodlights+installed+around+our+loading+docks+and+back+parking+lot.%0A%E2%80%A2+Access+Notes%3A+Standard+property+access%0A%0A24%2F7+Dispatch+Control%3A+%28800%29+555-MISS&location=1200+Industrial+Parkway%2C+Woburn&add=sean.glenn21%40gmail.com",
+  "status": "DELIVERED_TO_CONTRACTOR"
+}

@@ -1,0 +1,15 @@
+{
+  "confirmation_id": "ZM-BOOK-1011",
+  "contractor_email": "sean.glenn21@gmail.com",
+  "contractor_name": "Sean Glenn",
+  "customer_name": "Linda Vasquez",
+  "customer_phone": "(555) 892-1049",
+  "service_address": "142 Sycamore Lane in Belmont",
+  "urgency": "STANDARD",
+  "subject": "\u26a1 CONTRACTOR DISPATCH [STANDARD]: Linda Vasquez @ 142 Sycamore Lane in Belmont (ZM-BOOK-1011)",
+  "sent_at": "2026-11-02T20:25:39.108834",
+  "eml_path": "sent_emails/contractor_alert_ZM-BOOK-1011.eml",
+  "contractor_ics_path": "calendar_events/contractor_ZM-BOOK-1011.ics",
+  "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E2%9A%A1+ZeroMiss+Dispatch%3A+Linda+Vasquez+%40+142+Sycamore+Lane+in+Belmont&dates=20261103T080000%2F20261103T120000&details=ZeroMiss+Electrical+Contractor+Dispatch+Dossier%0AContractor%3A+Sean+Glenn+%28sean.glenn21%40gmail.com%29%0AConfirmation%3A+ZM-BOOK-1011%0AUrgency%3A+STANDARD%0A%0ACUSTOMER+CONTACT%3A%0A%E2%80%A2+Name%3A+Linda+Vasquez%0A%E2%80%A2+Phone%3A+%28555%29+892-1049%0A%E2%80%A2+Email%3A+Not+provided+by+caller%0A%E2%80%A2+Service+Address%3A+142+Sycamore+Lane+in+Belmont%0A%0ADISPATCH+DETAILS%3A%0A%E2%80%A2+Electrician%3A+Sarah+Chen%0A%E2%80%A2+Arrival+Window%3A+2026-11-03+%2808%3A00+AM+-+12%3A00+PM%29%0A%E2%80%A2+Fee+Structure%3A+Free+Estimate%0A%E2%80%A2+Scope+of+Work%3A+Hello%2C+whenever+we+run+our+microwave+and+toaster+oven+at+the+same+time%2C+the+kitchen+breaker+clicks+off.+There+are+no+sparks%2C+but+it%27s+very+frustrating.%0A%E2%80%A2+Access+Notes%3A+Standard+property+access%0A%0A24%2F7+Dispatch+Control%3A+%28800%29+555-MISS&location=142+Sycamore+Lane+in+Belmont&add=sean.glenn21%40gmail.com",
+  "status": "DELIVERED_TO_CONTRACTOR"
+}

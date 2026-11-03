@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:contractor-ZM-BOOK-1016@zeromiss.com
+DTSTAMP:20261103T012500Z
+DTSTART:20261103T080000
+DTEND:20261103T120000
+SUMMARY:⚡ ZeroMiss: Jessica Taylor - Hi, we have a Sundance sp
+DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-BOOK-1016\nCustomer: Jessica Taylor ((555) 723-5590)\nTechnician: Marcus Vance\nWindow: 08:00 AM - 12:00 PM\nFee: Free Estimate\nScope: Hi, we have a Sundance spa hot tub being delivered next week, and we need a dedicated 50-amp 240-volt outdoor GFCI disconnect subpanel wired from our basement to the patio.\nNotes: None\n24/7 Dispatch: (800) 555-MISS
+LOCATION:17 Woodland Road, Carlisle
+ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Dispatch Alert: Service call starting in 30 minutes
+END:VALARM
+END:VEVENT
+END:VCALENDAR

@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:contractor-ZM-EMERG-1006@zeromiss.com
+DTSTAMP:20261103T012500Z
+DTSTART:20261102T211000
+DTEND:20261102T231000
+SUMMARY:🚨 EMERGENCY: Patricia Gomez - EMERGENCY: burning_smell_
+DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-EMERG-1006\nCustomer: Patricia Gomez ((555) 902-3318)\nTechnician: Marcus Vance (Master Electrician On-Call)\nWindow: Within 45-60 Minutes (Priority Code Red)\nFee: $199 Diagnostic Fee\nScope: EMERGENCY: burning_smell_smoke - HIGH HAZARD: Thermal/wire insulation degradation risk detected. Immediate circuit isolation advised. Expedited emergency dispatch initiated.\nNotes: Immediate Code Red Dispatch to 904 Elm Street in Waltham. Callback: 555-902-3318\n24/7 Dispatch: (800) 555-MISS
+LOCATION:904 Elm Street in Waltham
+ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Dispatch Alert: Service call starting in 30 minutes
+END:VALARM
+END:VEVENT
+END:VCALENDAR

@@ -1,0 +1,15 @@
+{
+  "confirmation_id": "ZM-BOOK-1004",
+  "contractor_email": "sean.glenn21@gmail.com",
+  "contractor_name": "Sean Glenn",
+  "customer_name": "Alex Rivera",
+  "customer_phone": "(555) 829-1044",
+  "service_address": "45 Innovation Way in Cambridge",
+  "urgency": "STANDARD",
+  "subject": "\u26a1 CONTRACTOR DISPATCH [STANDARD]: Alex Rivera @ 45 Innovation Way in Cambridge (ZM-BOOK-1004)",
+  "sent_at": "2026-11-03T15:05:00.613900",
+  "eml_path": "sent_emails/contractor_alert_ZM-BOOK-1004.eml",
+  "contractor_ics_path": "calendar_events/contractor_ZM-BOOK-1004.ics",
+  "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E2%9A%A1+ZeroMiss+Dispatch%3A+Alex+Rivera+%40+45+Innovation+Way+in+Cambridge&dates=20261104T080000%2F20261104T120000&details=ZeroMiss+Electrical+Contractor+Dispatch+Dossier%0AContractor%3A+Sean+Glenn+%28sean.glenn21%40gmail.com%29%0AConfirmation%3A+ZM-BOOK-1004%0AUrgency%3A+STANDARD%0A%0ACUSTOMER+CONTACT%3A%0A%E2%80%A2+Name%3A+Alex+Rivera%0A%E2%80%A2+Phone%3A+%28555%29+829-1044%0A%E2%80%A2+Email%3A+alex%40gmail.com%0A%E2%80%A2+Service+Address%3A+45+Innovation+Way+in+Cambridge%0A%0ADISPATCH+DETAILS%3A%0A%E2%80%A2+Electrician%3A+Sarah+Chen%0A%E2%80%A2+Arrival+Window%3A+2026-11-04+%2808%3A00+AM+-+12%3A00+PM%29%0A%E2%80%A2+Fee+Structure%3A+Free+Estimate%0A%E2%80%A2+Scope+of+Work%3A+Tomorrow+morning+works.+My+name+is+Alex+Rivera%2C+45+Innovation+Way+in+Cambridge%2C+555-829-1044%2C+alex%40gmail.com%0A%E2%80%A2+Access+Notes%3A+Standard+property+access%0A%0A24%2F7+Dispatch+Control%3A+%28800%29+555-MISS&location=45+Innovation+Way+in+Cambridge&add=sean.glenn21%40gmail.com",
+  "status": "DELIVERED_TO_CONTRACTOR"
+}

@@ -1,0 +1,15 @@
+{
+  "confirmation_id": "ZM-BOOK-1008",
+  "contractor_email": "sean.glenn21@gmail.com",
+  "contractor_name": "Sean Glenn",
+  "customer_name": "Michael Chang",
+  "customer_phone": "(555) 602-9844",
+  "service_address": "24 Aspen Ridge Court in Newton",
+  "urgency": "STANDARD",
+  "subject": "\u26a1 CONTRACTOR DISPATCH [STANDARD]: Michael Chang @ 24 Aspen Ridge Court in Newton (ZM-BOOK-1008)",
+  "sent_at": "2026-11-02T20:25:39.098154",
+  "eml_path": "sent_emails/contractor_alert_ZM-BOOK-1008.eml",
+  "contractor_ics_path": "calendar_events/contractor_ZM-BOOK-1008.ics",
+  "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E2%9A%A1+ZeroMiss+Dispatch%3A+Michael+Chang+%40+24+Aspen+Ridge+Court+in+Newton&dates=20261103T080000%2F20261103T120000&details=ZeroMiss+Electrical+Contractor+Dispatch+Dossier%0AContractor%3A+Sean+Glenn+%28sean.glenn21%40gmail.com%29%0AConfirmation%3A+ZM-BOOK-1008%0AUrgency%3A+STANDARD%0A%0ACUSTOMER+CONTACT%3A%0A%E2%80%A2+Name%3A+Michael+Chang%0A%E2%80%A2+Phone%3A+%28555%29+602-9844%0A%E2%80%A2+Email%3A+Not+provided+by+caller%0A%E2%80%A2+Service+Address%3A+24+Aspen+Ridge+Court+in+Newton%0A%0ADISPATCH+DETAILS%3A%0A%E2%80%A2+Electrician%3A+Sarah+Chen%0A%E2%80%A2+Arrival+Window%3A+2026-11-03+%2808%3A00+AM+-+12%3A00+PM%29%0A%E2%80%A2+Fee+Structure%3A+Free+Estimate%0A%E2%80%A2+Scope+of+Work%3A+Hello%2C+I+just+purchased+a+Tesla+Model+Y+and+I+need+a+50-amp+240-volt+Level+2+Wall+Connector+installed+in+my+garage.%0A%E2%80%A2+Access+Notes%3A+Standard+property+access%0A%0A24%2F7+Dispatch+Control%3A+%28800%29+555-MISS&location=24+Aspen+Ridge+Court+in+Newton&add=sean.glenn21%40gmail.com",
+  "status": "DELIVERED_TO_CONTRACTOR"
+}

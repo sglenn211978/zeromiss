@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:contractor-ZM-BOOK-1015@zeromiss.com
+DTSTAMP:20261103T012500Z
+DTSTART:20261103T080000
+DTEND:20261103T120000
+SUMMARY:⚡ ZeroMiss: Christopher Vance - Hello, we are under contr
+DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-BOOK-1015\nCustomer: Christopher Vance ((555) 912-3841)\nTechnician: Luis Ortiz\nWindow: 08:00 AM - 12:00 PM\nFee: $89 Diagnostic Fee\nScope: Hello, we are under contract to buy a 1928 colonial home, and the home inspector found active knob-and-tube wiring in the attic and basement. Our insurer requires a certified master electrician inspection.\nNotes: None\n24/7 Dispatch: (800) 555-MISS
+LOCATION:55 Commonwealth Avenue, Boston
+ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Dispatch Alert: Service call starting in 30 minutes
+END:VALARM
+END:VEVENT
+END:VCALENDAR

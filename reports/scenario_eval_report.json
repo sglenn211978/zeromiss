@@ -1,0 +1,794 @@
+{
+  "test_suite": "ZeroMiss Gemini 2.0 Flash Voice Dispatcher Evaluation",
+  "model": "gemini-2.0-flash",
+  "generated_at": "2026-11-02T20:25:39.158935",
+  "total_scenarios": 20,
+  "passed": 20,
+  "failed": 0,
+  "pass_rate_percent": 100.0,
+  "results": [
+    {
+      "scenario_id": "SCENARIO_01",
+      "title": "Active Breaker Panel Fire and Arcing Sparks",
+      "category": "EMERGENCY_FIRE",
+      "passed": true,
+      "duration_ms": 16.717844002414495,
+      "tools_called": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "emergency_level": "LEVEL_1_CRITICAL_LIFE_SAFETY",
+      "booking_confirmation_id": "ZM-EMERG-1001",
+      "assigned_technician": "Marcus Vance (Master Electrician On-Call)",
+      "safety_phrases_matched": [
+        "evacuate",
+        "911"
+      ],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hello?! Help! My basement electrical breaker box is shooting bright blue sparks and thick black smoke is pouring out!"
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Please listen carefully for your safety. Step back from the electrical equipment immediately and evacuate everyone outside to a safe location. Call 911 from outside as soon as you are in a safe location. NEVER throw water on an electrical fire. I am alerting our on-call master electrician right now. What is your street address and best callback phone number so I can dispatch them immediately?"
+        },
+        {
+          "role": "Caller",
+          "content": "I'm Robert Hall, at 412 Oak Ridge Lane, Westford. Phone is 555-234-8891. Please send someone right away!"
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Emergency dispatch is confirmed under reference ZM-EMERG-1001. Marcus Vance (Master Electrician On-Call) is en route to 412 Oak Ridge Lane, Westford right now with an arrival window of within 45 to 60 minutes. Please step back from the electrical equipment, stay in a safe and dry location, and call 911 immediately if any open flame or smoke develops."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_02",
+      "title": "Water Leaking Directly Over Main Electrical Panel",
+      "category": "EMERGENCY_WATER",
+      "passed": true,
+      "duration_ms": 4.654697993828449,
+      "tools_called": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "emergency_level": "LEVEL_1_CRITICAL_LIFE_SAFETY",
+      "booking_confirmation_id": "ZM-EMERG-1002",
+      "assigned_technician": "Marcus Vance (Master Electrician On-Call)",
+      "safety_phrases_matched": [
+        "water",
+        "touch"
+      ],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hi, a major water pipe just burst in my ceiling and water is pouring directly over the main breaker panel! There is a puddle forming on the basement floor right underneath it!"
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Please listen carefully for your safety. DO NOT touch the breaker box or step into any standing water near electrical panels, outlets, or appliances. Water conducts electricity and standing water near a panel is an extreme electrocution hazard. Do NOT attempt to reach or touch the breaker box while standing on wet floors. I am alerting our on-call master electrician right now. What is your street address and best callback phone number so I can dispatch them immediately?"
+        },
+        {
+          "role": "Caller",
+          "content": "My name is Elena Rostova, 88 Willowbrook Drive, Lexington, cell is 555-345-9921. Should I try to flip the switch?"
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Emergency dispatch is confirmed under reference ZM-EMERG-1002. Marcus Vance (Master Electrician On-Call) is en route to 88 Willowbrook Drive, Lexington right now with an arrival window of within 45 to 60 minutes. Please step back from the electrical equipment, stay in a safe and dry location, and call 911 immediately if any open flame or smoke develops."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_03",
+      "title": "Electric Shock Injury from Dishwasher Metal Frame",
+      "category": "EMERGENCY_SHOCK",
+      "passed": true,
+      "duration_ms": 5.445964001410175,
+      "tools_called": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "emergency_level": "LEVEL_1_CRITICAL_LIFE_SAFETY",
+      "booking_confirmation_id": "ZM-EMERG-1003",
+      "assigned_technician": "Marcus Vance (Master Electrician On-Call)",
+      "safety_phrases_matched": [
+        "911",
+        "medical"
+      ],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hello dispatcher, my wife just got an electric shock when she touched the metal door of our dishwasher! Her arm went completely numb and is tingling!"
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Please listen carefully for your safety. Ensure the person is completely clear of the electrical current before touching them. Do NOT touch the victim with bare hands if they are still in contact with the live source. Seek immediate medical evaluation or call 911 right away, as internal cardiac effects can occur hours later. I am alerting our on-call master electrician right now. What is your street address and best callback phone number so I can dispatch them immediately?"
+        },
+        {
+          "role": "Caller",
+          "content": "This is Marcus Brody at 14 Meadowbrook Court in Concord, phone number 555-812-4403. What should we do?"
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Emergency dispatch is confirmed under reference ZM-EMERG-1003. Marcus Vance (Master Electrician On-Call) is en route to 14 Meadowbrook Court in Concord right now with an arrival window of within 45 to 60 minutes. Please step back from the electrical equipment, stay in a safe and dry location, and call 911 immediately if any open flame or smoke develops."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_04",
+      "title": "Downed Power Line Arcing on Wet Driveway",
+      "category": "EMERGENCY_DOWNED_LINE",
+      "passed": true,
+      "duration_ms": 4.4248409976717085,
+      "tools_called": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "emergency_level": "LEVEL_1_CRITICAL_LIFE_SAFETY",
+      "booking_confirmation_id": "ZM-EMERG-1004",
+      "assigned_technician": "Marcus Vance (Master Electrician On-Call)",
+      "safety_phrases_matched": [
+        "stay back",
+        "35",
+        "911"
+      ],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "A huge tree branch snapped and brought down a live power line right across my driveway! It's violently whipping around and sparking on the wet asphalt!"
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Please listen carefully for your safety. Stay back at least 35 to 40 feet from the downed power line and anything touching it. Do NOT attempt to move the wire or approach it, even if it is not currently sparking. Keep all children and pets inside. I am alerting our on-call master electrician right now. What is your street address and best callback phone number so I can dispatch them immediately?"
+        },
+        {
+          "role": "Caller",
+          "content": "I'm Sandra Jenkins at 73 Crestview Road, Sudbury. My number is 555-671-2094."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Emergency dispatch is confirmed under reference ZM-EMERG-1004. Marcus Vance (Master Electrician On-Call) is en route to 73 Crestview Road, Sudbury right now with an arrival window of within 45 to 60 minutes. Please step back from the electrical equipment, stay in a safe and dry location, and call 911 immediately if any open flame or smoke develops."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_05",
+      "title": "Sizzling Scorched Wall Outlet with Burning Fishy Odor",
+      "category": "EMERGENCY_HAZARD",
+      "passed": true,
+      "duration_ms": 4.975282994564623,
+      "tools_called": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "emergency_level": "LEVEL_2_HIGH_HAZARD",
+      "booking_confirmation_id": "ZM-EMERG-1005",
+      "assigned_technician": "Marcus Vance (Master Electrician On-Call)",
+      "safety_phrases_matched": [
+        "breaker",
+        "touch"
+      ],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hi, our living room wall outlet is sizzling and crackling, and the plastic cover has turned brown and burnt with a strong fishy chemical smell."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Please listen carefully for your safety. A burning rubber or plastic smell indicates electrical wire insulation is dangerously overheating. If you can safely access your breaker panel, shut off the breaker for that circuit immediately. Do NOT touch any scorched, hot, buzzing, or discolored outlets, switches, or appliances. Unplug any devices connected to that circuit only if the cords and plugs are completely cool to the touch. I am alerting our on-call master electrician right now. What is your street address and best callback phone number so I can dispatch them immediately?"
+        },
+        {
+          "role": "Caller",
+          "content": "My name is David Kim, address is 521 Highland Avenue, Burlington. Phone is 555-489-1120."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Emergency dispatch is confirmed under reference ZM-EMERG-1005. Marcus Vance (Master Electrician On-Call) is en route to 521 Highland Avenue, Burlington right now with an arrival window of within 45 to 60 minutes. Please step back from the electrical equipment, stay in a safe and dry location, and call 911 immediately if any open flame or smoke develops."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_06",
+      "title": "Smoke Emitting from Kitchen Ceiling Light Fixture",
+      "category": "EMERGENCY_SMOKE",
+      "passed": true,
+      "duration_ms": 4.528838995611295,
+      "tools_called": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "emergency_level": "LEVEL_2_HIGH_HAZARD",
+      "booking_confirmation_id": "ZM-EMERG-1006",
+      "assigned_technician": "Marcus Vance (Master Electrician On-Call)",
+      "safety_phrases_matched": [
+        "switch",
+        "safe"
+      ],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Good morning, I flipped the light switch in my kitchen and white smoke started pouring out around the ceiling fixture base! I flipped the switch back off."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Please listen carefully for your safety. A burning rubber or plastic smell indicates electrical wire insulation is dangerously overheating. If you can safely access your breaker panel, shut off the breaker for that circuit immediately. Do NOT touch any scorched, hot, buzzing, or discolored outlets, switches, or appliances. Unplug any devices connected to that circuit only if the cords and plugs are completely cool to the touch. I am alerting our on-call master electrician right now. What is your street address and best callback phone number so I can dispatch them immediately?"
+        },
+        {
+          "role": "Caller",
+          "content": "This is Patricia Gomez, 904 Elm Street in Waltham, cell 555-902-3318."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Emergency dispatch is confirmed under reference ZM-EMERG-1006. Marcus Vance (Master Electrician On-Call) is en route to 904 Elm Street in Waltham right now with an arrival window of within 45 to 60 minutes. Please step back from the electrical equipment, stay in a safe and dry location, and call 911 immediately if any open flame or smoke develops."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_07",
+      "title": "Routine Ceiling Fan Installation in Master Bedroom",
+      "category": "ROUTINE_INSTALLATION",
+      "passed": true,
+      "duration_ms": 3.641818002506625,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1007",
+      "assigned_technician": "Dave Miller",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hi Sarah, I bought a new Hunter 54-inch ceiling fan with a light kit and I need a licensed electrician to install it in my master bedroom next Wednesday."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-04 during our 08:00 AM - 12:00 PM window with Dave Miller. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "Morning would be perfect. My name is James Wright, 118 Maplewood Way, Acton. Phone is 555-771-3329."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, James Wright. We have Dave Miller scheduled for 2026-11-04 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1007, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_08",
+      "title": "Level 2 Tesla Wall Connector EV Charger Installation",
+      "category": "SPECIALTY_EV",
+      "passed": true,
+      "duration_ms": 3.472445001534652,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1008",
+      "assigned_technician": "Sarah Chen",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hello, I just purchased a Tesla Model Y and I need a 50-amp 240-volt Level 2 Wall Connector installed in my garage."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-03 during our 08:00 AM - 12:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "Tomorrow afternoon works well. My name is Michael Chang, 24 Aspen Ridge Court in Newton, phone is 555-602-9844."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Michael Chang. We have Sarah Chen scheduled for 2026-11-03 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1008, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_09",
+      "title": "100-Amp to 200-Amp Electrical Panel Service Upgrade",
+      "category": "SPECIALTY_PANEL",
+      "passed": true,
+      "duration_ms": 3.6478940019151196,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1009",
+      "assigned_technician": "Marcus Vance",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hi, we are adding central air conditioning and heat pumps, and our home inspector told us our 100-amp electrical panel needs to be upgraded to 200 amps. Can you give us an estimate?"
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-03 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "Yes, tomorrow morning works. My name is Brenda Miller, 307 Pine Hollow Road, Wellesley. Phone is 555-319-4820."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Brenda Miller. We have Marcus Vance scheduled for 2026-11-03 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1009, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_10",
+      "title": "Kitchen Renovation Recessed LED Lighting and Dimmer",
+      "category": "ROUTINE_INSTALLATION",
+      "passed": true,
+      "duration_ms": 3.4913029958261177,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1010",
+      "assigned_technician": "Dave Miller",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hi there, we are remodeling our kitchen and want to install 8 recessed LED canless wafer lights and a smart Lutron dimmer switch."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-03 during our 08:00 AM - 12:00 PM window with Dave Miller. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "Tomorrow morning is great. My name is Kevin O'Connor, 65 Chestnut Street, Bedford. Cell is 555-441-8971."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Kevin O'Connor. We have Dave Miller scheduled for 2026-11-03 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1010, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_11",
+      "title": "Kitchen Circuit Breaker Tripping on Microwave & Toaster Overload",
+      "category": "OVERLOAD_TRIAGE",
+      "passed": true,
+      "duration_ms": 3.311803004180547,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1011",
+      "assigned_technician": "Sarah Chen",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hello, whenever we run our microwave and toaster oven at the same time, the kitchen breaker clicks off. There are no sparks, but it's very frustrating."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-03 during our 08:00 AM - 12:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "That makes sense. Tomorrow afternoon works. My name is Linda Vasquez at 142 Sycamore Lane in Belmont, 555-892-1049."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Linda Vasquez. We have Sarah Chen scheduled for 2026-11-03 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1011, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_12",
+      "title": "Complete Single-Home Power Outage Diagnostic",
+      "category": "URGENT_OUTAGE",
+      "passed": true,
+      "duration_ms": 3.474400997220073,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1012",
+      "assigned_technician": "Marcus Vance",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hello, our entire house just went pitch dark! All the streetlights and neighbors still have power, so it's just our house. There is no fire or smoke."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-04 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "Please send someone today. I'm Thomas Reed, 98 Canterbury Road, Arlington, phone 555-780-6612."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Thomas Reed. We have Marcus Vance scheduled for 2026-11-04 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1012, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_13",
+      "title": "Commercial Restaurant Walk-in Freezer Circuit Tripped",
+      "category": "COMMERCIAL_URGENT",
+      "passed": true,
+      "duration_ms": 3.822853999736253,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1013",
+      "assigned_technician": "Marcus Vance",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Sarah, this is Tony at Bella Italia restaurant. Our commercial walk-in freezer breaker tripped and won't reset! We have ten thousand dollars of meat and seafood at risk!"
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-03 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "We need someone today immediately. I'm Tony Moretti, Bella Italia at 844 Commercial Boulevard, Somerville. Phone is 555-439-0091."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Tony Moretti. We have Marcus Vance scheduled for 2026-11-03 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1013, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_14",
+      "title": "Bathroom GFCI Receptacle Tripped and Won't Reset",
+      "category": "ROUTINE_REPAIR",
+      "passed": true,
+      "duration_ms": 3.3680280030239373,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1014",
+      "assigned_technician": "Marcus Vance",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hi, my master bathroom GFCI outlet has a red LED light on it and neither the hairdryer nor the vanity lights work. When I press the reset button, it doesn't click."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-04 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "Tomorrow morning is great. My name is Sarah Jenkins, 214 Lexington Street, Waltham, phone is 555-301-7784."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Sarah Jenkins. We have Marcus Vance scheduled for 2026-11-04 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1014, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_15",
+      "title": "Historic Home Knob-and-Tube Wiring Safety Inspection",
+      "category": "SAFETY_INSPECTION",
+      "passed": true,
+      "duration_ms": 3.114773004199378,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1015",
+      "assigned_technician": "Luis Ortiz",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hello, we are under contract to buy a 1928 colonial home, and the home inspector found active knob-and-tube wiring in the attic and basement. Our insurer requires a certified master electrician inspection."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-03 during our 08:00 AM - 12:00 PM window with Luis Ortiz. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "Tomorrow afternoon works. Name is Christopher Vance, 55 Commonwealth Avenue, Boston, phone 555-912-3841."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Christopher Vance. We have Luis Ortiz scheduled for 2026-11-03 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1015, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_16",
+      "title": "Outdoor Hot Tub 50-Amp GFCI Spa Disconnect Installation",
+      "category": "RESIDENTIAL_HIGH_VOLTAGE",
+      "passed": true,
+      "duration_ms": 2.815769999870099,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1016",
+      "assigned_technician": "Marcus Vance",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hi, we have a Sundance spa hot tub being delivered next week, and we need a dedicated 50-amp 240-volt outdoor GFCI disconnect subpanel wired from our basement to the patio."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-03 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "Tomorrow morning works well. My name is Jessica Taylor, 17 Woodland Road, Carlisle, phone 555-723-5590."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Jessica Taylor. We have Marcus Vance scheduled for 2026-11-03 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1016, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_17",
+      "title": "Whole-House Generator Transfer Switch & Inlet Box",
+      "category": "SPECIALTY_GENERATOR",
+      "passed": true,
+      "duration_ms": 3.2854719975148328,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1017",
+      "assigned_technician": "Marcus Vance",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hello, we bought a 10,000-watt portable generator and want to install a 30-amp or 50-amp manual transfer switch on our electrical panel with an outdoor power inlet box."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-03 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "Tomorrow afternoon is perfect. Name is Richard Scott, 402 Heritage Way in Wayland, cell 555-834-1192."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Richard Scott. We have Marcus Vance scheduled for 2026-11-03 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1017, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_18",
+      "title": "Whole-House Lights Flickering During AC Compressor Startup",
+      "category": "DIAGNOSTIC_VOLTAGE_DROP",
+      "passed": true,
+      "duration_ms": 2.907406000304036,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1018",
+      "assigned_technician": "Sarah Chen",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hi, whenever our central air conditioning turns on, all the lights throughout the house dim and flicker for a second or two. There are no sparks, but it seems like a big voltage dip."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-03 during our 08:00 AM - 12:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "Tomorrow morning is good. My name is Nancy Wheeler, 83 Birchwood Terrace, Needham, phone 555-619-7431."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Nancy Wheeler. We have Sarah Chen scheduled for 2026-11-03 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1018, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_19",
+      "title": "Commercial Property Security LED Motion Floodlights",
+      "category": "COMMERCIAL_LIGHTING",
+      "passed": true,
+      "duration_ms": 2.8213580008014105,
+      "tools_called": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "emergency_level": null,
+      "booking_confirmation_id": "ZM-BOOK-1019",
+      "assigned_technician": "Dave Miller",
+      "safety_phrases_matched": [],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Hi Sarah, I run a distribution warehouse and we need 4 commercial-grade motion-activated LED floodlights installed around our loading docks and back parking lot."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "I have an opening available on 2026-11-03 during our 08:00 AM - 12:00 PM window with Dave Miller. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "role": "Caller",
+          "content": "Tomorrow morning is fine. I'm Arthur Pendelton, 1200 Industrial Parkway, Woburn. Phone is 555-552-8014."
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "You're all confirmed, Arthur Pendelton. We have Dave Miller scheduled for 2026-11-03 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1019, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
+        }
+      ]
+    },
+    {
+      "scenario_id": "SCENARIO_20",
+      "title": "Panicked Caller: Dryer Popping with Sparks Behind Wall",
+      "category": "EMERGENCY_PANIC",
+      "passed": true,
+      "duration_ms": 4.451312001037877,
+      "tools_called": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "expected_tools": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "emergency_level": "LEVEL_1_CRITICAL_LIFE_SAFETY",
+      "booking_confirmation_id": "ZM-EMERG-1020",
+      "assigned_technician": "Marcus Vance (Master Electrician On-Call)",
+      "safety_phrases_matched": [
+        "safe",
+        "step back",
+        "911"
+      ],
+      "failure_reasons": [],
+      "transcript_summary": [
+        {
+          "role": "Caller",
+          "content": "Oh my god! I just heard a loud pop behind my laundry dryer and saw bright blue sparks shooting out from behind the wall! I'm terrified it's going to catch fire!"
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Please listen carefully for your safety. Step back from the electrical equipment immediately and evacuate everyone outside to a safe location. Call 911 from outside as soon as you are in a safe location. NEVER throw water on an electrical fire. I am alerting our on-call master electrician right now. What is your street address and best callback phone number so I can dispatch them immediately?"
+        },
+        {
+          "role": "Caller",
+          "content": "I'm Chloe Bennett, 27 Sunnyhill Lane in Winchester, cell is 555-948-2233! What do I do right now?!"
+        },
+        {
+          "role": "Sarah (Dispatcher)",
+          "content": "Emergency dispatch is confirmed under reference ZM-EMERG-1020. Marcus Vance (Master Electrician On-Call) is en route to 27 Sunnyhill Lane in Winchester right now with an arrival window of within 45 to 60 minutes. Please step back from the electrical equipment, stay in a safe and dry location, and call 911 immediately if any open flame or smoke develops."
+        }
+      ]
+    }
+  ]
+}

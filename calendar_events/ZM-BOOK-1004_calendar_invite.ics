@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ZeroMiss Electrical//Voice Dispatch Agent v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:ZM-BOOK-1004@zeromiss.com
+DTSTAMP:20261103T200500Z
+DTSTART:20261104T080000
+DTEND:20261104T120000
+SUMMARY:ZeroMiss Electrical: Tomorrow morning works. My nam
+DESCRIPTION:ZeroMiss Electrical Service Call\nConfirmation: ZM-BOOK-1004\nCustomer: Alex Rivera\nTechnician: Sarah Chen\nArrival Window: 08:00 AM - 12:00 PM\nFee: Free Estimate\nScope: Tomorrow morning works. My name is Alex Rivera, 45 Innovation Way in Cambridge, 555-829-1044, alex@gmail.com\nSupport: (800) 555-MISS
+LOCATION:45 Innovation Way in Cambridge
+ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN=Alex Rivera:mailto:alex@gmail.com
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT60M
+ACTION:DISPLAY
+DESCRIPTION:Reminder: Electrician arriving in 1 hour
+END:VALARM
+END:VEVENT
+END:VCALENDAR

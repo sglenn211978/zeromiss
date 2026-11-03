@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:contractor-ZM-BOOK-1002@zeromiss.com
+DTSTAMP:20261103T012400Z
+DTSTART:20261105T080000
+DTEND:20261105T120000
+SUMMARY:⚡ ZeroMiss: Alice Cooper - Ceiling fan replacement
+DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-BOOK-1002\nCustomer: Alice Cooper ((555) 123-4567)\nTechnician: Dave Miller (Licensed Journeyman)\nWindow: 08:00 AM - 12:00 PM\nFee: $89 Diagnostic Fee\nScope: Ceiling fan replacement\nNotes: None\n24/7 Dispatch: (800) 555-MISS
+LOCATION:100 Main St, Boston
+ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Dispatch Alert: Service call starting in 30 minutes
+END:VALARM
+END:VEVENT
+END:VCALENDAR

@@ -1,0 +1,15 @@
+{
+  "confirmation_id": "ZM-BOOK-1018",
+  "contractor_email": "sean.glenn21@gmail.com",
+  "contractor_name": "Sean Glenn",
+  "customer_name": "Nancy Wheeler",
+  "customer_phone": "(555) 619-7431",
+  "service_address": "83 Birchwood Terrace, Needham",
+  "urgency": "STANDARD",
+  "subject": "\u26a1 CONTRACTOR DISPATCH [STANDARD]: Nancy Wheeler @ 83 Birchwood Terrace, Needham (ZM-BOOK-1018)",
+  "sent_at": "2026-11-02T20:25:39.132072",
+  "eml_path": "sent_emails/contractor_alert_ZM-BOOK-1018.eml",
+  "contractor_ics_path": "calendar_events/contractor_ZM-BOOK-1018.ics",
+  "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E2%9A%A1+ZeroMiss+Dispatch%3A+Nancy+Wheeler+%40+83+Birchwood+Terrace%2C+Needham&dates=20261103T080000%2F20261103T120000&details=ZeroMiss+Electrical+Contractor+Dispatch+Dossier%0AContractor%3A+Sean+Glenn+%28sean.glenn21%40gmail.com%29%0AConfirmation%3A+ZM-BOOK-1018%0AUrgency%3A+STANDARD%0A%0ACUSTOMER+CONTACT%3A%0A%E2%80%A2+Name%3A+Nancy+Wheeler%0A%E2%80%A2+Phone%3A+%28555%29+619-7431%0A%E2%80%A2+Email%3A+Not+provided+by+caller%0A%E2%80%A2+Service+Address%3A+83+Birchwood+Terrace%2C+Needham%0A%0ADISPATCH+DETAILS%3A%0A%E2%80%A2+Electrician%3A+Sarah+Chen%0A%E2%80%A2+Arrival+Window%3A+2026-11-03+%2808%3A00+AM+-+12%3A00+PM%29%0A%E2%80%A2+Fee+Structure%3A+Free+Estimate%0A%E2%80%A2+Scope+of+Work%3A+Hi%2C+whenever+our+central+air+conditioning+turns+on%2C+all+the+lights+throughout+the+house+dim+and+flicker+for+a+second+or+two.+There+are+no+sparks%2C+but+it+seems+like+a+big+voltage+dip.%0A%E2%80%A2+Access+Notes%3A+Standard+property+access%0A%0A24%2F7+Dispatch+Control%3A+%28800%29+555-MISS&location=83+Birchwood+Terrace%2C+Needham&add=sean.glenn21%40gmail.com",
+  "status": "DELIVERED_TO_CONTRACTOR"
+}

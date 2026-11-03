@@ -1,0 +1,15 @@
+{
+  "confirmation_id": "ZM-BOOK-1007",
+  "contractor_email": "sean.glenn21@gmail.com",
+  "contractor_name": "Sean Glenn",
+  "customer_name": "James Wright",
+  "customer_phone": "(555) 771-3329",
+  "service_address": "118 Maplewood Way, Acton",
+  "urgency": "STANDARD",
+  "subject": "\u26a1 CONTRACTOR DISPATCH [STANDARD]: James Wright @ 118 Maplewood Way, Acton (ZM-BOOK-1007)",
+  "sent_at": "2026-11-02T20:25:39.094563",
+  "eml_path": "sent_emails/contractor_alert_ZM-BOOK-1007.eml",
+  "contractor_ics_path": "calendar_events/contractor_ZM-BOOK-1007.ics",
+  "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E2%9A%A1+ZeroMiss+Dispatch%3A+James+Wright+%40+118+Maplewood+Way%2C+Acton&dates=20261104T080000%2F20261104T120000&details=ZeroMiss+Electrical+Contractor+Dispatch+Dossier%0AContractor%3A+Sean+Glenn+%28sean.glenn21%40gmail.com%29%0AConfirmation%3A+ZM-BOOK-1007%0AUrgency%3A+STANDARD%0A%0ACUSTOMER+CONTACT%3A%0A%E2%80%A2+Name%3A+James+Wright%0A%E2%80%A2+Phone%3A+%28555%29+771-3329%0A%E2%80%A2+Email%3A+Not+provided+by+caller%0A%E2%80%A2+Service+Address%3A+118+Maplewood+Way%2C+Acton%0A%0ADISPATCH+DETAILS%3A%0A%E2%80%A2+Electrician%3A+Dave+Miller%0A%E2%80%A2+Arrival+Window%3A+2026-11-04+%2808%3A00+AM+-+12%3A00+PM%29%0A%E2%80%A2+Fee+Structure%3A+%2489+Diagnostic+Fee%0A%E2%80%A2+Scope+of+Work%3A+Hi+Sarah%2C+I+bought+a+new+Hunter+54-inch+ceiling+fan+with+a+light+kit+and+I+need+a+licensed+electrician+to+install+it+in+my+master+bedroom+next+Wednesday.%0A%E2%80%A2+Access+Notes%3A+Standard+property+access%0A%0A24%2F7+Dispatch+Control%3A+%28800%29+555-MISS&location=118+Maplewood+Way%2C+Acton&add=sean.glenn21%40gmail.com",
+  "status": "DELIVERED_TO_CONTRACTOR"
+}

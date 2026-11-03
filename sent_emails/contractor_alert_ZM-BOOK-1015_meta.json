@@ -1,0 +1,15 @@
+{
+  "confirmation_id": "ZM-BOOK-1015",
+  "contractor_email": "sean.glenn21@gmail.com",
+  "contractor_name": "Sean Glenn",
+  "customer_name": "Christopher Vance",
+  "customer_phone": "(555) 912-3841",
+  "service_address": "55 Commonwealth Avenue, Boston",
+  "urgency": "STANDARD",
+  "subject": "\u26a1 CONTRACTOR DISPATCH [STANDARD]: Christopher Vance @ 55 Commonwealth Avenue, Boston (ZM-BOOK-1015)",
+  "sent_at": "2026-11-02T20:25:39.122917",
+  "eml_path": "sent_emails/contractor_alert_ZM-BOOK-1015.eml",
+  "contractor_ics_path": "calendar_events/contractor_ZM-BOOK-1015.ics",
+  "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E2%9A%A1+ZeroMiss+Dispatch%3A+Christopher+Vance+%40+55+Commonwealth+Avenue%2C+Boston&dates=20261103T080000%2F20261103T120000&details=ZeroMiss+Electrical+Contractor+Dispatch+Dossier%0AContractor%3A+Sean+Glenn+%28sean.glenn21%40gmail.com%29%0AConfirmation%3A+ZM-BOOK-1015%0AUrgency%3A+STANDARD%0A%0ACUSTOMER+CONTACT%3A%0A%E2%80%A2+Name%3A+Christopher+Vance%0A%E2%80%A2+Phone%3A+%28555%29+912-3841%0A%E2%80%A2+Email%3A+Not+provided+by+caller%0A%E2%80%A2+Service+Address%3A+55+Commonwealth+Avenue%2C+Boston%0A%0ADISPATCH+DETAILS%3A%0A%E2%80%A2+Electrician%3A+Luis+Ortiz%0A%E2%80%A2+Arrival+Window%3A+2026-11-03+%2808%3A00+AM+-+12%3A00+PM%29%0A%E2%80%A2+Fee+Structure%3A+%2489+Diagnostic+Fee%0A%E2%80%A2+Scope+of+Work%3A+Hello%2C+we+are+under+contract+to+buy+a+1928+colonial+home%2C+and+the+home+inspector+found+active+knob-and-tube+wiring+in+the+attic+and+basement.+Our+insurer+requires+a+certified+master+electrician+inspection.%0A%E2%80%A2+Access+Notes%3A+Standard+property+access%0A%0A24%2F7+Dispatch+Control%3A+%28800%29+555-MISS&location=55+Commonwealth+Avenue%2C+Boston&add=sean.glenn21%40gmail.com",
+  "status": "DELIVERED_TO_CONTRACTOR"
+}

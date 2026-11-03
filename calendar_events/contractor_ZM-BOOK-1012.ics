@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:contractor-ZM-BOOK-1012@zeromiss.com
+DTSTAMP:20261103T012500Z
+DTSTART:20261104T080000
+DTEND:20261104T120000
+SUMMARY:⚡ ZeroMiss: Thomas Reed - Hello, our entire house j
+DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-BOOK-1012\nCustomer: Thomas Reed ((555) 780-6612)\nTechnician: Marcus Vance\nWindow: 08:00 AM - 12:00 PM\nFee: $89 Diagnostic Fee\nScope: Hello, our entire house just went pitch dark! All the streetlights and neighbors still have power, so it's just our house. There is no fire or smoke.\nNotes: None\n24/7 Dispatch: (800) 555-MISS
+LOCATION:98 Canterbury Road, Arlington
+ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Dispatch Alert: Service call starting in 30 minutes
+END:VALARM
+END:VEVENT
+END:VCALENDAR
