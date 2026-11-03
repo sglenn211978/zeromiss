@@ -102,6 +102,8 @@ def triage_fire_shock_emergency(
         or "plastic" in hazard_clean or "plastic" in notes_clean
         or "odor" in hazard_clean or "odor" in notes_clean
         or "fishy" in hazard_clean or "fishy" in notes_clean
+        or "emergency" in hazard_clean or "emergency" in notes_clean
+        or "hazard" in hazard_clean
     ):
         severity = EmergencySeverity.LEVEL_2_HIGH_HAZARD
         if can_safely_access_panel and not is_water_present:

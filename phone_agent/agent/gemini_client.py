@@ -171,6 +171,24 @@ class Gemini2FlashClient:
             flags=re.IGNORECASE,
         )
 
+        # 0. HUMAN TRANSFER / OPT-OUT FLOW
+        human_transfer_patterns = [
+            r"\b(?:speak|talk)\s+to\s+(?:a\s+)?(?:human|person|someone|representative|operator|agent|contractor|owner|sean)\b",
+            r"\b(?:real\s+(?:person|human)|live\s+(?:person|human|agent|operator|representative))\b",
+            r"\b(?:representative|operator)\b",
+            r"\b(?:not|no|stop|don'?t\s+want|do\s+not\s+want)\s+.*?\b(?:ai|robot|bot|machine|automated)\b",
+            r"\b(?:hate|refuse)\s+.*?\b(?:ai|robot|bot)\b",
+            r"\btransfer\s+(?:me|my\s+call)\b",
+            r"\b(?:human|person)\s+please\b",
+        ]
+        is_human_request = any(re.search(pat, last_user_turn, re.IGNORECASE) for pat in human_transfer_patterns)
+        if is_human_request:
+            spoken_response = (
+                "I completely understand. Let me transfer you directly to Sean Glenn right now. "
+                "Please hold for just a moment while I connect your call."
+            )
+            return {"text": spoken_response, "tool_calls": []}
+
         has_sparking = any(w in filtered_text for w in ["spark", "sparks", "sparking", "arcing", "flame", "fire", "popping"])
         has_smoke = any(w in filtered_text for w in [
             "smoke", "smoking", "burnt", "burning smell", "burning rubber", "rubber burning",
@@ -182,11 +200,17 @@ class Gemini2FlashClient:
         has_shock = any(w in filtered_text for w in ["shock", "shocked", "tingling", "electrocuted", "numb"])
         has_downed_line = any(w in filtered_text for w in ["downed wire", "power line", "tree on line", "downed line", "wire on driveway", "wire down"])
         has_buzzing_hazard = any(w in filtered_text for w in ["loud buzzing", "sizzling", "hot outlet", "hot to touch", "blackened"])
+        has_emergency_keyword = bool(re.search(
+            r"\b(?:emergency|emergencies|urgent\s+hazard|code\s+red|danger|dangerous)\b",
+            filtered_text,
+            flags=re.IGNORECASE,
+        ))
 
         is_emergency_situation = (
             has_sparking or has_smoke or has_downed_line or has_shock or
             (has_water and any(w in filtered_text for w in ["panel", "box", "breaker", "basement", "meter"])) or
-            has_buzzing_hazard
+            has_buzzing_hazard or
+            has_emergency_keyword
         )
 
         tool_calls: List[Dict[str, Any]] = []
@@ -214,6 +238,9 @@ class Gemini2FlashClient:
                 elif "plastic" in filtered_text:
                     hazard_type = "burning_plastic_insulation"
                 loc = "kitchen" if "ceiling" in filtered_text or "kitchen" in filtered_text else "outlet"
+            elif has_emergency_keyword:
+                hazard_type = "other_hazard"
+                loc = "property"
             else:
                 hazard_type = "hot_outlet_switch"
                 loc = "outlet"
