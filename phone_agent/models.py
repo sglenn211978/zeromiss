@@ -51,6 +51,9 @@ class CalendarSlot:
     technician_name: str
     is_booked: bool = False
     service_categories: List[str] = field(default_factory=list)
+    is_blocked: bool = False
+    blocked_reason: Optional[str] = None
+    booking_id: Optional[str] = None
 
 
 @dataclass

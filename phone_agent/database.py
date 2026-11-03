@@ -248,6 +248,158 @@ class DispatchDatabase:
                     )
             return tech
 
+    def update_technician(
+        self,
+        technician_id: str,
+        name: str,
+        license_type: str,
+        phone: str,
+        is_on_call: bool,
+        specialties: Optional[List[str]] = None,
+        rating: float = 4.95,
+    ) -> Optional[Technician]:
+        """Updates technician details and propagates changes to their unbooked calendar slots."""
+        with self._lock:
+            if technician_id not in self.technicians:
+                return None
+            tech = self.technicians[technician_id]
+            tech.name = name
+            tech.license_type = license_type
+            tech.phone = phone
+            tech.is_on_call = is_on_call
+            if specialties is not None:
+                tech.specialties = specialties
+            tech.rating = rating
+
+            for slot in self.calendar_slots.values():
+                if slot.technician_id == technician_id and not slot.is_booked:
+                    slot.technician_name = name
+                    if specialties is not None:
+                        slot.service_categories = specialties
+            return tech
+
+    def toggle_technician_on_call(self, technician_id: str) -> Optional[Technician]:
+        """1-click toggle for technician on-call status."""
+        with self._lock:
+            if technician_id not in self.technicians:
+                return None
+            tech = self.technicians[technician_id]
+            tech.is_on_call = not tech.is_on_call
+            return tech
+
+    def delete_technician(self, technician_id: str) -> bool:
+        """Deletes a technician from fleet and removes their unbooked calendar slots."""
+        with self._lock:
+            if technician_id not in self.technicians:
+                return False
+            del self.technicians[technician_id]
+            slots_to_delete = [
+                sid for sid, s in self.calendar_slots.items()
+                if s.technician_id == technician_id and not s.is_booked
+            ]
+            for sid in slots_to_delete:
+                del self.calendar_slots[sid]
+            return True
+
+    def toggle_block_slot(self, slot_id: str, reason: str = "Unavailable / Off-Duty") -> Optional[CalendarSlot]:
+        """Blocks or unblocks a specific calendar slot."""
+        with self._lock:
+            if slot_id not in self.calendar_slots:
+                return None
+            slot = self.calendar_slots[slot_id]
+            slot.is_blocked = not getattr(slot, "is_blocked", False)
+            slot.blocked_reason = reason if slot.is_blocked else None
+            slot.is_booked = slot.is_blocked
+            return slot
+
+    def manual_book_slot(
+        self,
+        slot_id: str,
+        customer_name: str,
+        phone_number: str,
+        service_address: str,
+        issue_description: str,
+        service_type: str = "repair",
+        customer_email: Optional[str] = None,
+    ) -> Optional[ServiceBooking]:
+        """Manually books an available slot directly from the visual calendar interface."""
+        with self._lock:
+            if slot_id not in self.calendar_slots:
+                return None
+            slot = self.calendar_slots[slot_id]
+            if slot.is_booked and not getattr(slot, "is_blocked", False):
+                return None
+
+            booking = self.book_slot(
+                customer_name=customer_name,
+                phone_number=phone_number,
+                service_address=service_address,
+                slot_date=slot.date,
+                slot_time=slot.time_window,
+                issue_description=issue_description,
+                service_type=service_type,
+                urgency_level=UrgencyLevel.STANDARD,
+                assigned_technician=slot.technician_name,
+                dispatch_fee=89.0,
+                notes=f"Manual booking via Dispatch Board for {slot.date}",
+                customer_email=customer_email,
+            )
+            slot.is_booked = True
+            slot.is_blocked = False
+            slot.booking_id = booking.confirmation_id
+            return booking
+
+    def export_full_ical_feed(self) -> str:
+        """Generates a complete RFC 5545 iCalendar feed of all scheduled dispatches."""
+        with self._lock:
+            from datetime import timezone
+            from phone_agent.integrations.calendar_sync import CALENDAR_SYNC
+            now_str = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M00Z")
+
+            events = []
+            for b in self.bookings.values():
+                try:
+                    start_dt, end_dt = CALENDAR_SYNC.parse_time_window(b.slot_date, b.slot_time)
+                    start_str = start_dt.strftime("%Y%m%dT%H%M00")
+                    end_str = end_dt.strftime("%Y%m%dT%H%M00")
+                except Exception:
+                    continue
+
+                urgency_str = b.urgency_level.value if hasattr(b.urgency_level, "value") else str(b.urgency_level)
+                safe_desc = (
+                    f"ZeroMiss Dispatch Booking\\n"
+                    f"Confirmation: {b.confirmation_id}\\n"
+                    f"Customer: {b.customer_name}\\n"
+                    f"Phone: {b.phone_number}\\n"
+                    f"Technician: {b.assigned_technician}\\n"
+                    f"Window: {b.slot_time}\\n"
+                    f"Scope: {b.issue_description}"
+                )
+
+                events.append(
+                    "BEGIN:VEVENT\r\n"
+                    f"UID:{b.confirmation_id}@zeromissdispatch.com\r\n"
+                    f"DTSTAMP:{now_str}\r\n"
+                    f"DTSTART:{start_str}\r\n"
+                    f"DTEND:{end_str}\r\n"
+                    f"SUMMARY:[{urgency_str}] {b.customer_name} - {b.service_type}\r\n"
+                    f"DESCRIPTION:{safe_desc}\r\n"
+                    f"LOCATION:{b.service_address}\r\n"
+                    "STATUS:CONFIRMED\r\n"
+                    "END:VEVENT\r\n"
+                )
+
+            return (
+                "BEGIN:VCALENDAR\r\n"
+                "VERSION:2.0\r\n"
+                "PRODID:-//ZeroMiss Electrical//Fleet Dispatch System v2.0//EN\r\n"
+                "CALSCALE:GREGORIAN\r\n"
+                "X-WR-CALNAME:ZeroMiss Electrical Dispatches\r\n"
+                "X-WR-TIMEZONE:America/New_York\r\n"
+                + "".join(events) +
+                "END:VCALENDAR\r\n"
+            )
+
     def get_available_slots(
         self,
         target_date: Optional[str] = None,
@@ -259,7 +411,7 @@ class DispatchDatabase:
         with self._lock:
             matches = []
             for slot in self.calendar_slots.values():
-                if slot.is_booked:
+                if slot.is_booked or getattr(slot, "is_blocked", False):
                     continue
                 if target_date and slot.date != target_date:
                     continue
