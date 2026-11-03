@@ -449,6 +449,179 @@ HTML_DASHBOARD = """<!DOCTYPE html>
     .standard { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
     .tech-specs { font-size: 0.75rem; color: var(--text-muted); }
 
+    /* Visual On-Screen Calendar Grid */
+    .calendar-section {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .cal-day-col {
+      background: #1e293b;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .cal-day-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #38bdf8;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 4px;
+      text-align: center;
+    }
+    .cal-slot {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 0.72rem;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .cal-slot:hover {
+      border-color: #38bdf8;
+      transform: translateY(-1px);
+    }
+    .cal-slot-time {
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .cal-slot-tech {
+      color: #94a3b8;
+      font-size: 0.68rem;
+    }
+    .cal-slot.booked-routine {
+      background: rgba(22, 163, 74, 0.25);
+      border: 1px solid #22c55e;
+      color: #86efac;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+    }
+    .cal-slot.booked-routine .cal-slot-time {
+      color: #86efac;
+      font-weight: 700;
+    }
+    .cal-slot.booked-routine .cal-slot-tech {
+      color: #dcfce7;
+      font-weight: 600;
+    }
+    .cal-slot.booked-emergency {
+      background: rgba(220, 38, 38, 0.3);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      animation: pulse 1.5s infinite;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+    }
+    .cal-slot.booked-emergency .cal-slot-time {
+      color: #fca5a5;
+      font-weight: 700;
+    }
+    .cal-slot.booked-emergency .cal-slot-tech {
+      color: #fee2e2;
+      font-weight: 600;
+    }
+
+    /* Add Technician Button & Modal */
+    .btn-add-tech {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-add-tech:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 480px;
+      padding: 22px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.25s ease;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 10px;
+    }
+    .modal-header h3 { font-size: 1.05rem; font-weight: 700; color: white; }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-body label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      margin-top: 10px;
+    }
+    .modal-body input[type="text"], .modal-body select {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .btn-save-tech {
+      width: 100%;
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 11px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-top: 18px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-save-tech:hover { background: #0369a1; }
+
     /* Footer */
     footer {
       background: #0f172a;
@@ -564,46 +737,82 @@ HTML_DASHBOARD = """<!DOCTYPE html>
           </p>
         </div>
 
-        <!-- Real-Time Technician Roster -->
+        <!-- Live Visual On-Screen Calendar Grid -->
+        <div class="calendar-section">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-size:0.85rem; font-weight:700; color:var(--text); text-transform:uppercase; letter-spacing:0.04em;">
+              📅 Live Dispatch Schedule (On-Screen Calendar)
+            </h3>
+            <span style="font-size:0.75rem; color:#38bdf8; font-weight:600;">Real-Time Fleet Grid</span>
+          </div>
+          <div class="calendar-grid" id="calendarGrid">
+            <!-- Populated dynamically by renderCalendar() -->
+          </div>
+        </div>
+
+        <!-- Real-Time Technician Fleet Roster with + Add Technician Button -->
         <div>
-          <h3 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">
-            Active Electrician Fleet Roster
-          </h3>
-          <div class="tech-roster">
-            <div class="tech-card">
-              <div class="tech-header">
-                <span class="tech-name">Marcus Vance</span>
-                <span class="tech-status on-call">ON-CALL (24/7)</span>
-              </div>
-              <div class="tech-specs">Master Electrician | Code Red Emergencies & Panels</div>
-            </div>
-            <div class="tech-card">
-              <div class="tech-header">
-                <span class="tech-name">Sarah Chen</span>
-                <span class="tech-status standard">SCHEDULED</span>
-              </div>
-              <div class="tech-specs">EV Specialist | Tesla & Level 2 Chargers, Solar</div>
-            </div>
-            <div class="tech-card">
-              <div class="tech-header">
-                <span class="tech-name">Dave Miller</span>
-                <span class="tech-status standard">SCHEDULED</span>
-              </div>
-              <div class="tech-specs">Journeyman | Residential Repairs & Lighting</div>
-            </div>
-            <div class="tech-card">
-              <div class="tech-header">
-                <span class="tech-name">Luis Ortiz</span>
-                <span class="tech-status on-call">ON-CALL (24/7)</span>
-              </div>
-              <div class="tech-specs">Service Electrician | Inspections & Urgent Outages</div>
-            </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="font-size:0.85rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">
+              Active Electrician Fleet Roster
+            </h3>
+            <button class="btn-add-tech" onclick="openAddTechModal()">+ Add Technician</button>
+          </div>
+          <div class="tech-roster" id="techRoster">
+            <!-- Populated dynamically by renderTechRoster() -->
           </div>
         </div>
 
       </div>
     </div>
   </main>
+
+  <!-- Modal: + Add Technician -->
+  <div class="modal-overlay" id="techModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚡ Add Electrician to Dispatch Fleet</h3>
+        <button class="modal-close" onclick="closeAddTechModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label>Technician Full Name</label>
+        <input type="text" id="newTechName" placeholder="e.g. Jason Miller">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label>License / Role</label>
+            <select id="newTechLicense">
+              <option value="Master Electrician">Master Electrician</option>
+              <option value="Journeyman Electrician" selected>Journeyman Electrician</option>
+              <option value="EV & Solar Specialist">EV & Solar Specialist</option>
+              <option value="Service Electrician">Service Electrician</option>
+              <option value="Apprentice Helper">Apprentice Helper</option>
+            </select>
+          </div>
+          <div>
+            <label>Mobile Phone (for SMS)</label>
+            <input type="text" id="newTechPhone" placeholder="(555) 019-3388">
+          </div>
+        </div>
+
+        <label>On-Call Status</label>
+        <select id="newTechOnCall">
+          <option value="true">🟢 ON-CALL TONIGHT (Dispatched for Emergencies)</option>
+          <option value="false" selected>⚪ Standard Daytime Shift</option>
+        </select>
+
+        <label>Specialties Covered</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; margin-top:4px;">
+          <label style="text-transform:none; font-weight:normal; display:flex; align-items:center; gap:6px;"><input type="checkbox" id="specEmerg" checked> 24/7 Emergencies</label>
+          <label style="text-transform:none; font-weight:normal; display:flex; align-items:center; gap:6px;"><input type="checkbox" id="specEV" checked> EV Chargers</label>
+          <label style="text-transform:none; font-weight:normal; display:flex; align-items:center; gap:6px;"><input type="checkbox" id="specPanel" checked> 200A Panels</label>
+          <label style="text-transform:none; font-weight:normal; display:flex; align-items:center; gap:6px;"><input type="checkbox" id="specLighting" checked> Lighting & Repairs</label>
+        </div>
+
+        <button class="btn-save-tech" onclick="submitNewTech()">Save Technician & Sync Schedule</button>
+      </div>
+    </div>
+  </div>
 
   <footer>
     ZeroMiss Voice Dispatch System | Enterprise Gemini 2.0 Flash Agent | Fully Compliant with NFPA 70E Safety Standards
@@ -745,6 +954,183 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       `;
       dispatchHero.classList.remove('active');
       waitingPlaceholder.style.display = 'block';
+      fetchBoardData();
+    }
+
+    // Global board state
+    let BOARD_DATA = { technicians: [], slots: [], bookings: [] };
+
+    async function fetchBoardData() {
+      try {
+        const res = await fetch('/api/board');
+        const data = await res.json();
+        BOARD_DATA = data;
+        renderTechRoster(data.technicians || []);
+        renderCalendar(data.bookings || [], data.slots || []);
+      } catch (err) {
+        console.error('Error fetching board data:', err);
+      }
+    }
+
+    function renderTechRoster(technicians) {
+      const container = document.getElementById('techRoster');
+      if (!container) return;
+      if (!technicians.length) {
+        container.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem;">No technicians registered yet.</div>';
+        return;
+      }
+
+      container.innerHTML = technicians.map(t => {
+        const specs = (t.specialties || []).map(s => s.replace(/_/g, ' ')).join(', ');
+        const isOnCall = t.is_on_call;
+        return `
+          <div class="tech-card">
+            <div class="tech-header">
+              <span class="tech-name">${t.name}</span>
+              <span class="tech-status ${isOnCall ? 'on-call' : 'standard'}">
+                ${isOnCall ? '🟢 ON-CALL (24/7)' : '⚪ STANDARD'}
+              </span>
+            </div>
+            <div class="tech-specs">${t.license_type} • ${t.phone}</div>
+            <div style="font-size:0.7rem; color:#38bdf8; margin-top:2px;">⭐ ${t.rating || 4.95} • ${specs || 'Residential Electrical'}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderCalendar(bookings, slots) {
+      const grid = document.getElementById('calendarGrid');
+      if (!grid) return;
+
+      const dates = [...new Set((slots || []).map(s => s.date))].slice(0, 5);
+      if (!dates.length) {
+        const today = new Date();
+        for (let i = 1; i <= 4; i++) {
+          const d = new Date(today);
+          d.setDate(today.getDate() + i);
+          dates.push(d.toISOString().split('T')[0]);
+        }
+      }
+
+      grid.innerHTML = dates.map(dt => {
+        const dObj = new Date(dt + 'T12:00:00');
+        const dayLabel = dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+        const windows = [
+          { label: 'Morning', key: '08:00 AM - 12:00 PM' },
+          { label: 'Afternoon', key: '12:00 PM - 04:00 PM' },
+          { label: 'Evening', key: '04:00 PM - 07:00 PM' }
+        ];
+
+        const slotsHtml = windows.map(w => {
+          const b = (bookings || []).find(bk => {
+            const dateMatch = bk.slot_date === dt || bk.slot_date === 'today' || bk.slot_date === 'tomorrow';
+            const timeMatch = (bk.slot_time || '').includes(w.key) || (w.key.includes(bk.slot_time || '---'));
+            return dateMatch && timeMatch;
+          });
+
+          const isEmergBooking = (bookings || []).find(bk => {
+            const isEmerg = (bk.urgency_level || '').includes('EMERG');
+            return isEmerg && (bk.slot_date === dt || bk.slot_date === 'today');
+          });
+
+          if (isEmergBooking && w.label === 'Morning') {
+            const safeObj = JSON.stringify(isEmergBooking).replace(/'/g, "&#39;");
+            return `
+              <div class="cal-slot booked-emergency" onclick='selectCalendarBooking(${safeObj})' title="Click to view Code Red dispatch dossier">
+                <div class="cal-slot-time">🚨 CODE RED</div>
+                <div class="cal-slot-tech">${isEmergBooking.assigned_technician.split('(')[0].trim()} • ${isEmergBooking.customer_name}</div>
+              </div>
+            `;
+          }
+
+          if (b) {
+            const safeObj = JSON.stringify(b).replace(/'/g, "&#39;");
+            return `
+              <div class="cal-slot booked-routine" onclick='selectCalendarBooking(${safeObj})' title="Click to view booking">
+                <div class="cal-slot-time">⚡ ${w.label} (Booked)</div>
+                <div class="cal-slot-tech">${b.assigned_technician.split('(')[0].trim()} • ${b.customer_name}</div>
+              </div>
+            `;
+          }
+
+          const matchingSlot = (slots || []).find(s => s.date === dt && s.time_window.includes(w.key));
+          const techName = matchingSlot ? matchingSlot.technician_name.split('(')[0].trim() : 'On-Call Tech';
+
+          return `
+            <div class="cal-slot" title="Available Slot">
+              <div class="cal-slot-time">${w.label} (${w.key.split('-')[0].trim()})</div>
+              <div class="cal-slot-tech">Avail: ${techName}</div>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="cal-day-col">
+            <div class="cal-day-header">${dayLabel}</div>
+            ${slotsHtml}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectCalendarBooking(b) {
+      if (b) {
+        showBookingInHero(b);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    // Modal Controls
+    function openAddTechModal() {
+      document.getElementById('techModal').classList.add('active');
+      document.getElementById('newTechName').focus();
+    }
+
+    function closeAddTechModal() {
+      document.getElementById('techModal').classList.remove('active');
+    }
+
+    async function submitNewTech() {
+      const name = document.getElementById('newTechName').value.trim();
+      if (!name) {
+        alert('Please enter technician full name.');
+        return;
+      }
+      const license_type = document.getElementById('newTechLicense').value;
+      const phone = document.getElementById('newTechPhone').value.trim() || '(555) 019-3388';
+      const is_on_call = document.getElementById('newTechOnCall').value === 'true';
+
+      const specialties = [];
+      if (document.getElementById('specEmerg').checked) specialties.push('emergency');
+      if (document.getElementById('specEV').checked) specialties.push('ev_charger');
+      if (document.getElementById('specPanel').checked) specialties.push('panel_upgrade');
+      if (document.getElementById('specLighting').checked) specialties.push('lighting');
+
+      try {
+        const res = await fetch('/api/technicians', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            license_type,
+            phone,
+            is_on_call,
+            specialties
+          })
+        });
+        const data = await res.json();
+        if (data.status === 'SUCCESS') {
+          closeAddTechModal();
+          document.getElementById('newTechName').value = '';
+          await fetchBoardData();
+          alert(`⚡ Success! ${name} (${license_type}) added to active fleet and scheduled on calendar!`);
+        } else {
+          alert('Failed to add technician: ' + (data.message || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Error connecting to server.');
+      }
     }
 
     // Microphone speech recognition
@@ -784,6 +1170,9 @@ HTML_DASHBOARD = """<!DOCTYPE html>
         micBtn.classList.remove('listening');
       }
     }
+
+    window.addEventListener('DOMContentLoaded', fetchBoardData);
+    fetchBoardData();
   </script>
 </body>
 </html>
@@ -809,10 +1198,14 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(HTML_DASHBOARD.encode("utf-8"))
         elif parsed.path == "/api/board":
             bookings_data = [b.__dict__ for b in DB.bookings.values()]
+            techs_data = [t.__dict__ for t in DB.technicians.values()]
+            slots_data = [s.__dict__ for s in DB.calendar_slots.values()]
             self._send_json({
                 "contractor_email": DEFAULT_CONFIG.contractor_email,
                 "contractor_name": DEFAULT_CONFIG.contractor_name,
                 "bookings": bookings_data,
+                "technicians": techs_data,
+                "slots": slots_data,
             })
         else:
             self.send_response(404)
@@ -834,6 +1227,29 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             if new_email:
                 DEFAULT_CONFIG.contractor_email = new_email
             self._send_json({"status": "SUCCESS", "contractor_email": DEFAULT_CONFIG.contractor_email})
+
+        elif parsed.path == "/api/technicians":
+            name = req_data.get("name", "").strip()
+            if not name:
+                self._send_json({"status": "ERROR", "message": "Technician name required"}, 400)
+                return
+            license_type = req_data.get("license_type", "Journeyman Electrician").strip()
+            phone = req_data.get("phone", "(555) 019-0000").strip()
+            is_on_call = bool(req_data.get("is_on_call", False))
+            specialties = req_data.get("specialties", ["residential_repair", "lighting"])
+            new_tech = DB.add_technician(
+                name=name,
+                license_type=license_type,
+                phone=phone,
+                is_on_call=is_on_call,
+                specialties=specialties,
+            )
+            self._send_json({
+                "status": "SUCCESS",
+                "technician": new_tech.__dict__,
+                "technicians": [t.__dict__ for t in DB.technicians.values()],
+                "slots": [s.__dict__ for s in DB.calendar_slots.values()],
+            })
 
         elif parsed.path == "/api/chat":
             msg = req_data.get("message", "").strip()

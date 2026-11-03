@@ -203,6 +203,51 @@ class DispatchDatabase:
                         )
                         self.calendar_slots[s_id] = slot
 
+    def add_technician(
+        self,
+        name: str,
+        license_type: str = "Journeyman Electrician",
+        phone: str = "(555) 019-0000",
+        is_on_call: bool = False,
+        specialties: Optional[List[str]] = None,
+        rating: float = 4.95,
+    ) -> Technician:
+        """Adds a new technician to the fleet and seeds their upcoming calendar slots."""
+        with self._lock:
+            tid = f"TECH-{len(self.technicians) + 1:02d}"
+            tech = Technician(
+                technician_id=tid,
+                name=name,
+                license_type=license_type,
+                phone=phone,
+                is_on_call=is_on_call,
+                specialties=specialties or ["residential_repair", "lighting", "remodeling"],
+                rating=rating,
+            )
+            self.technicians[tid] = tech
+
+            today = datetime.now().date()
+            windows = [
+                ("08:00 AM - 12:00 PM", "morning"),
+                ("12:00 PM - 04:00 PM", "afternoon"),
+                ("04:00 PM - 07:00 PM", "evening"),
+            ]
+            for day_offset in range(1, 8):
+                d_str = (today + timedelta(days=day_offset)).strftime("%Y-%m-%d")
+                for w_label, w_key in windows:
+                    slot_id = f"SLOT-{len(self.calendar_slots) + 1:04d}"
+                    self.calendar_slots[slot_id] = CalendarSlot(
+                        slot_id=slot_id,
+                        date=d_str,
+                        time_window=w_label,
+                        time_window_key=w_key,
+                        technician_id=tid,
+                        technician_name=name,
+                        is_booked=False,
+                        service_categories=specialties or ["residential_repair", "lighting"],
+                    )
+            return tech
+
     def get_available_slots(
         self,
         target_date: Optional[str] = None,
