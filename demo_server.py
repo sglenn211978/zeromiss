@@ -1627,6 +1627,170 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     .roi-result-banner { background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 18px; margin: 18px 0; text-align: center; }
     .roi-big-gain { font-size: 2.1rem; font-weight: 800; color: #15803d; }
 
+    /* WORK ORDER TICKET DOSSIER MODAL */
+    .modal-card.ticket-dossier-card {
+      max-width: 860px;
+      padding: 0;
+      overflow: hidden;
+      border: 2px solid #cbd5e1;
+      max-height: 95vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-card.ticket-dossier-card.is-emerg-dossier {
+      border-color: #dc2626;
+      box-shadow: 0 25px 50px -12px rgba(220, 38, 38, 0.25);
+    }
+    .dossier-top-banner {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 14px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      border-bottom: 3px solid #2563eb;
+    }
+    .modal-card.ticket-dossier-card.is-emerg-dossier .dossier-top-banner {
+      background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+      border-bottom-color: #f87171;
+    }
+    .dossier-wo-stamp {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 3px 9px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+    }
+    .dossier-main-title {
+      font-size: 1.28rem;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #ffffff;
+    }
+    .dossier-sub-bar {
+      background: #f8fafc;
+      padding: 8px 22px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.83rem;
+      font-weight: 700;
+      color: #334155;
+    }
+    .dossier-body {
+      padding: 14px 22px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      background: #ffffff;
+    }
+    .dossier-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 720px) {
+      .dossier-two-col { grid-template-columns: 1fr; }
+    }
+    .dossier-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 11px 14px;
+    }
+    .dossier-box-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #475569;
+      margin-bottom: 7px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .dossier-kv-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.85rem;
+      padding: 3px 0;
+    }
+    .dossier-kv-label { color: #64748b; font-weight: 600; flex-shrink: 0; }
+    .dossier-kv-val { color: #0f172a; font-weight: 800; text-align: right; }
+    .dossier-triage-banner {
+      background: #eff6ff;
+      border: 1px solid #93c5fd;
+      border-left: 5px solid #2563eb;
+      border-radius: 10px;
+      padding: 11px 14px;
+    }
+    .dossier-triage-banner.is-emerg-triage {
+      background: #fff1f2;
+      border-color: #fda4af;
+      border-left-color: #dc2626;
+    }
+    .dossier-checklist {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .dossier-check-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #1e293b;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 5px 9px;
+      border-radius: 6px;
+    }
+    .dossier-invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .dossier-invoice-table th {
+      text-align: left;
+      font-size: 0.73rem;
+      text-transform: uppercase;
+      color: #64748b;
+      padding: 4px 8px;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    .dossier-invoice-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .dossier-footer-actions {
+      background: #f1f5f9;
+      padding: 12px 22px;
+      border-top: 1px solid #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
     footer {
       background: var(--navy);
       color: #cbd5e1;
@@ -1871,6 +2035,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
                 </div>
 
                 <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+                  <button class="btn-cal-action" style="background:#0f172a; color:#fff; border-color:#0f172a;" onclick="openTicketDossierModal(ACTIVE_HERO_BOOKING)">
+                    📋 Expand Full Work Order Ticket
+                  </button>
                   <a href="#" id="heroCalBtn" target="_blank" class="btn-cal-magic">
                     📅 Add to Google Calendar
                   </a>
@@ -2183,6 +2350,124 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- MODAL: Official Field Service Work Order & Dispatch Ticket Dossier -->
+  <div class="modal-overlay" id="ticketDossierModal">
+    <div class="modal-card ticket-dossier-card" id="ticketDossierCard">
+      <div class="dossier-top-banner">
+        <div>
+          <div class="dossier-wo-stamp" id="dossierStamp">⚡ OFFICIAL FIELD WORK ORDER &bull; BOOKED BY SARAH AI</div>
+          <div class="dossier-main-title" id="dossierJobTitle">Electrical Emergency: Burning Smell</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span id="dossierStatusBadge" style="background:#dc2626; color:#fff; font-size:0.78rem; font-weight:800; padding:5px 11px; border-radius:6px;">DISPATCHED CODE RED</span>
+          <button class="modal-close" style="color:#ffffff; font-size:1.7rem; line-height:1;" onclick="closeTicketDossierModal()">&times;</button>
+        </div>
+      </div>
+
+      <div class="dossier-sub-bar">
+        <span>📋 Work Order ID: <strong id="dossierConfId">#ZM-EMERG-1005</strong></span>
+        <span>🕒 Dispatched At: <strong id="dossierCreatedAt">Today, 12:45 PM EST</strong></span>
+        <span>📧 Shop Copy: <strong id="dossierContractorEmail">dispatch@apex-electrical-demo.com</strong></span>
+      </div>
+
+      <div class="dossier-body">
+        <!-- Section 1: Customer & Assigned Electrician Two-Col -->
+        <div class="dossier-two-col">
+          <div class="dossier-box">
+            <div class="dossier-box-title">
+              <span>👤 Customer &amp; Site Record</span>
+              <span style="color:#16a34a;">✓ SMS Confirmed</span>
+            </div>
+            <div class="dossier-kv-row"><span class="dossier-kv-label">Homeowner / Contact:</span><span class="dossier-kv-val" id="dossierCustName">David Miller</span></div>
+            <div class="dossier-kv-row"><span class="dossier-kv-label">Callback Phone:</span><span class="dossier-kv-val" id="dossierCustPhone">(555) 482-9104</span></div>
+            <div class="dossier-kv-row"><span class="dossier-kv-label">Service Address:</span><span class="dossier-kv-val" id="dossierCustAddress">742 Evergreen Terrace</span></div>
+            <div class="dossier-kv-row"><span class="dossier-kv-label">Site Access / Notes:</span><span class="dossier-kv-val" id="dossierAccessNotes">Immediate Code Red Dispatch</span></div>
+          </div>
+
+          <div class="dossier-box">
+            <div class="dossier-box-title">
+              <span>👷 Fleet Dispatch &amp; Routing</span>
+              <span style="color:#2563eb;">📅 GCal Synced</span>
+            </div>
+            <div class="dossier-kv-row"><span class="dossier-kv-label">Assigned Electrician:</span><span class="dossier-kv-val" id="dossierTechName">Marcus Vance (Master)</span></div>
+            <div class="dossier-kv-row"><span class="dossier-kv-label">AI Dispatch Match:</span><span class="dossier-kv-val" id="dossierTechMatch" style="color:#4338ca;">Master • On-Call • Nearest (14m)</span></div>
+            <div class="dossier-kv-row"><span class="dossier-kv-label">Arrival Window:</span><span class="dossier-kv-val" id="dossierArrivalWin">Today, within 45–60 min</span></div>
+            <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #cbd5e1; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+              <span style="font-size:0.76rem; font-weight:800; color:#475569; text-transform:uppercase;">Reassign Tech:</span>
+              <select id="dossierReassignSelect" class="reassign-select" style="flex:1; padding:5px 8px; font-size:0.82rem;" onchange="reassignFromDossierModal(this.value)"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: AI Technical Triage, Hazard Assessment & Safety Protocol -->
+        <div class="dossier-triage-banner" id="dossierTriageBanner">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+            <span style="font-size:0.82rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em;" id="dossierTriageTitle">🚨 NFPA 70E HAZARD TRIAGE &amp; SAFETY PROTOCOL LOG</span>
+            <span style="font-size:0.76rem; font-weight:800; background:rgba(255,255,255,0.85); padding:3px 8px; border-radius:5px; border:1px solid rgba(15,23,42,0.15);" id="dossierHazardPill">Code Red Thermal Risk</span>
+          </div>
+          <div style="display:grid; grid-template-columns: 150px 1fr; gap:6px 12px; font-size:0.88rem; line-height:1.45;">
+            <span style="font-weight:700; color:#475569;">Caller Symptom:</span>
+            <span style="font-weight:800; color:#0f172a;" id="dossierSymptom">Burning rubber odor behind refrigerator</span>
+            <span style="font-weight:700; color:#475569;">Hazard Classification:</span>
+            <span style="font-weight:800; color:#b91c1c;" id="dossierHazardFull">NFPA 70E Code Red — Active Thermal / Fire Risk</span>
+            <span style="font-weight:700; color:#475569;">Safety Directive Issued:</span>
+            <span style="font-weight:600; color:#1e293b;" id="dossierSafetyDirective">Shut off circuit breaker immediately if safe; do not touch scorched outlets.</span>
+          </div>
+        </div>
+
+        <!-- Section 3: Field Electrician Pre-Arrival Checklist & Truck Stock -->
+        <div class="dossier-box">
+          <div class="dossier-box-title">
+            <span>🧰 Field Technician Pre-Arrival Checklist &amp; Recommended Truck Stock</span>
+            <span>NEC / NFPA 70 Compliant</span>
+          </div>
+          <div class="dossier-checklist" id="dossierChecklistGrid"></div>
+        </div>
+
+        <!-- Section 4: Financial Estimate & Upfront Stripe Deposit Ledger -->
+        <div class="dossier-box" style="background:#ffffff;">
+          <div class="dossier-box-title">
+            <span>💳 Upfront Deposit &amp; Job Revenue Ledger</span>
+            <span id="dossierPaymentPill">⏳ Pending Authorization</span>
+          </div>
+          <table class="dossier-invoice-table">
+            <thead>
+              <tr>
+                <th>Line Item Description</th>
+                <th>Billing Stage</th>
+                <th style="text-align:right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="dossierFeeDesc">Upfront Dispatch &amp; Diagnostic Deposit (Stripe Escrow)</td>
+                <td id="dossierFeeStatusText" style="color:#b45309;">Pending Customer SMS Tap</td>
+                <td style="text-align:right; font-size:0.95rem;" id="dossierFeeAmt">$199.00</td>
+              </tr>
+              <tr>
+                <td id="dossierJobEstDesc">Estimated Field Scope &amp; Installation Revenue</td>
+                <td style="color:#475569;">On-Site Completion Estimate</td>
+                <td style="text-align:right; font-size:0.95rem; color:#15803d;" id="dossierJobValAmt">$1,850.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="dossier-footer-actions">
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <a href="#" target="_blank" id="dossierGcalBtn" class="btn-cal-magic" style="padding:9px 14px; font-size:0.86rem;">📅 Open in Google Calendar</a>
+          <button class="btn-cal-action" id="dossierStripePayBtn" style="background:#4f46e5; color:#fff; border-color:#4338ca;" onclick="authorizeDepositFromDossier()">💳 Authorize Deposit Now</button>
+          <button class="btn-cal-action" onclick="window.print()">🖨️ Print Work Order</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-cal-action" onclick="jumpToCallConsoleFromDossier()">🎙️ View in Call Console</button>
+          <button class="btn-cal-action" style="background:#0f172a; color:#fff;" onclick="closeTicketDossierModal()">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer>
     ZeroMiss Voice Dispatch &bull; Interactive Product Demo Environment (Simulated Data)
   </footer>
@@ -2423,7 +2708,10 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       }
     }
 
+    let ACTIVE_HERO_BOOKING = null;
+
     function showBookingInHero(booking) {
+      ACTIVE_HERO_BOOKING = booking;
       waitingPlaceholder.style.display = 'none';
       dispatchHero.classList.add('active');
 
@@ -3208,8 +3496,177 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       }).join('');
     }
 
+    let ACTIVE_DOSSIER_BOOKING = null;
+
     function selectCalendarBooking(booking) {
+      openTicketDossierModal(booking);
+    }
+
+    function openTicketDossierModal(booking) {
+      if (!booking) return;
+      ACTIVE_DOSSIER_BOOKING = booking;
       showBookingInHero(booking);
+
+      const isEmerg = (booking.urgency_level || '').includes('EMERG') || (booking.service_type || '').toLowerCase() === 'emergency';
+      const isPaid = booking.payment_status === 'PAID_VERIFIED';
+      const isManual = (booking.booked_by || '').toLowerCase().includes('manual');
+
+      const cardEl = document.getElementById('ticketDossierCard');
+      cardEl.className = `modal-card ticket-dossier-card ${isEmerg ? 'is-emerg-dossier' : ''}`;
+
+      document.getElementById('dossierStamp').innerHTML = isManual
+        ? '🛠️ OFFICIAL FIELD WORK ORDER &bull; MANUAL DISPATCH'
+        : (isEmerg ? '🚨 PRIORITY CODE RED WORK ORDER &bull; BOOKED BY SARAH AI' : '🤖 OFFICIAL FIELD WORK ORDER &bull; BOOKED BY SARAH AI');
+
+      document.getElementById('dossierJobTitle').innerText = booking.display_title || booking.service_type || 'Electrical Service Dispatch';
+
+      const statusBadge = document.getElementById('dossierStatusBadge');
+      if (isEmerg) {
+        statusBadge.style.background = '#dc2626';
+        statusBadge.innerText = '🚨 DISPATCHED CODE RED';
+      } else {
+        statusBadge.style.background = '#16a34a';
+        statusBadge.innerText = '✓ CONFIRMED ON SCHEDULE';
+      }
+
+      document.getElementById('dossierConfId').innerText = `#${booking.confirmation_id}`;
+      let createdClean = 'Today, Live Session';
+      if (booking.created_at) {
+        try {
+          const dt = new Date(booking.created_at);
+          createdClean = dt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+        } catch (e) {}
+      }
+      document.getElementById('dossierCreatedAt').innerText = createdClean;
+      document.getElementById('dossierContractorEmail').innerText = DEFAULT_CONFIG_EMAIL;
+
+      // Customer & Site Record
+      document.getElementById('dossierCustName').innerText = booking.customer_name || 'Resident';
+      document.getElementById('dossierCustPhone').innerText = booking.phone_number || '(555) 000-0000';
+      document.getElementById('dossierCustAddress').innerText = booking.service_address || 'Service Address';
+      document.getElementById('dossierAccessNotes').innerText = booking.notes || (isEmerg ? 'Immediate Code Red Dispatch • Gate/Door Unlocked' : 'Standard residential service access');
+
+      // Fleet Dispatch & Routing
+      document.getElementById('dossierTechName').innerText = booking.assigned_technician || 'Marcus Vance (Master Electrician)';
+      document.getElementById('dossierTechMatch').innerText = booking.tech_match_reason || (isEmerg ? 'Master Electrician • On-Call Lead • Nearest (14m)' : 'Certified Specialist • Route Optimized');
+      document.getElementById('dossierArrivalWin').innerText = booking.display_window || `${booking.slot_date} (${booking.slot_time})`;
+
+      const techs = BOARD_DATA.technicians || [];
+      const assignedShort = (booking.assigned_technician || '').split('(')[0].trim().toLowerCase();
+      const reassignSel = document.getElementById('dossierReassignSelect');
+      if (reassignSel) {
+        reassignSel.innerHTML = techs.map(t => {
+          const sel = t.name.toLowerCase() === assignedShort ? 'selected' : '';
+          return `<option value="${t.technician_id}" ${sel}>👷 ${t.name} (${t.license_type})</option>`;
+        }).join('');
+      }
+
+      // Triage & Safety Log
+      const triageBanner = document.getElementById('dossierTriageBanner');
+      triageBanner.className = `dossier-triage-banner ${isEmerg ? 'is-emerg-triage' : ''}`;
+      document.getElementById('dossierTriageTitle').innerHTML = isEmerg
+        ? '🚨 NFPA 70E HAZARD TRIAGE &amp; SAFETY PROTOCOL LOG'
+        : '🛡️ AI TECHNICAL TRIAGE &amp; LOAD VERIFICATION LOG';
+      document.getElementById('dossierHazardPill').innerText = booking.triage_hazard_short || (isEmerg ? '🚨 NFPA 70E Code Red' : '🛡️ 200A Panel Verified');
+      document.getElementById('dossierSymptom').innerText = booking.triage_symptom || booking.issue_description || 'Electrical service request';
+      const hazFullEl = document.getElementById('dossierHazardFull');
+      hazFullEl.innerText = booking.triage_hazard_level || (isEmerg ? 'NFPA 70E Code Red — Active Thermal / Fire Risk' : 'Routine Service (Non-Hazardous)');
+      hazFullEl.style.color = isEmerg ? '#b91c1c' : '#1e40af';
+      document.getElementById('dossierSafetyDirective').innerText = booking.triage_safety_instruction || 'Isolate affected circuit breaker prior to arrival.';
+
+      // Field Technician Pre-Arrival Checklist & Truck Stock
+      const titleLower = (booking.display_title || booking.service_type || '').toLowerCase();
+      let checklistItems = [];
+      if (isEmerg) {
+        checklistItems = [
+          '✓ FLIR Thermal Imaging Camera (Hotspot Scan)',
+          '✓ NFPA 70E Arc-Rated PPE & Insulated Gloves',
+          '✓ 15A/20A Spec-Grade Receptacles & AFCI/GFCI Breakers',
+          '✓ Megohmmeter Insulation Resistance Tester'
+        ];
+      } else if (titleLower.includes('ev')) {
+        checklistItems = [
+          '✓ 50A 2-Pole Breaker & #6 AWG Cu THHN/Romex',
+          '✓ Industrial NEMA 14-50 / Hardwire EVSE Whip',
+          '✓ NEC 220.82 Service Load Calculation Sheet',
+          '✓ Torque Wrench (In-Lbs Lug Verification)'
+        ];
+      } else if (titleLower.includes('panel')) {
+        checklistItems = [
+          '✓ 200A Copper Bus Main Breaker Loadcenter',
+          '✓ Whole-Home Type 1/2 Surge Protective Device (NEC 230.67)',
+          '✓ Ground Rod & #4 Cu GEC Bonding Clamps',
+          '✓ Thermal Scan & Torque Spec Log'
+        ];
+      } else {
+        checklistItems = [
+          '✓ True-RMS Digital Multimeter & Circuit Tracer',
+          '✓ 20A Dual-Function AFCI/GFCI Breakers',
+          '✓ Commercial Spec-Grade Wiring Devices',
+          '✓ Panel Schedule & Load Balancing Audit'
+        ];
+      }
+      document.getElementById('dossierChecklistGrid').innerHTML = checklistItems
+        .map(item => `<div class="dossier-check-item">${item}</div>`)
+        .join('');
+
+      // Financial Ledger
+      const fee = Number(booking.dispatch_fee || 89);
+      const jobVal = Number(booking.estimated_job_value || 1200);
+      document.getElementById('dossierFeeDesc').innerText = isEmerg
+        ? 'Priority Code Red Emergency Dispatch & Diagnostic Deposit'
+        : 'Upfront Dispatch & Diagnostic Deposit (Credited Toward Job)';
+      document.getElementById('dossierJobEstDesc').innerText = `${booking.display_title || 'Electrical Service'} — Estimated Turnkey Scope`;
+      document.getElementById('dossierFeeAmt').innerText = `$${fee.toFixed(2)}`;
+      document.getElementById('dossierJobValAmt').innerText = `$${jobVal.toLocaleString()}.00`;
+
+      const payPill = document.getElementById('dossierPaymentPill');
+      const feeStatus = document.getElementById('dossierFeeStatusText');
+      const payBtn = document.getElementById('dossierStripePayBtn');
+      if (isPaid) {
+        payPill.innerHTML = '<span style="background:#dcfce7; color:#15803d; padding:3px 9px; border-radius:6px; font-weight:800;">✓ Deposit Paid &amp; Verified via Stripe</span>';
+        feeStatus.style.color = '#15803d';
+        feeStatus.innerText = '✓ Paid & Verified (Stripe Escrow)';
+        payBtn.style.display = 'none';
+      } else {
+        payPill.innerHTML = `<span style="background:#fef3c7; color:#b45309; padding:3px 9px; border-radius:6px; font-weight:800;">⏳ Pending $${fee} Deposit</span>`;
+        feeStatus.style.color = '#b45309';
+        feeStatus.innerText = 'Pending Customer Stripe Authorization';
+        payBtn.style.display = 'inline-flex';
+        payBtn.innerText = `💳 Authorize $${fee} Deposit Now`;
+      }
+
+      const gcalBtn = document.getElementById('dossierGcalBtn');
+      if (booking.google_calendar_link) {
+        gcalBtn.href = booking.google_calendar_link;
+        gcalBtn.style.display = 'inline-flex';
+      } else {
+        gcalBtn.style.display = 'none';
+      }
+
+      document.getElementById('ticketDossierModal').classList.add('active');
+    }
+
+    function closeTicketDossierModal() {
+      document.getElementById('ticketDossierModal').classList.remove('active');
+    }
+
+    async function reassignFromDossierModal(newTechId) {
+      if (!ACTIVE_DOSSIER_BOOKING) return;
+      await reassignBookingTech(ACTIVE_DOSSIER_BOOKING.confirmation_id, newTechId);
+      const updated = (BOARD_DATA.bookings || []).find(b => b.confirmation_id === ACTIVE_DOSSIER_BOOKING.confirmation_id);
+      if (updated) openTicketDossierModal(updated);
+    }
+
+    async function authorizeDepositFromDossier() {
+      if (!ACTIVE_DOSSIER_BOOKING) return;
+      await payStripeDeposit(ACTIVE_DOSSIER_BOOKING.confirmation_id);
+      const updated = (BOARD_DATA.bookings || []).find(b => b.confirmation_id === ACTIVE_DOSSIER_BOOKING.confirmation_id);
+      if (updated) openTicketDossierModal(updated);
+    }
+
+    function jumpToCallConsoleFromDossier() {
+      closeTicketDossierModal();
       switchPortalTab('console');
     }
 
@@ -3525,9 +3982,13 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     }
 
     applyBoardData(BOARD_DATA, false);
-    const initTab = new URLSearchParams(window.location.search).get('tab');
+    const urlParams = new URLSearchParams(window.location.search);
+    const initTab = urlParams.get('tab');
     if (initTab === 'calendar' || initTab === 'fleet' || initTab === 'console') {
       switchPortalTab(initTab);
+    }
+    if (urlParams.get('ticket') === 'true' && BOARD_DATA.bookings && BOARD_DATA.bookings.length > 0) {
+      openTicketDossierModal(BOARD_DATA.bookings[BOARD_DATA.bookings.length - 1]);
     }
     window.addEventListener('DOMContentLoaded', () => fetchBoardData());
   </script>
