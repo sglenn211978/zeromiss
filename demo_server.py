@@ -144,6 +144,576 @@ def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -
     return b
 
 
+def render_printable_work_order_html(booking_obj: Any, contractor_email: str) -> str:
+    """Renders a dedicated, contractor-grade printable 8.5x11 Field Service Work Order & NFPA 70E Dispatch Sheet."""
+    b = enrich_booking_dict(booking_obj)
+    conf_id = b.get("confirmation_id", "ZM-BOOK-1001")
+    is_emerg = "EMERG" in str(b.get("urgency_level", "")).upper() or "emergency" in str(b.get("service_type", "")).lower()
+    is_paid = b.get("payment_status") == "PAID_VERIFIED"
+    is_manual = "manual" in str(b.get("booked_by", "")).lower()
+
+    title = b.get("display_title", "Electrical Service Dispatch")
+    cust_name = b.get("customer_name", "Valued Homeowner")
+    cust_phone = b.get("phone_number", "(555) 000-0000")
+    cust_addr = b.get("service_address", "Customer Service Address")
+    cust_email = b.get("customer_email") or "Confirmed via SMS Dispatch Link"
+    access_notes = b.get("notes") or ("Immediate Code Red Dispatch • Gate/Door Unlocked" if is_emerg else "Standard residential service access")
+
+    tech_name = b.get("assigned_technician", "Marcus Vance (Master Electrician)")
+    tech_match = b.get("tech_match_reason", "Master Electrician • 24/7 On-Call Lead • Nearest (14m)")
+    arrival_win = b.get("display_window", "Today, within 45–60 min")
+
+    created_raw = b.get("created_at", "")
+    try:
+        dt = datetime.fromisoformat(str(created_raw))
+        dispatched_ts = dt.strftime("%b %d, %Y at %I:%M %p EST")
+    except Exception:
+        dispatched_ts = datetime.now().strftime("%b %d, %Y at %I:%M %p EST")
+
+    symptom = b.get("triage_symptom", "Electrical service request")
+    hazard_level = b.get("triage_hazard_level", "Routine Service — Non-Hazardous")
+    safety_dir = b.get("triage_safety_instruction", "Isolate affected circuit breaker prior to arrival.")
+
+    fee = float(b.get("dispatch_fee", 199.0 if is_emerg else 89.0))
+    est_val = float(b.get("estimated_job_value", 1850.0 if is_emerg else 1450.0))
+    balance_est = max(0.0, est_val - (fee if is_paid else 0.0))
+
+    title_lower = title.lower()
+    if is_emerg:
+        materials_rows = [
+            ("FLIR Thermal Imaging Camera & Non-Contact IR Pyrometer", "1 Unit", "Pre-Arrival Hotspot & Insulation Scan", "Included"),
+            ("NFPA 70E Arc-Rated PPE Kit & Class 0 Insulated Gloves", "1 Set", "Live Panel Isolation & Safety Compliance", "Included"),
+            ("20A Dual-Function AFCI/GFCI Circuit Breaker (NEMA Spec)", "1–2 Ea", "Faulty Branch Circuit Replacement", " Per Quote"),
+            ("20A Commercial Spec-Grade Tamper/Weather Receptacle", "1–2 Ea", "Replace Scorched / Degraded Termination", "Per Quote"),
+            ("Megohmmeter 500V/1000V Insulation Resistance Test", "1 Test", "Verify In-Wall Romex Jacket Integrity", "Included"),
+        ]
+    elif "ev" in title_lower:
+        materials_rows = [
+            ("50A 2-Pole Thermal-Magnetic Breaker", "1 Ea", "Dedicated 240V EVSE Branch Circuit", "Per Quote"),
+            ("#6 AWG Copper THHN / NM-B 6/3 w/ Ground", "35 Ft", "Continuous Duty 40A/48A EV Load Feed", "Per Quote"),
+            ("Industrial Grade NEMA 14-50R / Hardwire EVSE Whip", "1 Set", "High-Cycle Torque-Verified Termination", "Per Quote"),
+            ("NEC 220.82 Residential Load Calculation Audit", "1 Doc", "200A Main Bus Capacity Certification", "Included"),
+            ("Calibrated Torque Wrench Lug Verification", "All Lugs", "NEC 110.14(D) Torque Spec Compliance", "Included"),
+        ]
+    elif "panel" in title_lower:
+        materials_rows = [
+            ("200A Copper Bus Main Breaker Loadcenter (40-Space)", "1 Unit", "Primary Service Distribution Upgrade", "Per Quote"),
+            ("Whole-Home Type 1/2 Surge Protective Device (SPD)", "1 Unit", "NEC 230.67 Mandatory Surge Protection", "Per Quote"),
+            ("#4 AWG Bare Copper GEC & Dual Ground Rod Clamps", "1 Lot", "NEC 250 Grounding & Bonding Verification", "Per Quote"),
+            ("Branch Circuit Labeling & Phase Load Balancing", "Full Panel", "Eliminate L1/L2 Voltage Drop & Flicker", "Included"),
+            ("Infrared Thermal & Torque Spec Commissioning", "All Lugs", "Final Municipal Inspection Sign-Off", "Included"),
+        ]
+    else:
+        materials_rows = [
+            ("True-RMS Digital Multimeter & Circuit Tracer", "1 Kit", "Branch Circuit Fault Isolation", "Included"),
+            ("20A Dual-Function AFCI/GFCI Circuit Breaker", "1 Ea", "NEC Code-Compliant Protection", "Per Quote"),
+            ("Spec-Grade Wiring Devices & Wago/Buchanan Splice Kit", "1 Lot", "High-Resistance Connection Remediation", "Per Quote"),
+            ("Panel Schedule & Voltage Drop Load Test", "1 Test", "Verify < 3% Branch Voltage Drop", "Included"),
+        ]
+
+    materials_html = "".join(
+        f"""
+        <tr>
+          <td><span class="chk-box"></span> <strong>{item}</strong></td>
+          <td>{qty}</td>
+          <td>{purpose}</td>
+          <td style="text-align:right; font-weight:700;">{price_note}</td>
+        </tr>
+        """
+        for item, qty, purpose, price_note in materials_rows
+    )
+
+    priority_banner_color = "#991b1b" if is_emerg else "#0f172a"
+    priority_label = "🚨 PRIORITY CODE RED — EMERGENCY FIELD WORK ORDER" if is_emerg else "⚡ OFFICIAL FIELD SERVICE WORK ORDER & DISPATCH SHEET"
+    source_tag = "Manual Dispatcher Entry" if is_manual else "Autonomous AI Triage & Dispatch (Sarah AI)"
+    pay_badge_html = (
+        f'<span class="wo-badge badge-paid">✓ ${fee:,.2f} DEPOSIT PAID &amp; VERIFIED (STRIPE)</span>'
+        if is_paid
+        else f'<span class="wo-badge badge-pending">⏳ ${fee:,.2f} DEPOSIT PENDING AUTHORIZATION</span>'
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Work Order #{conf_id} — {cust_name} | ZeroMiss Electrical</title>
+  <style>
+    @page {{
+      size: letter portrait;
+      margin: 0.4in;
+    }}
+    * {{ box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }}
+    body {{
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+      background: #e2e8f0;
+      color: #0f172a;
+      font-size: 12px;
+      line-height: 1.4;
+      padding: 24px 16px;
+    }}
+    .print-toolbar {{
+      max-width: 820px;
+      margin: 0 auto 16px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
+    }}
+    .toolbar-btn {{
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }}
+    .toolbar-btn.secondary {{
+      background: #334155;
+    }}
+    .sheet {{
+      max-width: 820px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+      padding: 28px 32px;
+    }}
+    .letterhead {{
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid {priority_banner_color};
+      padding-bottom: 14px;
+      margin-bottom: 12px;
+    }}
+    .shop-brand {{
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }}
+    .shop-logo {{
+      width: 42px;
+      height: 42px;
+      background: {priority_banner_color};
+      color: #ffffff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 900;
+    }}
+    .shop-name {{
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+    }}
+    .shop-meta {{
+      font-size: 11px;
+      color: #475569;
+      font-weight: 600;
+      margin-top: 2px;
+    }}
+    .wo-box {{
+      text-align: right;
+    }}
+    .wo-type-pill {{
+      display: inline-block;
+      background: {priority_banner_color};
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      white-space: nowrap;
+    }}
+    .wo-number {{
+      font-size: 20px;
+      font-weight: 900;
+      color: #0f172a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }}
+    .wo-timestamp {{
+      font-size: 11px;
+      color: #475569;
+      font-weight: 600;
+    }}
+    .meta-strip {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }}
+    .wo-badge {{
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }}
+    .badge-paid {{ background: #dcfce7; color: #15803d; border: 1px solid #86efac; }}
+    .badge-pending {{ background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }}
+    .grid-2 {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 12px;
+    }}
+    .panel {{
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+      overflow: hidden;
+    }}
+    .panel-head {{
+      background: #f1f5f9;
+      border-bottom: 1px solid #94a3b8;
+      padding: 6px 10px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      white-space: nowrap;
+      gap: 6px;
+    }}
+    .panel-body {{
+      padding: 8px 10px;
+    }}
+    .kv {{
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+      border-bottom: 1px dotted #e2e8f0;
+      font-size: 11.5px;
+    }}
+    .kv:last-child {{ border-bottom: none; }}
+    .kv-k {{ color: #475569; font-weight: 600; }}
+    .kv-v {{ color: #0f172a; font-weight: 800; text-align: right; max-width: 65%; }}
+    .triage-section {{
+      border: 1.5px solid {"#dc2626" if is_emerg else "#2563eb"};
+      background: {"#fff1f2" if is_emerg else "#eff6ff"};
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+    }}
+    .triage-head {{
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: {"#991b1b" if is_emerg else "#1e3a8a"};
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }}
+    .triage-grid {{
+      display: grid;
+      grid-template-columns: 145px 1fr;
+      gap: 4px 10px;
+      font-size: 11.5px;
+    }}
+    .tbl {{
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+      font-size: 11.5px;
+    }}
+    .tbl th {{
+      background: #0f172a;
+      color: #ffffff;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 6px 8px;
+      border: 1px solid #0f172a;
+    }}
+    .tbl td {{
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      vertical-align: middle;
+    }}
+    .chk-box {{
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border: 1.5px solid #0f172a;
+      border-radius: 2px;
+      margin-right: 5px;
+      vertical-align: -1px;
+    }}
+    .diag-grid {{
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }}
+    .diag-cell {{
+      border: 1px solid #94a3b8;
+      border-radius: 5px;
+      padding: 6px 8px;
+      background: #f8fafc;
+    }}
+    .diag-label {{
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #475569;
+      margin-bottom: 8px;
+    }}
+    .diag-blank {{
+      border-bottom: 1px solid #475569;
+      height: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      text-align: right;
+    }}
+    .sign-box {{
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #f8fafc;
+    }}
+    .sign-terms {{
+      font-size: 10px;
+      color: #334155;
+      line-height: 1.35;
+      margin-bottom: 16px;
+    }}
+    .sign-lines {{
+      display: grid;
+      grid-template-columns: 2fr 1fr 2fr 1fr;
+      gap: 14px;
+      align-items: end;
+    }}
+    .sign-line {{
+      border-top: 1.5px solid #0f172a;
+      padding-top: 3px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #334155;
+    }}
+    @media print {{
+      body {{ background: #ffffff; padding: 0; }}
+      .print-toolbar {{ display: none !important; }}
+      .sheet {{ box-shadow: none; border: none; padding: 0; max-width: 100%; }}
+    }}
+  </style>
+</head>
+<body>
+  <div class="print-toolbar">
+    <div>
+      <strong style="font-size:14px;">🖨️ Official Contractor Field Work Order (#{conf_id})</strong>
+      <span style="font-size:12px; color:#cbd5e1; margin-left:10px;">Formatted for 8.5&quot; &times; 11&quot; Print or Save as PDF</span>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="toolbar-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+      <button class="toolbar-btn secondary" onclick="window.close()">✕ Close Window</button>
+    </div>
+  </div>
+
+  <div class="sheet">
+    <!-- 1. CONTRACTOR LETTERHEAD -->
+    <div class="letterhead">
+      <div class="shop-brand">
+        <div class="shop-logo">⚡</div>
+        <div>
+          <div class="shop-name">APEX ELECTRICAL SERVICES &bull; ZEROMISS DISPATCH</div>
+          <div class="shop-meta">
+            Master Electrical License #EL-49201-MA &bull; NFPA 70E &amp; NEC 2026 Certified Contractor<br>
+            24/7 Emergency Dispatch Control: (800) 555-MISS &bull; Shop Dispatch Alert: {contractor_email}
+          </div>
+        </div>
+      </div>
+      <div class="wo-box">
+        <div class="wo-type-pill">{priority_label}</div>
+        <div class="wo-number">WO #{conf_id}</div>
+        <div class="wo-timestamp">Dispatched: {dispatched_ts}</div>
+      </div>
+    </div>
+
+    <!-- 2. SUMMARY STRIP -->
+    <div class="meta-strip">
+      <span>📋 <strong>Primary Scope:</strong> {title}</span>
+      <span>🤖 <strong>Intake Source:</strong> {source_tag}</span>
+      {pay_badge_html}
+    </div>
+
+    <!-- 3. CUSTOMER SITE RECORD & ASSIGNED FLEET ELECTRICIAN -->
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <span>👤 Customer &amp; Site Location Record</span>
+          <span style="color:#15803d;">✓ SMS Confirmed</span>
+        </div>
+        <div class="panel-body">
+          <div class="kv"><span class="kv-k">Customer / Contact:</span><span class="kv-v">{cust_name}</span></div>
+          <div class="kv"><span class="kv-k">Callback Phone:</span><span class="kv-v">{cust_phone}</span></div>
+          <div class="kv"><span class="kv-k">Service Address:</span><span class="kv-v">{cust_addr}</span></div>
+          <div class="kv"><span class="kv-k">Notification / Email:</span><span class="kv-v">{cust_email}</span></div>
+          <div class="kv"><span class="kv-k">Site Access &amp; Gate Notes:</span><span class="kv-v">{access_notes}</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span>👷 Fleet Assignment &amp; Arrival Window</span>
+          <span style="color:#1d4ed8;">📅 GCal Synced ✓</span>
+        </div>
+        <div class="panel-body">
+          <div class="kv"><span class="kv-k">Assigned Electrician:</span><span class="kv-v">{tech_name}</span></div>
+          <div class="kv"><span class="kv-k">Dispatch Match Logic:</span><span class="kv-v">{tech_match}</span></div>
+          <div class="kv"><span class="kv-k">Scheduled Window:</span><span class="kv-v">{arrival_win}</span></div>
+          <div class="kv"><span class="kv-k">Dispatch Status:</span><span class="kv-v">{"DISPATCHED CODE RED (45–60M ETA)" if is_emerg else "CONFIRMED ON FLEET SCHEDULE"}</span></div>
+          <div class="kv"><span class="kv-k">Truck / Route ID:</span><span class="kv-v">UNIT-01 &bull; GPS Telemetry Active</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. AI TECHNICAL TRIAGE & NFPA 70E SAFETY DIRECTIVE LOG -->
+    <div class="triage-section">
+      <div class="triage-head">
+        <span>{"🚨 NFPA 70E EMERGENCY HAZARD TRIAGE & LIFE-SAFETY RECORD" if is_emerg else "🛡️ AI TECHNICAL TRIAGE & PRE-ARRIVAL LOAD VERIFICATION"}</span>
+        <span>Verified Prior to Dispatch</span>
+      </div>
+      <div class="triage-grid">
+        <strong style="color:#475569;">Reported Symptom:</strong>
+        <strong style="color:#0f172a;">{symptom}</strong>
+        <strong style="color:#475569;">Hazard Classification:</strong>
+        <strong style="color:{"#991b1b" if is_emerg else "#1e3a8a"};">{hazard_level}</strong>
+        <strong style="color:#475569;">Safety Directive Issued:</strong>
+        <span style="font-weight:600; color:#1e293b;">{safety_dir}</span>
+      </div>
+    </div>
+
+    <!-- 5. FIELD TECHNICIAN SCOPE, TRUCK STOCK & NEC CHECKLIST -->
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:44%;">Field Procedure / Truck Stock Material Item</th>
+          <th style="width:12%;">Qty / Spec</th>
+          <th style="width:30%;">NEC / NFPA 70E Inspection Purpose</th>
+          <th style="width:14%; text-align:right;">Billing Basis</th>
+        </tr>
+      </thead>
+      <tbody>
+        {materials_html}
+      </tbody>
+    </table>
+
+    <!-- 6. ON-SITE ELECTRICAL DIAGNOSTIC & COMMISSIONING LOG (FOR FIELD TECH) -->
+    <div style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:#334155; margin-bottom:5px;">
+      🔬 On-Site Electrical Diagnostic &amp; Commissioning Readings (To Be Completed by Field Electrician)
+    </div>
+    <div class="diag-grid">
+      <div class="diag-cell">
+        <div class="diag-label">Supply Voltage (L1/L2)</div>
+        <div class="diag-blank">______ / ______ V</div>
+      </div>
+      <div class="diag-cell">
+        <div class="diag-label">Main Panel Rating</div>
+        <div class="diag-blank">__________ Amps</div>
+      </div>
+      <div class="diag-cell">
+        <div class="diag-label">IR Thermal Hotspot</div>
+        <div class="diag-blank">__________ &deg;F</div>
+      </div>
+      <div class="diag-cell">
+        <div class="diag-label">Ground / Neutral Bond</div>
+        <div class="diag-blank">&square; Pass &nbsp; &square; Fail</div>
+      </div>
+      <div class="diag-cell">
+        <div class="diag-label">Lug Torque Verified</div>
+        <div class="diag-blank">_______ In-Lbs</div>
+      </div>
+    </div>
+
+    <!-- 7. FINANCIAL ESTIMATE & UPFRONT STRIPE DEPOSIT LEDGER -->
+    <table class="tbl" style="margin-bottom:14px;">
+      <thead>
+        <tr>
+          <th style="width:52%;">Financial Summary &amp; Deposit Ledger</th>
+          <th style="width:28%;">Payment / Escrow Status</th>
+          <th style="width:20%; text-align:right;">Amount (USD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Upfront Dispatch &amp; Diagnostic Deposit</strong> (Credited toward final work order)</td>
+          <td style="font-weight:800; color:{"#15803d" if is_paid else "#b45309"};">
+            {"✓ PAID & VERIFIED VIA STRIPE" if is_paid else "⏳ PENDING CUSTOMER STRIPE AUTHORIZATION"}
+          </td>
+          <td style="text-align:right; font-weight:800;">${fee:,.2f}</td>
+        </tr>
+        <tr>
+          <td><strong>Estimated Field Scope &amp; Turnkey Installation</strong> ({title})</td>
+          <td style="color:#475569; font-weight:600;">Subject to On-Site Diagnostic Approval</td>
+          <td style="text-align:right; font-weight:800;">${est_val:,.2f}</td>
+        </tr>
+        <tr style="background:#f8fafc;">
+          <td colspan="2" style="text-align:right; font-weight:900; text-transform:uppercase;">
+            Estimated Balance Upon Completion {("(After Paid Deposit Credit)" if is_paid else "(Including Deposit)")}:
+          </td>
+          <td style="text-align:right; font-size:13px; font-weight:900; color:#0f172a;">${balance_est:,.2f}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 8. CUSTOMER WORK AUTHORIZATION & NEC COMPLIANCE SIGN-OFF -->
+    <div class="sign-box">
+      <div class="sign-terms">
+        <strong>WORK AUTHORIZATION &amp; SAFETY ACKNOWLEDGMENT:</strong> I hereby authorize Apex Electrical Services to perform the diagnostic inspection and electrical scope described above. All work is performed in strict accordance with the National Electrical Code (NFPA 70) and NFPA 70E workplace electrical safety standards. The upfront dispatch deposit is applied toward approved repairs.
+      </div>
+      <div class="sign-lines">
+        <div class="sign-line">Customer / Authorized Signature ({cust_name})</div>
+        <div class="sign-line">Date / Time</div>
+        <div class="sign-line">Lead Electrician Sign-Off ({tech_name.split('(')[0].strip()})</div>
+        <div class="sign-line">License / Badge #</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('autoprint') === '1') {{
+      window.addEventListener('load', () => {{
+        setTimeout(() => window.print(), 350);
+      }});
+    }}
+  </script>
+</body>
+</html>
+"""
+
+
 HTML_DASHBOARD = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2458,7 +3028,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <a href="#" target="_blank" id="dossierGcalBtn" class="btn-cal-magic" style="padding:9px 14px; font-size:0.86rem;">📅 Open in Google Calendar</a>
           <button class="btn-cal-action" id="dossierStripePayBtn" style="background:#4f46e5; color:#fff; border-color:#4338ca;" onclick="authorizeDepositFromDossier()">💳 Authorize Deposit Now</button>
-          <button class="btn-cal-action" onclick="window.print()">🖨️ Print Work Order</button>
+          <button class="btn-cal-action" style="background:#0f172a; color:#fff; border-color:#0f172a;" onclick="openPrintableWorkOrder()">🖨️ Print Official Work Order (PDF)</button>
         </div>
         <div style="display:flex; gap:8px;">
           <button class="btn-cal-action" onclick="jumpToCallConsoleFromDossier()">🎙️ View in Call Console</button>
@@ -3670,6 +4240,12 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       switchPortalTab('console');
     }
 
+    function openPrintableWorkOrder(confId = '') {
+      const targetId = confId || (ACTIVE_DOSSIER_BOOKING && ACTIVE_DOSSIER_BOOKING.confirmation_id) || (ACTIVE_HERO_BOOKING && ACTIVE_HERO_BOOKING.confirmation_id) || '';
+      const url = `/work-order?id=${encodeURIComponent(targetId)}&autoprint=1`;
+      window.open(url, '_blank');
+    }
+
     function renderFleetView() {
       const grid = document.getElementById('fleetCardsGrid');
       if (!grid) return;
@@ -4050,6 +4626,25 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
 
         elif parsed.path == "/api/board":
             self._send_json(self._get_board_payload())
+
+        elif parsed.path == "/work-order":
+            qs = urllib.parse.parse_qs(parsed.query)
+            cid = (qs.get("id", [""])[0] or "").strip()
+            target_booking = DB.bookings.get(cid) if cid else None
+            if not target_booking and DB.bookings:
+                live_b = [b for b in DB.bookings.values() if not getattr(b, "is_demo_seed", False)]
+                target_booking = live_b[-1] if live_b else list(DB.bookings.values())[-1]
+            if not target_booking:
+                self.send_response(404)
+                self.end_headers()
+                return
+            wo_html = render_printable_work_order_html(target_booking, DEMO_DISPLAY_EMAIL)
+            data = wo_html.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
 
         elif parsed.path == "/api/calendar.ics":
             from phone_agent.integrations.calendar_sync import CALENDAR_SYNC
