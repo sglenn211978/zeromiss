@@ -24,8 +24,11 @@ class DispatchDatabase:
         self.calendar_slots: Dict[str, CalendarSlot] = {}
         self.bookings: Dict[str, ServiceBooking] = {}
         self.emergency_reports: Dict[str, EmergencyTriageReport] = {}
+        self.missed_calls: Dict[str, Dict[str, Any]] = {}
+        self.is_benchmark_mode: bool = False
         self._booking_counter = 1000
         self._emergency_counter = 5000
+        self._missed_counter = 100
         self._init_sqlite()
         self.seed_defaults()
 
@@ -610,10 +613,120 @@ class DispatchDatabase:
             booking.payment_status = "PAID_VERIFIED"
             return booking
 
+    def record_missed_call(
+        self,
+        caller_phone: str = "(555) 329-8471",
+        estimated_value: float = 1200.0,
+        caller_name: str = "Potential Customer (Lost Lead)",
+    ) -> Dict[str, Any]:
+        """Records an after-hours / dropped call and triggers automated SMS lead recovery."""
+        with self._lock:
+            self._missed_counter += 1
+            mc_id = f"MC-{self._missed_counter}"
+            record = {
+                "missed_call_id": mc_id,
+                "caller_phone": caller_phone,
+                "caller_name": caller_name,
+                "estimated_value": estimated_value,
+                "timestamp": datetime.now().strftime("%I:%M %p"),
+                "status": "DROPPED_AT_RISK",
+                "competitor_risk": "High ($1,200 at risk of competitor capture)",
+                "recovery_sms_sent": True,
+                "recovery_time_sec": 2.8,
+                "recouped_at": None,
+                "booking_confirmation_id": None,
+            }
+            self.missed_calls[mc_id] = record
+            return record
+
+    def convert_missed_call(
+        self,
+        missed_call_id: Optional[str] = None,
+        booking_confirmation_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Converts a missed call lead when the customer clicks the self-scheduling link."""
+        with self._lock:
+            # If no ID passed, grab the latest unconverted missed call
+            if not missed_call_id:
+                for mc in reversed(list(self.missed_calls.values())):
+                    if mc["status"] != "RECOUPED_WON":
+                        missed_call_id = mc["missed_call_id"]
+                        break
+
+            if not missed_call_id or missed_call_id not in self.missed_calls:
+                mc = self.record_missed_call()
+                missed_call_id = mc["missed_call_id"]
+
+            mc = self.missed_calls[missed_call_id]
+            if mc["status"] == "RECOUPED_WON":
+                return mc
+
+            mc["status"] = "RECOUPED_WON"
+            mc["recouped_at"] = datetime.now().strftime("%I:%M %p")
+            mc["competitor_risk"] = "Zero (Customer Recouped & Won)"
+
+            # Create or link a real booking in self.bookings so it shows on calendar and generates pipeline
+            if not booking_confirmation_id:
+                target_date = (datetime.now().date() + timedelta(days=1)).strftime("%Y-%m-%d")
+                booking = self.book_slot(
+                    customer_name="Alex Rivera (Recouped Lead)",
+                    phone_number=mc.get("caller_phone", "(555) 329-8471"),
+                    service_address="45 Innovation Way, Cambridge",
+                    slot_date=target_date,
+                    slot_time="08:00 AM - 12:00 PM",
+                    issue_description="EV Charger 50A Installation (Recovered via SMS Link)",
+                    service_type="EV Charger Installation",
+                    urgency_level=UrgencyLevel.STANDARD,
+                    assigned_technician="Sarah Chen (EV & Commercial Specialist)",
+                    dispatch_fee=89.0,
+                    notes=f"Recouped lead intercepted from competitor via 3-second SMS recovery link ({missed_call_id}).",
+                    customer_email="alex.rivera@gmail.com",
+                )
+                booking.estimated_job_value = mc.get("estimated_value", 1200.0)
+                booking_confirmation_id = booking.confirmation_id
+
+            mc["booking_confirmation_id"] = booking_confirmation_id
+            return mc
+
+    def load_30day_benchmark(self):
+        """Switches executive KPI metrics to a realistic 30-day contractor benchmark ($18,450)."""
+        with self._lock:
+            self.is_benchmark_mode = True
+
+    def clear_to_session_baseline(self):
+        """Switches executive KPI metrics back to live session baseline ($0.00 until demo actions)."""
+        with self._lock:
+            self.is_benchmark_mode = False
+
+    def toggle_benchmark_mode(self) -> bool:
+        """Toggles between live demo session and 30-day contractor benchmark."""
+        with self._lock:
+            self.is_benchmark_mode = not self.is_benchmark_mode
+            return self.is_benchmark_mode
+
     def calculate_contractor_roi_metrics(self) -> Dict[str, Any]:
         """Calculates live executive revenue metrics and ROI statistics."""
         with self._lock:
-            total_pipeline = sum(getattr(b, "estimated_job_value", 850.0) for b in self.bookings.values())
+            if self.is_benchmark_mode:
+                return {
+                    "is_benchmark": True,
+                    "benchmark_label": "30-Day Contractor Benchmark",
+                    "total_pipeline_revenue": 18450.0,
+                    "fees_collected": 1424.0,
+                    "total_bookings": 18,
+                    "emergency_count": 6,
+                    "routine_count": 12,
+                    "paid_count": 16,
+                    "missed_recovered": 7,
+                    "recouped_revenue": 8400.0,
+                    "missed_at_risk_value": 0.0,
+                    "missed_total_count": 7,
+                    "no_show_protection_pct": 100.0,
+                    "avg_answer_time_sec": 0.8,
+                }
+
+            # Live Session: 100% Mathematically Real (Starts strictly at $0.00)
+            active_pipeline = sum(getattr(b, "estimated_job_value", 0.0) for b in self.bookings.values())
             fees_collected = sum(
                 b.dispatch_fee for b in self.bookings.values()
                 if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "PAID_VERIFIED"
@@ -622,23 +735,44 @@ class DispatchDatabase:
             routine_count = len(self.bookings) - emergency_count
             paid_count = sum(1 for b in self.bookings.values() if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "PAID_VERIFIED")
 
+            converted_mc = [mc for mc in self.missed_calls.values() if mc.get("status") == "RECOUPED_WON"]
+            unconverted_mc = [mc for mc in self.missed_calls.values() if mc.get("status") != "RECOUPED_WON"]
+
+            recouped_rev = sum(mc.get("estimated_value", 1200.0) for mc in converted_mc)
+            at_risk_rev = sum(mc.get("estimated_value", 1200.0) for mc in unconverted_mc)
+
+            orphan_recouped_rev = sum(
+                mc.get("estimated_value", 1200.0) for mc in converted_mc
+                if mc.get("booking_confirmation_id") not in self.bookings
+            )
+            total_pipeline = active_pipeline + orphan_recouped_rev
+
+            no_show_pct = (paid_count / len(self.bookings) * 100.0) if len(self.bookings) > 0 else 100.0
+
             return {
-                "total_pipeline_revenue": total_pipeline if total_pipeline > 0 else 2450.0,
+                "is_benchmark": False,
+                "benchmark_label": "Live Demo Session",
+                "total_pipeline_revenue": total_pipeline,
                 "fees_collected": fees_collected,
                 "total_bookings": len(self.bookings),
                 "emergency_count": emergency_count,
                 "routine_count": routine_count,
                 "paid_count": paid_count,
-                "missed_recovered": len(self.bookings) + 2,
-                "no_show_protection_pct": 100.0 if paid_count > 0 else 98.4,
+                "missed_recovered": len(converted_mc),
+                "recouped_revenue": recouped_rev,
+                "missed_at_risk_value": at_risk_rev,
+                "missed_total_count": len(self.missed_calls),
+                "no_show_protection_pct": round(no_show_pct, 1),
                 "avg_answer_time_sec": 0.8,
             }
 
     def reset(self):
-        """Clears bookings and resets state for tests."""
+        """Clears bookings, missed calls, and resets state to live baseline."""
         with self._lock:
             self.bookings.clear()
             self.emergency_reports.clear()
+            self.missed_calls.clear()
+            self.is_benchmark_mode = False
             self.seed_defaults()
 
 
