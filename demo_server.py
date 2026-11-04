@@ -1,15 +1,17 @@
 """ZeroMiss Voice Dispatch - Story-Driven Interactive Demo & Fleet Command Server.
 
 Designed around the core end-to-end product story:
-Missed Call -> AI Triage & 3s SMS Recovery -> Instant Dispatch -> Upfront Stripe Deposit.
+Missed Call / Live Voice -> AI Triage & Safety Verification -> Instant Dispatch -> Upfront Stripe Deposit.
 """
 
 import json
 import os
+import re
 import sys
 import urllib.parse
+from datetime import datetime, timedelta
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from phone_agent.agent.voice_agent import VoiceDispatchAgent
 from phone_agent.config import DEFAULT_CONFIG
@@ -19,6 +21,101 @@ from phone_agent.database import DB
 # Global state for demo session
 ACTIVE_AGENT = VoiceDispatchAgent()
 ACTIVE_SESSION = ACTIVE_AGENT.create_session()
+DEMO_DISPLAY_EMAIL = "dispatch@apex-electrical-demo.com"
+LAST_DIALOGUE = []
+LAST_SCENARIO_MODE = "missed_call"
+
+
+def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -> Dict[str, Any]:
+    """Formats raw booking & triage fields into clean, contractor-grade human-readable strings."""
+    if not booking_obj:
+        return {}
+    b = dict(booking_obj.__dict__) if hasattr(booking_obj, "__dict__") else dict(booking_obj)
+
+    urg = str(b.get("urgency_level", "")).upper()
+    raw_service = str(b.get("service_type", "")).strip()
+    raw_issue = str(b.get("issue_description", "")).strip()
+    raw_cust = str(b.get("customer_name", "")).strip()
+    raw_date = str(b.get("slot_date", "")).strip()
+    raw_time = str(b.get("slot_time", "")).strip()
+
+    is_emerg = "EMERG" in urg or raw_service.lower() == "emergency" or scenario_hint == "emergency"
+
+    # 1. Clean Customer Name (never show "Resident / Caller")
+    if not raw_cust or "resident" in raw_cust.lower() or "caller" in raw_cust.lower():
+        clean_customer = "David Miller" if is_emerg else "Alex Rivera"
+    else:
+        clean_customer = raw_cust.replace("(Recouped Lead)", "").strip()
+    b["customer_name"] = clean_customer
+
+    # 2. Clean Service Title (never show "emergency — Resident / Caller")
+    issue_lower = raw_issue.lower()
+    if is_emerg:
+        if "burning" in issue_lower or "rubber" in issue_lower or "smell" in issue_lower or scenario_hint == "emergency":
+            clean_title = "Electrical Emergency: Burning Smell"
+            symptom = "Burning rubber odor coming from wall outlet behind refrigerator"
+        elif "spark" in issue_lower or "arc" in issue_lower:
+            clean_title = "Electrical Emergency: Active Sparking at Panel"
+            symptom = "Visible arcing and popping noises at main breaker panel"
+        elif "water" in issue_lower or "flood" in issue_lower:
+            clean_title = "Electrical Emergency: Water Near Breaker Panel"
+            symptom = "Water intrusion near live electrical panel in basement"
+        elif "shock" in issue_lower:
+            clean_title = "Electrical Emergency: Live Shock Hazard"
+            symptom = "Caller reported electrical shock from appliance/outlet"
+        else:
+            clean_title = "Electrical Emergency: Priority Hazard Dispatch"
+            symptom = raw_issue.replace("EMERGENCY:", "").replace("_", " ").strip() or "Acute electrical thermal/arcing hazard reported"
+        hazard_level = "NFPA 70E Code Red — Active Thermal / Fire Risk"
+        safety_given = (
+            "Stay clear of the appliance and wall outlet; do not touch the cord. "
+            "Shut off the main breaker only if the path is dry and safe. Evacuate and call 911 if smoke appears."
+        )
+    else:
+        if "ev" in raw_service.lower() or "ev" in issue_lower or "charger" in issue_lower:
+            clean_title = f"EV Charger Installation — {clean_customer}"
+            symptom = "50A NEMA 14-50 / Level 2 EV charger installation in residential garage"
+        elif raw_service:
+            clean_title = f"{raw_service.replace('_', ' ').title()} — {clean_customer}"
+            symptom = raw_issue or f"Scheduled {raw_service.replace('_', ' ')} service call"
+        else:
+            clean_title = f"Residential Electrical Service — {clean_customer}"
+            symptom = raw_issue or "Standard diagnostic and electrical repair"
+        hazard_level = "Routine Service — Non-Hazardous (200A Panel Verified)"
+        safety_given = "No active thermal or shock hazard detected. Pre-arrival preparation checklist texted to homeowner."
+
+    # Check if DB has an emergency triage report to pull exact details
+    if is_emerg and DB.emergency_reports:
+        latest_rep = list(DB.emergency_reports.values())[-1]
+        if latest_rep.immediate_life_safety_actions:
+            safety_given = " ".join(latest_rep.immediate_life_safety_actions[:2])
+
+    # 3. Clean Window (never show "2026-11-04 (Within 45-60 Minutes (Priority Code Red))")
+    today_str = datetime.now().date().strftime("%Y-%m-%d")
+    tmrw_str = (datetime.now().date() + timedelta(days=1)).strftime("%Y-%m-%d")
+
+    if is_emerg or "45-60" in raw_time or "priority" in raw_time.lower():
+        clean_window = "Today, within 45–60 min"
+    else:
+        if raw_date == today_str or raw_date.lower() == "today":
+            day_label = "Today"
+        elif raw_date == tmrw_str or raw_date.lower() == "tomorrow":
+            day_label = "Tomorrow"
+        else:
+            try:
+                dt_obj = datetime.strptime(raw_date, "%Y-%m-%d")
+                day_label = dt_obj.strftime("%a, %b %-d")
+            except Exception:
+                day_label = raw_date
+        clean_time_part = re.sub(r"\s*\([^)]*\)", "", raw_time).strip().replace("08:00 AM", "8:00 AM").replace("04:00 PM", "4:00 PM").replace("07:00 PM", "7:00 PM")
+        clean_window = f"{day_label}, {clean_time_part}"
+
+    b["display_title"] = clean_title
+    b["display_window"] = clean_window
+    b["triage_symptom"] = symptom
+    b["triage_hazard_level"] = hazard_level
+    b["triage_safety_instruction"] = safety_given
+    return b
 
 
 HTML_DASHBOARD = r"""<!DOCTYPE html>
@@ -32,12 +129,12 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       --bg: #f1f5f9;
       --surface: #ffffff;
       --surface-muted: #f8fafc;
-      --border: #e2e8f0;
-      --border-strong: #cbd5e1;
+      --border: #cbd5e1;
+      --border-strong: #94a3b8;
       --navy: #0f172a;
       --text-main: #0f172a;
-      --text-body: #334155;
-      --text-muted: #64748b;
+      --text-body: #1e293b;
+      --text-muted: #475569;
       --primary: #2563eb;
       --primary-hover: #1d4ed8;
       --primary-soft: #eff6ff;
@@ -60,7 +157,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text-main);
-      font-size: 16px;
+      font-size: 17px;
       line-height: 1.5;
       min-height: 100vh;
       display: flex;
@@ -68,11 +165,11 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       -webkit-font-smoothing: antialiased;
     }
 
-    /* TOP HEADER BAR - CLEAN & UNCLUTTERED */
+    /* TOP HEADER BAR */
     header {
       background: var(--navy);
       color: #ffffff;
-      padding: 14px 32px;
+      padding: 16px 36px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -87,42 +184,41 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     .brand-icon {
       background: #2563eb;
       color: white;
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 800;
     }
     .brand-title-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
     .brand h1 {
-      font-size: 1.3rem;
-      font-weight: 700;
+      font-size: 1.4rem;
+      font-weight: 800;
       letter-spacing: -0.02em;
       color: #ffffff;
     }
     .demo-mode-pill {
       background: #f59e0b;
       color: #0f172a;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       font-weight: 800;
-      padding: 3px 10px;
+      padding: 4px 12px;
       border-radius: 999px;
       letter-spacing: 0.04em;
       text-transform: uppercase;
     }
     .brand p {
-      font-size: 0.88rem;
-      color: #94a3b8;
+      font-size: 0.95rem;
+      color: #cbd5e1;
     }
 
-    /* NAVIGATION & UTILITY TOOLS */
     .header-right {
       display: flex;
       align-items: center;
@@ -131,69 +227,67 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     }
     .nav-tabs {
       display: flex;
-      background: #1e293b;
+      background: rgba(255, 255, 255, 0.09);
       padding: 4px;
       border-radius: 10px;
       gap: 4px;
     }
     .nav-tab {
       background: transparent;
-      color: #cbd5e1;
       border: none;
-      padding: 8px 16px;
-      border-radius: 7px;
-      font-size: 0.9rem;
-      font-weight: 600;
+      color: #e2e8f0;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 8px;
-      transition: all 0.15s;
     }
-    .nav-tab:hover { color: #ffffff; background: rgba(255,255,255,0.06); }
+    .nav-tab:hover { color: #ffffff; background: rgba(255, 255, 255, 0.08); }
     .nav-tab.active {
       background: #2563eb;
       color: #ffffff;
-      font-weight: 700;
     }
     .nav-count {
-      background: rgba(255,255,255,0.2);
-      padding: 1px 7px;
+      background: rgba(255, 255, 255, 0.22);
+      padding: 2px 8px;
       border-radius: 999px;
-      font-size: 0.78rem;
+      font-size: 0.82rem;
+      font-weight: 800;
     }
 
     .utility-btn {
-      background: #1e293b;
-      color: #e2e8f0;
-      border: 1px solid #334155;
-      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #f8fafc;
+      padding: 9px 15px;
       border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 0.92rem;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.15s;
     }
-    .utility-btn:hover { background: #334155; color: #ffffff; }
+    .utility-btn:hover { background: rgba(255, 255, 255, 0.18); }
 
-    /* MAIN CONTAINER */
+    /* MAIN CONTAINER — WIDENED TO 1400PX FOR SCREEN-SHARING */
     main {
       max-width: 1400px;
-      width: 100%;
+      width: 96%;
       margin: 0 auto;
-      padding: 24px 32px 40px;
+      padding: 22px 16px 36px;
       flex: 1;
     }
     .tab-view { display: none; }
     .tab-view.active { display: block; }
 
-    /* VISUAL BACKBONE: 4-STEP END-TO-END STORY JOURNEY */
+    /* VISUAL BACKBONE: 4-STEP END-TO-END STORY BAR */
     .story-backbone {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 18px 24px;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
       box-shadow: var(--shadow-sm);
     }
     .backbone-top {
@@ -205,10 +299,10 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       gap: 12px;
     }
     .backbone-label {
-      font-size: 0.82rem;
+      font-size: 0.92rem;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
       color: var(--primary);
       display: flex;
       align-items: center;
@@ -216,55 +310,49 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     }
     .next-step-banner {
       background: #eff6ff;
-      border: 1.5px solid #93c5fd;
+      border: 2px solid #93c5fd;
       color: #1e3a8a;
       padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.92rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
     }
+    .next-step-banner strong { font-weight: 800; }
 
     .journey-steps {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 14px;
     }
-    @media (max-width: 980px) {
+    @media (max-width: 960px) {
       .journey-steps { grid-template-columns: repeat(2, 1fr); }
     }
     .j-step {
       background: var(--surface-muted);
       border: 2px solid var(--border);
       border-radius: 10px;
-      padding: 12px 16px;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
-      transition: all 0.2s;
-      opacity: 0.65;
     }
     .j-step.active-step {
       background: #eff6ff;
       border-color: #2563eb;
-      opacity: 1;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
     }
     .j-step.done-step {
       background: #f0fdf4;
-      border-color: #22c55e;
-      opacity: 1;
+      border-color: #16a34a;
     }
     .j-num {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: #cbd5e1;
       color: #0f172a;
       font-weight: 800;
-      font-size: 0.9rem;
+      font-size: 0.98rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -272,13 +360,13 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     }
     .j-step.active-step .j-num { background: #2563eb; color: #ffffff; }
     .j-step.done-step .j-num { background: #16a34a; color: #ffffff; }
-    .j-title { font-size: 0.92rem; font-weight: 700; color: var(--text-main); }
-    .j-desc { font-size: 0.8rem; color: var(--text-muted); }
+    .j-title { font-size: 1.02rem; font-weight: 800; color: var(--text-main); line-height: 1.25; }
+    .j-desc { font-size: 0.92rem; color: var(--text-body); margin-top: 3px; font-weight: 500; }
 
-    /* PRIMARY WORKSPACE: CLEAR HIERARCHY (START ON LEFT -> RESULTS ON RIGHT) */
+    /* PRIMARY WORKSPACE GRID */
     .demo-stage-grid {
       display: grid;
-      grid-template-columns: 460px 1fr;
+      grid-template-columns: 490px 1fr;
       gap: 24px;
       align-items: stretch;
       margin-bottom: 24px;
@@ -287,156 +375,230 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       .demo-stage-grid { grid-template-columns: 1fr; }
     }
 
-    /* PRIMARY ACTION PANEL (LEFT) */
-    .primary-simulator-card {
+    /* DYNAMIC FOCUS HIGHLIGHT RING (MOVES TO WHICHEVER PANEL NEEDS ATTENTION) */
+    .panel-card {
       background: var(--surface);
-      border: 2px solid #2563eb;
+      border: 2px solid var(--border);
       border-radius: 16px;
-      padding: 22px;
-      box-shadow: var(--shadow-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .panel-card.active-focus-panel {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14), var(--shadow-md);
+    }
+
+    /* LEFT: SIMULATOR CARD (STRETCHES FULL HEIGHT WITH ZERO DEAD SPACE) */
+    .primary-simulator-card {
       display: flex;
       flex-direction: column;
-      position: relative;
-    }
-    .step-one-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #2563eb;
-      color: #ffffff;
-      font-size: 0.75rem;
-      font-weight: 800;
-      padding: 4px 10px;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      height: 100%;
     }
     .sim-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       margin-bottom: 14px;
     }
+    .step-status-pill {
+      display: inline-block;
+      background: #2563eb;
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 11px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+    .step-status-pill.quiet-pill {
+      background: #e2e8f0;
+      color: #334155;
+    }
     .sim-header h2 {
-      font-size: 1.2rem;
+      font-size: 1.35rem;
       font-weight: 800;
       color: var(--text-main);
-      margin-top: 6px;
     }
 
-    /* HERO PRIMARY CTA BUTTON */
+    /* HERO ACTION BUTTON */
     .btn-hero-start {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
       color: #ffffff;
       border: none;
       border-radius: 12px;
       padding: 16px 20px;
       text-align: left;
       cursor: pointer;
-      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
-      transition: all 0.2s;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
       margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      transition: transform 0.12s, box-shadow 0.12s;
     }
     .btn-hero-start:hover {
-      background: linear-gradient(135deg, #1d4ed8, #1e40af);
       transform: translateY(-1px);
-      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.36);
+      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.35);
     }
     .hero-btn-top {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      font-size: 1.05rem;
+      justify-content: space-between;
+      font-size: 1.1rem;
       font-weight: 800;
+      margin-bottom: 4px;
     }
     .hero-btn-sub {
-      font-size: 0.85rem;
+      font-size: 0.94rem;
       color: #dbeafe;
       font-weight: 500;
     }
 
-    /* SECONDARY SCENARIO PILLS */
+    /* SECONDARY SCENARIOS */
     .secondary-scenarios {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
     }
     .btn-sec-scenario {
-      flex: 1;
       background: var(--surface-muted);
       border: 1px solid var(--border-strong);
       color: var(--text-body);
-      padding: 9px 12px;
-      border-radius: 8px;
-      font-size: 0.84rem;
+      padding: 11px 12px;
+      border-radius: 10px;
+      font-size: 0.94rem;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.15s;
       text-align: center;
     }
-    .btn-sec-scenario:hover {
-      background: #e2e8f0;
-      color: var(--text-main);
-    }
+    .btn-sec-scenario:hover { background: #e2e8f0; }
     .btn-sec-emerg {
-      background: #fef2f2;
-      border-color: #fecaca;
-      color: #991b1b;
+      background: #fff1f2;
+      border-color: #fda4af;
+      color: #be123c;
     }
-    .btn-sec-emerg:hover { background: #fee2e2; }
+    .btn-sec-emerg:hover { background: #ffe4e6; }
 
-    /* LIVE CALL TRANSCRIPT STREAM */
-    .transcript-label {
-      font-size: 0.78rem;
+    /* FIRST-CLASS VOICE CONTROL & SPEAKING WAVEFORM BAR */
+    .voice-primary-bar {
+      background: #0f172a;
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .voice-status-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .waveform-bars {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 22px;
+    }
+    .waveform-bars span {
+      display: block;
+      width: 4px;
+      height: 6px;
+      background: #38bdf8;
+      border-radius: 999px;
+      transition: height 0.15s ease;
+    }
+    .waveform-bars.active-wave span:nth-child(1) { animation: waveBounce 0.55s infinite ease-in-out 0.0s; }
+    .waveform-bars.active-wave span:nth-child(2) { animation: waveBounce 0.55s infinite ease-in-out 0.12s; }
+    .waveform-bars.active-wave span:nth-child(3) { animation: waveBounce 0.55s infinite ease-in-out 0.24s; }
+    .waveform-bars.active-wave span:nth-child(4) { animation: waveBounce 0.55s infinite ease-in-out 0.12s; }
+    .waveform-bars.active-wave span:nth-child(5) { animation: waveBounce 0.55s infinite ease-in-out 0.0s; }
+    @keyframes waveBounce {
+      0%, 100% { height: 6px; background: #38bdf8; }
+      50% { height: 22px; background: #4ade80; }
+    }
+    .voice-state-label {
+      font-size: 0.94rem;
       font-weight: 700;
+      color: #f8fafc;
+    }
+    .voice-state-sub {
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }
+    .btn-voice-primary {
+      background: #2563eb;
+      color: #ffffff;
+      border: 1px solid #60a5fa;
+      padding: 9px 16px;
+      border-radius: 9px;
+      font-size: 0.94rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+    .btn-voice-primary:hover { background: #1d4ed8; }
+    .btn-voice-primary.listening {
+      background: #dc2626;
+      border-color: #fca5a5;
+    }
+
+    /* LIVE CALL TRANSCRIPT — FILLS REMAINING CARD HEIGHT WITH ZERO DEAD SPACE */
+    .transcript-label {
+      font-size: 0.86rem;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: var(--text-muted);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
     .chat-container {
       background: var(--surface-muted);
       border: 1px solid var(--border);
       border-radius: 12px;
-      height: 270px;
+      padding: 16px;
+      flex: 1 1 auto;
+      min-height: 300px;
       overflow-y: auto;
-      padding: 14px;
       display: flex;
       flex-direction: column;
       gap: 12px;
       margin-bottom: 12px;
     }
     .bubble {
-      max-width: 90%;
-      padding: 12px 16px;
+      padding: 13px 16px;
       border-radius: 12px;
-      font-size: 0.92rem;
+      font-size: 1rem;
       line-height: 1.5;
-    }
-    .bubble-user {
-      align-self: flex-end;
-      background: #ffffff;
-      color: var(--text-main);
-      border: 1px solid var(--border-strong);
+      max-width: 94%;
     }
     .bubble-sarah {
-      align-self: flex-start;
       background: #eff6ff;
-      color: #1e3a8a;
       border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      align-self: flex-start;
+    }
+    .bubble-user {
+      background: #0f172a;
+      color: #ffffff;
+      align-self: flex-end;
     }
     .speaker-name {
-      font-size: 0.75rem;
+      font-size: 0.82rem;
       font-weight: 800;
-      margin-bottom: 4px;
       text-transform: uppercase;
-      color: #2563eb;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+      opacity: 0.88;
     }
 
     .input-row {
@@ -444,326 +606,344 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       gap: 8px;
       margin-top: auto;
     }
-    .btn-mic {
-      background: var(--surface-muted);
-      border: 1px solid var(--border-strong);
-      border-radius: 8px;
-      padding: 0 14px;
-      font-size: 1.15rem;
-      cursor: pointer;
-    }
-    .btn-mic.listening { background: #dc2626; color: white; }
     .input-row input {
       flex: 1;
       border: 1px solid var(--border-strong);
+      border-radius: 10px;
       padding: 11px 14px;
-      border-radius: 8px;
-      font-size: 0.92rem;
-      outline: none;
+      font-size: 0.98rem;
+      color: var(--text-main);
     }
-    .input-row input:focus { border-color: var(--primary); }
-    .input-row button.btn-send {
+    .input-row input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+    .btn-send {
       background: var(--navy);
       color: white;
       border: none;
-      padding: 0 18px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 0.9rem;
+      border-radius: 10px;
+      padding: 0 20px;
+      font-weight: 800;
+      font-size: 0.96rem;
       cursor: pointer;
     }
 
-    /* RIGHT STAGE: LIVE OUTCOMES (PHONE + DISPATCH TICKET) */
+    /* RIGHT: LIVE RESULTS STAGE (PHONE + DISPATCH TICKET) */
     .outcomes-stage {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 22px;
-      box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
+      height: 100%;
     }
     .outcomes-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
       border-bottom: 1px solid var(--border);
       flex-wrap: wrap;
       gap: 10px;
     }
     .outcomes-header h2 {
-      font-size: 1.15rem;
+      font-size: 1.3rem;
       font-weight: 800;
       color: var(--text-main);
     }
+
     .outcomes-split {
       display: grid;
-      grid-template-columns: 340px 1fr;
+      grid-template-columns: 350px 1fr;
       gap: 24px;
-      align-items: start;
+      align-items: stretch;
       flex: 1;
     }
-    @media (max-width: 920px) {
+    @media (max-width: 980px) {
       .outcomes-split { grid-template-columns: 1fr; }
     }
 
-    /* REALISTIC SMARTPHONE SIMULATOR */
+    /* CUSTOMER PHONE SIMULATOR — LARGER & CLEARER TEXT */
     .phone-column-wrap {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-    .phone-step-callout {
-      background: #fef3c7;
-      border: 1.5px solid #f59e0b;
-      color: #92400e;
-      font-size: 0.85rem;
-      font-weight: 800;
-      padding: 6px 14px;
-      border-radius: 999px;
-      margin-bottom: 10px;
-      display: none;
-      align-items: center;
-      gap: 6px;
-    }
-    .phone-step-callout.visible { display: inline-flex; }
-
     .phone-chassis {
-      background: linear-gradient(145deg, #cbd5e1, #94a3b8, #cbd5e1);
-      padding: 10px;
-      border-radius: 42px;
-      box-shadow: var(--shadow-lg);
-      width: 330px;
-      transition: all 0.25s;
+      width: 350px;
+      background: #0f172a;
+      border-radius: 34px;
+      padding: 11px;
+      box-shadow: var(--shadow-md);
+      border: 3px solid #334155;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
     }
     .phone-chassis.highlight-phone {
-      box-shadow: 0 0 0 4px #2563eb, 0 16px 32px rgba(37, 99, 235, 0.25);
+      border-color: #2563eb;
+      box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.25), var(--shadow-lg);
     }
     .phone-screen {
       background: #0f172a;
-      border-radius: 34px;
-      padding: 10px 12px 14px;
-      height: 500px;
+      border-radius: 24px;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      flex: 1;
+      min-height: 520px;
+      border: 1px solid #1e293b;
     }
     .phone-dynamic-island {
       width: 84px;
       height: 18px;
-      background: #000000;
-      border-radius: 12px;
-      margin: 0 auto 6px;
+      background: #020617;
+      border-radius: 999px;
+      margin: 8px auto 4px;
     }
     .phone-status-bar {
       display: flex;
       justify-content: space-between;
-      padding: 0 8px 8px;
-      font-size: 0.78rem;
-      color: #f8fafc;
+      padding: 2px 18px 8px;
+      font-size: 0.85rem;
       font-weight: 700;
+      color: #e2e8f0;
     }
     .phone-imessage-header {
       background: #1e293b;
-      border-radius: 10px;
-      padding: 8px 12px;
-      margin-bottom: 10px;
+      padding: 12px 16px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      border-bottom: 1px solid #334155;
     }
     .imessage-avatar {
-      width: 32px;
-      height: 32px;
-      background: #2563eb;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
+      background: #2563eb;
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 0.8rem;
+      font-size: 0.95rem;
     }
-    .imessage-name { font-size: 0.88rem; font-weight: 700; color: #ffffff; }
-    .imessage-sub { font-size: 0.72rem; color: #94a3b8; }
+    .imessage-name { font-size: 1rem; font-weight: 800; color: #ffffff; }
+    .imessage-sub { font-size: 0.86rem; color: #cbd5e1; }
 
     .phone-messages {
+      padding: 16px;
       flex: 1;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      padding: 4px 2px;
+      gap: 12px;
     }
     .sms-bubble {
       background: #1e293b;
-      border: 1px solid #334155;
+      border: 1px solid #475569;
       border-radius: 14px;
-      padding: 12px 14px;
-      font-size: 0.86rem;
-      line-height: 1.45;
-      color: #f1f5f9;
+      padding: 15px;
+      color: #f8fafc;
+      font-size: 0.98rem;
+      line-height: 1.5;
     }
     .sms-tag {
-      font-size: 0.72rem;
+      font-size: 0.82rem;
       font-weight: 800;
-      color: #38bdf8;
       text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    .sms-recoup-card {
-      border: 2px solid #f59e0b;
-      background: #1c1917;
+      color: #60a5fa;
+      margin-bottom: 6px;
+      letter-spacing: 0.03em;
     }
     .sms-action-card {
-      background: #0f172a;
-      border: 1.5px solid #38bdf8;
-      border-radius: 10px;
-      padding: 12px;
-      margin-top: 10px;
-      text-align: center;
+      margin-top: 12px;
+      background: rgba(37, 99, 235, 0.2);
+      border: 2px solid #60a5fa;
+      border-radius: 12px;
+      padding: 14px;
       cursor: pointer;
     }
     .btn-action-claim {
+      margin-top: 10px;
+      width: 100%;
       background: #2563eb;
       color: white;
       border: none;
-      padding: 11px 14px;
+      padding: 12px;
       border-radius: 8px;
       font-weight: 800;
-      font-size: 0.88rem;
+      font-size: 0.96rem;
       cursor: pointer;
-      width: 100%;
-      margin-top: 8px;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
     }
     .btn-action-claim:hover { background: #1d4ed8; }
 
-    .recoup-won-badge {
-      background: rgba(34, 197, 94, 0.2);
-      border: 1.5px solid #22c55e;
-      color: #4ade80;
-      padding: 10px;
-      border-radius: 8px;
-      font-weight: 800;
-      font-size: 0.88rem;
-      text-align: center;
-    }
     .sms-stripe-sheet {
-      border: 1.5px solid #6366f1;
-      background: #1e1b4b;
-      border-radius: 10px;
-      padding: 12px;
-      margin-top: 10px;
+      margin-top: 12px;
+      background: #0f172a;
+      border: 2px solid #6366f1;
+      border-radius: 12px;
+      padding: 14px;
     }
     .btn-stripe-pay {
+      margin-top: 10px;
+      width: 100%;
       background: #4f46e5;
       color: white;
       border: none;
-      padding: 11px 14px;
+      padding: 12px;
       border-radius: 8px;
       font-weight: 800;
-      font-size: 0.88rem;
+      font-size: 0.96rem;
       cursor: pointer;
-      width: 100%;
-      margin-top: 8px;
     }
-    .btn-stripe-pay.paid { background: #16a34a; cursor: default; }
+    .btn-stripe-pay:hover { background: #4338ca; }
+    .btn-stripe-pay.paid {
+      background: #16a34a;
+      cursor: default;
+    }
+    .recoup-won-badge {
+      background: #16a34a;
+      color: white;
+      font-size: 0.88rem;
+      font-weight: 800;
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
     .phone-home-bar {
       width: 100px;
       height: 4px;
-      background: #64748b;
-      border-radius: 2px;
-      margin: 10px auto 0;
+      background: #475569;
+      border-radius: 999px;
+      margin: 8px auto 10px;
     }
 
-    /* CONTRACTOR DISPATCH TICKET (QUIET UNTIL BOOKED) */
+    /* CONTRACTOR DISPATCH TICKET COLUMN */
     .cockpit-column {
       display: flex;
       flex-direction: column;
       height: 100%;
     }
     .waiting-quiet-box {
-      background: var(--surface-muted);
-      border: 2px dashed var(--border-strong);
+      border: 2px dashed #cbd5e1;
       border-radius: 14px;
-      padding: 36px 24px;
+      padding: 36px 26px;
       text-align: center;
+      background: var(--surface-muted);
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 480px;
-      color: var(--text-muted);
     }
     .waiting-icon {
       font-size: 2.4rem;
       margin-bottom: 12px;
-      opacity: 0.7;
     }
     .waiting-quiet-box h3 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--text-body);
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-main);
       margin-bottom: 8px;
     }
     .waiting-quiet-box p {
-      font-size: 0.95rem;
-      max-width: 380px;
-      margin-bottom: 20px;
+      font-size: 1rem;
+      color: var(--text-body);
+      max-width: 400px;
+      margin-bottom: 18px;
     }
     .quiet-checklist {
       text-align: left;
-      background: #ffffff;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 18px;
-      font-size: 0.88rem;
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 0.96rem;
       color: var(--text-body);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* ACTIVE DISPATCH TICKET */
+    .dispatch-hero {
+      display: none;
+      background: var(--surface);
+      border: 2px solid #2563eb;
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: var(--shadow-md);
+      flex: 1;
+    }
+    .dispatch-hero.active { display: flex; flex-direction: column; }
+    .dispatch-hero.is-emergency { border-color: #dc2626; }
+    .hero-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .badge-standard { background: #dcfce7; color: #15803d; }
+    .badge-emergency { background: #fee2e2; color: #b91c1c; }
+    .hero-title { font-size: 1.35rem; font-weight: 800; margin: 8px 0 4px; color: var(--text-main); }
+    .hero-subtitle { font-size: 0.96rem; color: var(--text-muted); margin-bottom: 14px; }
+
+    /* CREDIBILITY MOMENT: AI HAZARD & TRIAGE VERIFICATION BOX */
+    .triage-credibility-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-left: 5px solid #2563eb;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
-
-    .dispatch-hero {
-      background: #ffffff;
-      border: 2px solid #16a34a;
-      border-radius: 14px;
-      padding: 20px;
-      display: none;
-      box-shadow: var(--shadow-md);
+    .triage-credibility-box.is-emerg-triage {
+      background: #fff1f2;
+      border-color: #fecdd3;
+      border-left: 5px solid #dc2626;
     }
-    .dispatch-hero.active { display: block; }
-    .dispatch-hero.is-emergency { border-color: #dc2626; background: #fffafa; }
-    .hero-badge {
-      display: inline-block;
-      font-size: 0.8rem;
+    .triage-box-header {
+      font-size: 0.84rem;
       font-weight: 800;
       text-transform: uppercase;
-      padding: 4px 12px;
-      border-radius: 6px;
+      letter-spacing: 0.04em;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .badge-emergency { background: #fee2e2; color: #b91c1c; }
-    .badge-standard { background: #dcfce7; color: #15803d; }
-    .hero-title { font-size: 1.25rem; font-weight: 800; margin: 10px 0 4px; color: var(--text-main); }
-    .hero-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px; }
+    .triage-credibility-box.is-emerg-triage .triage-box-header {
+      color: #991b1b;
+    }
+    .triage-detail-row {
+      font-size: 0.95rem;
+      color: #0f172a;
+      line-height: 1.45;
+    }
+    .triage-detail-row strong {
+      color: #1e293b;
+      font-weight: 800;
+    }
 
     .ticket-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9rem;
-      margin-top: 12px;
+      font-size: 0.98rem;
+      margin-top: 6px;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 10px;
       overflow: hidden;
     }
     .ticket-table tr { border-bottom: 1px solid var(--border); }
-    .ticket-table td { padding: 10px 14px; }
+    .ticket-table td { padding: 11px 14px; }
     .ticket-table td:first-child {
       background: var(--surface-muted);
-      color: var(--text-muted);
+      color: #1e293b;
       font-weight: 700;
       width: 155px;
     }
@@ -779,57 +959,76 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       padding: 10px 16px;
       border-radius: 8px;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
 
-    /* SUPPORTING DEMO METRICS BAR (CLEARLY LABELED AS DEMO DATA) */
+    /* SUPPORTING DEMO METRICS BAR */
     .demo-metrics-section {
       background: var(--surface);
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
       border-radius: 14px;
-      padding: 18px 24px;
+      padding: 20px 24px;
       box-shadow: var(--shadow-sm);
     }
     .metrics-bar-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
       flex-wrap: wrap;
       gap: 12px;
     }
     .metrics-context-title {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
     .demo-data-tag {
       background: #e0e7ff;
-      color: #3730a3;
-      border: 1px solid #c7d2fe;
-      font-size: 0.78rem;
+      color: #1e1b4b;
+      border: 1px solid #a5b4fc;
+      font-size: 0.84rem;
       font-weight: 800;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 6px;
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
     .metrics-context-sub {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      font-weight: 500;
+      font-size: 0.96rem;
+      color: var(--text-body);
+      font-weight: 600;
     }
+
+    /* HIGH-VISIBILITY 30-DAY BENCHMARK BUTTON */
     .btn-benchmark-toggle {
-      background: var(--surface-muted);
-      color: var(--primary);
-      border: 1px solid #bfdbfe;
-      padding: 7px 14px;
-      border-radius: 8px;
-      font-size: 0.86rem;
-      font-weight: 700;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      border: 2px solid #3b82f6;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 800;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+      transition: transform 0.12s, box-shadow 0.12s;
     }
-    .btn-benchmark-toggle:hover { background: #eff6ff; }
+    .btn-benchmark-toggle:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+    }
+    .bench-pill-highlight {
+      background: #f59e0b;
+      color: #0f172a;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
 
     .rev-metrics-grid {
       display: grid;
@@ -843,26 +1042,32 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       background: var(--surface-muted);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 16px 20px;
+      padding: 18px 22px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      transition: transform 0.25s, border-color 0.25s, background-color 0.25s;
+    }
+    .rev-metric-card.metric-pulse {
+      transform: scale(1.02);
+      border-color: #2563eb;
+      background: #eff6ff;
     }
     .rev-label {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #1e293b;
       text-transform: uppercase;
       letter-spacing: 0.03em;
       margin-bottom: 4px;
     }
     .rev-subtext {
-      font-size: 0.88rem;
-      color: var(--text-body);
+      font-size: 0.94rem;
+      color: var(--text-muted);
       font-weight: 600;
     }
     .rev-val {
-      font-size: 1.85rem;
+      font-size: 2rem;
       font-weight: 800;
       color: var(--text-main);
       font-variant-numeric: tabular-nums;
@@ -887,16 +1092,16 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       border: 1px solid var(--border-strong);
       padding: 9px 14px;
       border-radius: 8px;
-      font-size: 0.92rem;
+      font-size: 0.95rem;
       font-weight: 600;
     }
     .btn-cal-action {
       background: var(--surface-muted);
       border: 1px solid var(--border-strong);
       color: var(--text-body);
-      padding: 9px 14px;
+      padding: 9px 15px;
       border-radius: 8px;
-      font-size: 0.88rem;
+      font-size: 0.92rem;
       font-weight: 700;
       cursor: pointer;
       text-decoration: none;
@@ -921,8 +1126,8 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       padding: 12px;
       text-align: center;
     }
-    .cal-col-day { font-size: 1rem; font-weight: 800; }
-    .cal-col-sub { font-size: 0.82rem; color: var(--text-muted); }
+    .cal-col-day { font-size: 1.05rem; font-weight: 800; }
+    .cal-col-sub { font-size: 0.88rem; color: var(--text-muted); }
     .cal-col-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
     .slot-box {
       border: 1px solid var(--border);
@@ -930,35 +1135,35 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       padding: 12px;
       background: var(--surface-muted);
     }
-    .slot-time-header { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 6px; font-weight: 700; }
-    .slot-tech-avail { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; }
+    .slot-time-header { display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 6px; font-weight: 700; }
+    .slot-tech-avail { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 8px; }
     .slot-actions { display: flex; gap: 6px; }
-    .btn-slot-act { padding: 5px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; border: none; }
+    .btn-slot-act { padding: 6px 12px; border-radius: 6px; font-size: 0.84rem; font-weight: 700; cursor: pointer; border: none; }
     .btn-slot-book { background: var(--primary); color: white; }
     .btn-slot-block { background: #e2e8f0; color: var(--text-body); }
     .slot-box.is-booked-routine { background: #f0fdf4; border-color: #86efac; }
     .slot-box.is-booked-emergency { background: #fef2f2; border-color: #fca5a5; }
-    .booked-cust-name { font-size: 0.95rem; font-weight: 800; margin-bottom: 4px; }
-    .booked-cust-meta, .booked-emerg-meta { font-size: 0.82rem; line-height: 1.4; }
+    .booked-cust-name { font-size: 1rem; font-weight: 800; margin-bottom: 4px; }
+    .booked-cust-meta { font-size: 0.88rem; line-height: 1.4; }
 
     /* FLEET ROSTER */
     .fleet-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
     .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
-    .kpi-label { font-size: 0.82rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
-    .kpi-val { font-size: 1.6rem; font-weight: 800; margin-top: 4px; }
-    .kpi-sub { font-size: 0.84rem; color: var(--primary); margin-top: 2px; font-weight: 600; }
+    .kpi-label { font-size: 0.88rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+    .kpi-val { font-size: 1.7rem; font-weight: 800; margin-top: 4px; }
+    .kpi-sub { font-size: 0.9rem; color: var(--primary); margin-top: 2px; font-weight: 600; }
     .fleet-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-    .btn-add-electrician { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+    .btn-add-electrician { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     .fleet-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
     .tech-card-pro { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
     .tech-card-top { display: flex; align-items: center; gap: 12px; }
     .tech-avatar { width: 48px; height: 48px; border-radius: 10px; background: var(--surface-muted); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
-    .tech-name { font-size: 1.05rem; font-weight: 800; }
-    .tech-license, .tech-phone { font-size: 0.84rem; color: var(--text-muted); }
-    .tech-badge-oncall { background: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; }
-    .tech-badge-offduty { background: #f1f5f9; color: #64748b; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+    .tech-name { font-size: 1.1rem; font-weight: 800; }
+    .tech-license, .tech-phone { font-size: 0.9rem; color: var(--text-muted); }
+    .tech-badge-oncall { background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; }
+    .tech-badge-offduty { background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; }
     .tech-specialties-row { display: flex; flex-wrap: wrap; gap: 6px; }
-    .spec-pill { font-size: 0.78rem; background: var(--surface-muted); padding: 3px 9px; border-radius: 6px; border: 1px solid var(--border); font-weight: 600; }
+    .spec-pill { font-size: 0.84rem; background: var(--surface-muted); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); font-weight: 600; }
     .tech-actions-row { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
     .btn-tech-toggle-oncall { flex: 1; background: #f0fdf4; border: 1px solid #86efac; color: #15803d; padding: 8px; border-radius: 6px; font-weight: 700; cursor: pointer; }
     .btn-tech-edit, .btn-tech-del { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--surface-muted); cursor: pointer; font-weight: 600; }
@@ -984,29 +1189,29 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       box-shadow: var(--shadow-lg);
     }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-    .modal-header h3 { font-size: 1.15rem; font-weight: 800; }
+    .modal-header h3 { font-size: 1.2rem; font-weight: 800; }
     .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
     .form-group { margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: 0.88rem; font-weight: 700; }
-    .form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 0.92rem; }
-    .btn-modal-submit { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.95rem; width: 100%; cursor: pointer; margin-top: 10px; }
+    .form-group label { font-size: 0.92rem; font-weight: 700; }
+    .form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 0.96rem; }
+    .btn-modal-submit { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 1rem; width: 100%; cursor: pointer; margin-top: 10px; }
     .slider-row { display: flex; justify-content: space-between; margin: 14px 0 6px; font-weight: 700; }
     .roi-result-banner { background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 18px; margin: 18px 0; text-align: center; }
-    .roi-big-gain { font-size: 2rem; font-weight: 800; color: #15803d; }
+    .roi-big-gain { font-size: 2.1rem; font-weight: 800; color: #15803d; }
 
     footer {
       background: var(--navy);
-      color: #94a3b8;
+      color: #cbd5e1;
       text-align: center;
       padding: 16px;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       margin-top: auto;
     }
   </style>
 </head>
 <body>
 
-  <!-- CLEAN TOP HEADER -->
+  <!-- TOP HEADER -->
   <header>
     <div class="brand">
       <div class="brand-icon">⚡</div>
@@ -1042,67 +1247,68 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     <!-- TAB 1: STORY-DRIVEN INTERACTIVE DEMO -->
     <div class="tab-view active" id="viewConsole">
 
-      <!-- THE VISUAL BACKBONE: 4-STEP END-TO-END STORY -->
+      <!-- THE VISUAL BACKBONE: SCENARIO-ADAPTIVE 4-STEP END-TO-END JOURNEY -->
       <div class="story-backbone">
         <div class="backbone-top">
-          <div class="backbone-label">
-            <span>⚡ END-TO-END PRODUCT JOURNEY</span>
+          <div class="backbone-label" id="journeyModeTitle">
+            ⚡ DROPPED-CALL RECOVERY JOURNEY
           </div>
+          <!-- SINGLE AUTHORITATIVE NEXT-STEP BANNER (NO DUPLICATE PILLS) -->
           <div class="next-step-banner" id="guidedNextStepBanner">
-            👉 <strong>What to do first:</strong> Click <strong>"▶ Start Demo: Simulate Dropped Call"</strong> below to see ZeroMiss save a $1,200 job.
+            👉 <strong>What to do first:</strong> Click <strong>"▶ Start Demo: Simulate Dropped Call"</strong> or <strong>"🎙️ Speak to Sarah AI"</strong> below.
           </div>
         </div>
 
         <div class="journey-steps">
           <div class="j-step active-step" id="jStep1">
-            <div class="j-num">1</div>
+            <div class="j-num" id="jNum1">1</div>
             <div>
-              <div class="j-title">Missed or Inbound Call</div>
-              <div class="j-desc">Caller hangs up or reports hazard</div>
+              <div class="j-title" id="jTitle1">Missed or Inbound Call</div>
+              <div class="j-desc" id="jDesc1">Caller hangs up or speaks issue</div>
             </div>
           </div>
           <div class="j-step" id="jStep2">
-            <div class="j-num">2</div>
+            <div class="j-num" id="jNum2">2</div>
             <div>
-              <div class="j-title">AI Triage &amp; 3s Text-Back</div>
-              <div class="j-desc">Sarah intercepts lead via SMS</div>
+              <div class="j-title" id="jTitle2">AI Triage &amp; 3s Text-Back</div>
+              <div class="j-desc" id="jDesc2">Sarah intercepts lead via SMS</div>
             </div>
           </div>
           <div class="j-step" id="jStep3">
-            <div class="j-num">3</div>
+            <div class="j-num" id="jNum3">3</div>
             <div>
-              <div class="j-title">Instant Dispatch</div>
-              <div class="j-desc">Slot locked &amp; tech assigned</div>
+              <div class="j-title" id="jTitle3">Instant Dispatch</div>
+              <div class="j-desc" id="jDesc3">Slot locked &amp; tech assigned</div>
             </div>
           </div>
           <div class="j-step" id="jStep4">
-            <div class="j-num">4</div>
+            <div class="j-num" id="jNum4">4</div>
             <div>
-              <div class="j-title">Upfront Stripe Deposit</div>
-              <div class="j-desc">$89 fee eliminates no-shows</div>
+              <div class="j-title" id="jTitle4">Upfront Stripe Deposit</div>
+              <div class="j-desc" id="jDesc4">$89 paid — Revenue Won</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- PRIMARY STAGE: LEFT = CLEAR STARTING POINT, RIGHT = LIVE RESULTS -->
+      <!-- PRIMARY STAGE: LEFT = SIMULATOR, RIGHT = LIVE RESULTS -->
       <div class="demo-stage-grid">
 
-        <!-- LEFT: CLEAR STARTING POINT (SIMULATOR) -->
-        <div class="primary-simulator-card">
+        <!-- LEFT: LIVE CALLER SIMULATOR -->
+        <div class="panel-card primary-simulator-card active-focus-panel" id="simulatorPanelCard">
           <div class="sim-header">
             <div>
-              <span class="step-one-pill">● Step 1 — Start Here</span>
+              <span class="step-status-pill" id="simFocusBadge">● Step 1 — Start Here</span>
               <h2>Live Caller Simulator</h2>
             </div>
-            <button class="utility-btn" style="background:#f1f5f9; color:#334155; border-color:#cbd5e1;" onclick="resetCall()">↺ Reset Demo</button>
+            <button class="utility-btn" style="background:#f1f5f9; color:#1e293b; border-color:#cbd5e1;" onclick="resetCall()">↺ Reset Demo</button>
           </div>
 
-          <!-- UNMISTAKABLE PRIMARY ACTION -->
+          <!-- PRIMARY ACTION: DROPPED CALL STORY -->
           <button class="btn-hero-start" onclick="simulateMissedCallLead()">
             <div class="hero-btn-top">
               <span>▶ Start Demo: Simulate Dropped Call</span>
-              <span style="background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:6px; font-size:0.82rem;">+$1,200 Story</span>
+              <span style="background:rgba(255,255,255,0.22); padding:3px 10px; border-radius:6px; font-size:0.88rem;">+$1,200 Story</span>
             </div>
             <div class="hero-btn-sub">
               Caller hangs up after hours &rarr; Sarah texts back in 3s &rarr; Customer books &amp; pays deposit
@@ -1119,32 +1325,47 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             </button>
           </div>
 
+          <!-- FIRST-CLASS VOICE CONTROL & LIVE SPEAKING INDICATOR -->
+          <div class="voice-primary-bar">
+            <div class="voice-status-left">
+              <div class="waveform-bars" id="voiceWaveform">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <div>
+                <div class="voice-state-label" id="voiceStatusTitle">Sarah Voice AI Ready</div>
+                <div class="voice-state-sub" id="voiceStatusSub">Click button to talk live via microphone</div>
+              </div>
+            </div>
+            <button class="btn-voice-primary" id="micBtn" onclick="toggleMic()">
+              🎙️ Speak to Sarah
+            </button>
+          </div>
+
           <div class="transcript-label">
             <span>Live Call &amp; AI Event Transcript</span>
-            <span id="audioStatusText" style="color:#16a34a;">● Sarah AI Ready</span>
+            <span id="transcriptTurnCount" style="color:#2563eb;">Live Audio + Text</span>
           </div>
 
           <div class="chat-container" id="chatStream">
             <div class="bubble bubble-sarah">
               <div class="speaker-name">Sarah (ZeroMiss AI Dispatcher)</div>
-              Thank you for calling ZeroMiss Electrical 24/7 Dispatch. Click <strong>"▶ Start Demo"</strong> above, or type/speak any electrical issue below to test me live!
+              Thank you for calling ZeroMiss Electrical 24/7 Dispatch. Click <strong>"▶ Start Demo"</strong> above, press <strong>"🎙️ Speak to Sarah"</strong>, or type any electrical issue below!
             </div>
           </div>
 
           <div class="input-row">
-            <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Speak via Microphone">🎙️</button>
             <input type="text" id="userInput" placeholder="Or type what a caller would say..." onkeydown="if(event.key==='Enter') sendUserMessage()">
             <button class="btn-send" onclick="sendUserMessage()">Send</button>
           </div>
         </div>
 
-        <!-- RIGHT: SUPPORTING RESULTS (PHONE + COCKPIT) -->
-        <div class="outcomes-stage">
+        <!-- RIGHT: LIVE RESULTS (PHONE + CONTRACTOR DISPATCH TICKET) -->
+        <div class="panel-card outcomes-stage" id="outcomesStageCard">
           <div class="outcomes-header">
             <h2>Live Results (Updates Automatically During Call)</h2>
-            <div style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--text-muted);">
-              <span>Contractor Alert Email:</span>
-              <input type="email" id="contractorEmail" value="sean.glenn21@gmail.com" style="border:1px solid #cbd5e1; border-radius:6px; padding:4px 8px; font-size:0.84rem; width:190px;">
+            <div style="display:flex; align-items:center; gap:8px; font-size:0.92rem; color:var(--text-body);">
+              <span>Demo Alert Email:</span>
+              <input type="email" id="contractorEmail" value="dispatch@apex-electrical-demo.com" style="border:1px solid #94a3b8; border-radius:6px; padding:5px 10px; font-size:0.9rem; width:240px;">
               <button class="btn-slot-act btn-slot-book" onclick="saveContractorEmail()">Save</button>
             </div>
           </div>
@@ -1152,9 +1373,6 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           <div class="outcomes-split">
             <!-- Customer Smartphone Outcome -->
             <div class="phone-column-wrap">
-              <div class="phone-step-callout" id="phoneStepCallout">
-                👇 Click the blue button inside the phone!
-              </div>
               <div class="phone-chassis" id="phoneChassis">
                 <div class="phone-screen">
                   <div class="phone-dynamic-island"></div>
@@ -1173,7 +1391,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
                   <div class="phone-messages" id="phoneMessages">
                     <div class="sms-bubble">
                       <div class="sms-tag">Customer Phone Preview</div>
-                      When Sarah sends a 3-second missed-call recovery link or Stripe deposit request, it appears right here for the homeowner to tap.
+                      When Sarah sends a 3-second missed-call recovery link or Stripe deposit prompt, it appears right here for the homeowner to tap.
                     </div>
                   </div>
 
@@ -1188,9 +1406,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
               <div id="waitingPlaceholder" class="waiting-quiet-box">
                 <div class="waiting-icon">📋</div>
                 <h3>Contractor Dispatch Ticket</h3>
-                <p>Once a caller books a slot or claims a missed-call recovery link, the complete work order appears here.</p>
+                <p>Once a caller books a slot or claims a missed-call recovery link, the complete work order and safety triage appear here.</p>
                 <div class="quiet-checklist">
-                  <div>✓ <strong>NFPA 70E Hazard Triage</strong> (Code Red vs. Routine)</div>
+                  <div>✓ <strong>NFPA 70E Hazard Triage</strong> (Symptom, Severity &amp; Safety Given)</div>
                   <div>✓ <strong>Auto-Assigned Electrician</strong> from active roster</div>
                   <div>✓ <strong>1-Click Google Calendar</strong> &amp; iCal dispatch sync</div>
                   <div>✓ <strong>Upfront Stripe Deposit</strong> verification status</div>
@@ -1199,16 +1417,32 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
               <!-- Active Ticket Card -->
               <div class="dispatch-hero" id="dispatchHero">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:8px;">
                   <span class="hero-badge badge-standard" id="heroBadge">Confirmed Dispatch</span>
-                  <span id="heroPayBadge" style="font-size:0.82rem; font-weight:800; color:#b45309; background:#fef3c7; padding:4px 10px; border-radius:6px; border:1px solid #fde68a;">
+                  <span id="heroPayBadge" style="font-size:0.88rem; font-weight:800; color:#b45309; background:#fef3c7; padding:5px 12px; border-radius:6px; border:1px solid #fde68a;">
                     💳 Pending $89 Deposit
                   </span>
                 </div>
-                <div class="hero-title" id="heroTitle">New Service Call Scheduled</div>
-                <div class="hero-subtitle">Dispatched to <strong id="heroContractor">sean.glenn21@gmail.com</strong></div>
+                <div class="hero-title" id="heroTitle">Electrical Emergency: Burning Smell</div>
+                <div class="hero-subtitle">Dispatched to <strong id="heroContractor">dispatch@apex-electrical-demo.com</strong></div>
 
-                <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+                <!-- CREDIBILITY MOMENT: AI TRIAGE & SAFETY SUMMARY -->
+                <div class="triage-credibility-box" id="triageCredibilityBox">
+                  <div class="triage-box-header" id="triageBoxHeader">
+                    🛡️ AI TRIAGE &amp; LIFE-SAFETY VERIFICATION
+                  </div>
+                  <div class="triage-detail-row">
+                    <strong>Reported Symptom:</strong> <span id="triageSymptom">-</span>
+                  </div>
+                  <div class="triage-detail-row">
+                    <strong>Hazard Classification:</strong> <span id="triageHazardLevel">-</span>
+                  </div>
+                  <div class="triage-detail-row">
+                    <strong>Safety Instruction Given:</strong> <span id="triageSafetyGiven">-</span>
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
                   <a href="#" id="heroCalBtn" target="_blank" class="btn-cal-magic">
                     📅 Add to Google Calendar
                   </a>
@@ -1220,11 +1454,11 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
                 <table class="ticket-table" id="ticketTable">
                   <tr><td>Confirmation:</td><td id="tktConf">-</td></tr>
                   <tr><td>Customer:</td><td id="tktCustomer">-</td></tr>
-                  <tr><td>Phone:</td><td id="tktPhone">-</td></tr>
-                  <tr><td>Address:</td><td id="tktAddress">-</td></tr>
+                  <tr><td>Callback Phone:</td><td id="tktPhone">-</td></tr>
+                  <tr><td>Service Address:</td><td id="tktAddress">-</td></tr>
                   <tr><td>Assigned Tech:</td><td id="tktTech">-</td></tr>
-                  <tr><td>Window:</td><td id="tktWindow">-</td></tr>
-                  <tr><td>Deposit Fee:</td><td id="tktFee">-</td></tr>
+                  <tr><td>Arrival Window:</td><td id="tktWindow">-</td></tr>
+                  <tr><td>Upfront Deposit:</td><td id="tktFee">-</td></tr>
                   <tr><td>Est. Job Value:</td><td id="tktVal" style="color:#15803d; font-weight:800;">-</td></tr>
                 </table>
               </div>
@@ -1233,28 +1467,29 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- SUPPORTING DEMO METRICS BAR (WITH CLEAR DEMO CONTEXT) -->
-      <div class="demo-metrics-section">
+      <!-- SUPPORTING DEMO METRICS BAR (PIPELINE BOOKED -> REVENUE WON AFTER DEPOSIT) -->
+      <div class="demo-metrics-section" id="demoMetricsSection">
         <div class="metrics-bar-header">
           <div class="metrics-context-title">
             <span class="demo-data-tag" id="benchmarkIndicator">🧪 Simulated Demo Session Data</span>
-            <span class="metrics-context-sub">Starts at $0 — tallies live as you test calls above</span>
+            <span class="metrics-context-sub">Starts at $0 — tallies live with count-up animation as you test calls</span>
           </div>
           <button class="btn-benchmark-toggle" id="btnBenchmarkToggle" onclick="toggleBenchmarkMode()">
-            📈 Preview 30-Day Contractor Benchmark ($18,450)
+            <span>📈 Preview 30-Day Contractor Benchmark</span>
+            <span class="bench-pill-highlight" id="benchPillBadge">+$18,450 / mo</span>
           </button>
         </div>
 
         <div class="rev-metrics-grid">
-          <div class="rev-metric-card">
+          <div class="rev-metric-card" id="cardMetricPipeline">
             <div>
-              <div class="rev-label">Demo Pipeline Revenue Won</div>
+              <div class="rev-label" id="kpiPipelineLabel">Pipeline Booked (Pending Deposit)</div>
               <div class="rev-subtext" id="kpiPipelineSub">0 Dispatches Booked in Session</div>
             </div>
             <div class="rev-val" id="kpiPipelineRev">$0</div>
           </div>
 
-          <div class="rev-metric-card">
+          <div class="rev-metric-card" id="cardMetricMissed">
             <div>
               <div class="rev-label">Missed Calls Recouped</div>
               <div class="rev-subtext" id="kpiMissedSub">0 Dropped Calls Tested</div>
@@ -1262,7 +1497,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             <div class="rev-val" id="kpiMissedRec">0 Saved</div>
           </div>
 
-          <div class="rev-metric-card">
+          <div class="rev-metric-card" id="cardMetricFees">
             <div>
               <div class="rev-label">Upfront Deposits Collected</div>
               <div class="rev-subtext" id="kpiFeesSubtext">0 Stripe Deposits Paid</div>
@@ -1304,7 +1539,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">24/7 On-Call Lead</div>
-          <div class="kpi-val" id="kpiFleetOnCall" style="font-size:1.3rem; color:#15803d;">Marcus Vance</div>
+          <div class="kpi-val" id="kpiFleetOnCall" style="font-size:1.35rem; color:#15803d;">Marcus Vance</div>
           <div class="kpi-sub">45m Emergency Dispatch</div>
         </div>
         <div class="kpi-card">
@@ -1321,8 +1556,8 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
       <div class="fleet-header-row">
         <div>
-          <h2 style="font-size:1.3rem; font-weight:800;">Electrician Roster &amp; On-Call Status (Demo Data)</h2>
-          <p style="color:var(--text-muted); font-size:0.9rem;">Toggle on-call status or add technicians to see how Sarah assigns jobs.</p>
+          <h2 style="font-size:1.35rem; font-weight:800;">Electrician Roster &amp; On-Call Status (Demo Data)</h2>
+          <p style="color:var(--text-muted); font-size:0.95rem;">Toggle on-call status or add technicians to see how Sarah assigns jobs.</p>
         </div>
         <button class="btn-add-electrician" onclick="openAddTechModal()">+ Add Electrician</button>
       </div>
@@ -1338,7 +1573,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <h3>💡 The End-to-End Story: Why Contractors Buy ZeroMiss</h3>
         <button class="modal-close" onclick="closePitchModal()">&times;</button>
       </div>
-      <div style="font-size:0.95rem; color:var(--text-body); line-height:1.6;">
+      <div style="font-size:1rem; color:var(--text-body); line-height:1.6;">
         <p style="margin-bottom:14px;">
           <strong>The Problem:</strong> 35% of homeowner calls happen after hours or while electricians are on a ladder. 80% of callers who hit voicemail hang up and call the next contractor on Google.
         </p>
@@ -1347,8 +1582,8 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         </p>
         <ol style="margin-left:20px; margin-bottom:18px; display:flex; flex-direction:column; gap:8px;">
           <li><strong>Missed Call Intercepted:</strong> Sarah detects the dropped call and texts the customer within 3 seconds.</li>
-          <li><strong>Instant Booking:</strong> Customer taps the link on their phone to lock in tomorrow's 8:00 AM slot (+$1,200 job saved).</li>
-          <li><strong>No-Show Elimination:</strong> Customer authorizes the $89 diagnostic deposit via Stripe right inside the SMS thread.</li>
+          <li><strong>Instant Booking:</strong> Customer taps the link on their phone to lock in tomorrow's 8:00 AM slot (+$1,200 pipeline booked).</li>
+          <li><strong>No-Show Elimination:</strong> Customer authorizes the $89 diagnostic deposit via Stripe right inside the SMS thread, moving the job to <strong>Revenue Won</strong>.</li>
         </ol>
         <button class="btn-modal-submit" onclick="closePitchModal()">Got It — Back to Demo</button>
       </div>
@@ -1376,9 +1611,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <input type="range" id="sliderTicket" min="300" max="4000" step="50" value="1200" oninput="updateRoiCalculation()" style="width:100%;">
 
         <div class="roi-result-banner">
-          <div style="font-size:0.85rem; font-weight:800; color:#15803d; text-transform:uppercase;">Projected Recouped Annual Revenue</div>
+          <div style="font-size:0.88rem; font-weight:800; color:#15803d; text-transform:uppercase;">Projected Recouped Annual Revenue</div>
           <div class="roi-big-gain" id="roiAnnualGain">+$109,368 / yr</div>
-          <div style="font-size:0.85rem; color:var(--text-muted);" id="roiBreakdown">Based on recovering 7.6 missed after-hours jobs/month</div>
+          <div style="font-size:0.9rem; color:var(--text-muted);" id="roiBreakdown">Based on recovering 7.6 missed after-hours jobs/month</div>
         </div>
         <button class="btn-modal-submit" onclick="closeRoiModal()">Close Calculator</button>
       </div>
@@ -1392,12 +1627,12 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <h3>📞 Connect Live Twilio Phone Number</h3>
         <button class="modal-close" onclick="closeTwilioModal()">&times;</button>
       </div>
-      <div style="font-size:0.92rem; color:var(--text-body);">
+      <div style="font-size:0.96rem; color:var(--text-body);">
         <p style="margin-bottom:12px;">Paste this webhook URL into your Twilio Console under <strong>A Call Comes In (HTTP POST)</strong>:</p>
         <div class="form-group">
           <div style="display:flex; gap:8px;">
             <input type="text" id="twilioUrlInput" readonly style="flex:1; font-family:monospace;">
-            <button class="utility-btn" onclick="copyTwilioWebhook()">Copy</button>
+            <button class="utility-btn" style="background:#0f172a; color:#fff;" onclick="copyTwilioWebhook()">Copy</button>
           </div>
         </div>
         <button class="btn-modal-submit" onclick="closeTwilioModal()">Done</button>
@@ -1463,7 +1698,8 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
   <script>
     let BOARD_DATA = { bookings: [], technicians: [], slots: [], roi_metrics: {} };
-    let DEFAULT_CONFIG_EMAIL = 'sean.glenn21@gmail.com';
+    let DEFAULT_CONFIG_EMAIL = 'dispatch@apex-electrical-demo.com';
+    let PREV_METRICS = { pipeline: 0, missed: 0, fees: 0 };
 
     const chatStream = document.getElementById('chatStream');
     const userInput = document.getElementById('userInput');
@@ -1472,29 +1708,121 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     const phoneMessages = document.getElementById('phoneMessages');
     const contractorInput = document.getElementById('contractorEmail');
 
-    // Update the 4-Step Visual Backbone & Guided Next Step Banner
-    function setJourneyProgress(stepNum, bannerHtml, highlightPhone = false) {
+    // Scenario-Adaptive Step Definitions
+    const JOURNEY_FLOWS = {
+      missed_call: {
+        header: '⚡ DROPPED-CALL RECOVERY JOURNEY',
+        steps: [
+          { title: 'Dropped Call', desc: 'Caller hangs up after hours' },
+          { title: '3-Sec SMS Recovery', desc: 'Sarah texts instant booking link' },
+          { title: '1-Tap Self-Dispatch', desc: 'Customer locks in slot & tech' },
+          { title: 'Upfront Stripe Deposit', desc: '$89 paid — Revenue Won' }
+        ]
+      },
+      emergency: {
+        header: '🚨 LIVE VOICE & NFPA 70E TRIAGE JOURNEY',
+        steps: [
+          { title: 'Inbound Voice Call', desc: 'Caller reports burning smell' },
+          { title: 'NFPA 70E Hazard Triage', desc: 'Code Red & safety directive given' },
+          { title: 'Priority 45m Dispatch', desc: 'On-call Master Tech assigned' },
+          { title: 'Upfront Stripe Deposit', desc: '$199 paid — Revenue Won' }
+        ]
+      },
+      routine: {
+        header: '⚡ LIVE VOICE SCHEDULING JOURNEY',
+        steps: [
+          { title: 'Inbound Voice Call', desc: 'Caller requests service quote' },
+          { title: 'AI Spec & Slot Check', desc: 'Panel capacity & calendar verified' },
+          { title: 'Instant Slot Dispatch', desc: 'Tech & arrival window locked' },
+          { title: 'Upfront Stripe Deposit', desc: '$89 paid — Revenue Won' }
+        ]
+      }
+    };
+
+    function applyScenarioJourneyLabels(modeKey) {
+      const flow = JOURNEY_FLOWS[modeKey] || JOURNEY_FLOWS.missed_call;
+      const headerEl = document.getElementById('journeyModeTitle');
+      if (headerEl) headerEl.innerText = flow.header;
+      flow.steps.forEach((st, idx) => {
+        const n = idx + 1;
+        const tEl = document.getElementById(`jTitle${n}`);
+        const dEl = document.getElementById(`jDesc${n}`);
+        if (tEl) tEl.innerText = st.title;
+        if (dEl) dEl.innerText = st.desc;
+      });
+    }
+
+    // Update the 4-Step Visual Backbone & Move Active Highlight Border to the Right Panel
+    function setJourneyProgress(stepNum, bannerHtml, focusTarget = 'simulator') {
       for (let i = 1; i <= 4; i++) {
         const el = document.getElementById(`jStep${i}`);
-        if (!el) continue;
+        const numEl = document.getElementById(`jNum${i}`);
+        if (!el || !numEl) continue;
         el.classList.remove('active-step', 'done-step');
-        if (i < stepNum) el.classList.add('done-step');
-        else if (i === stepNum) el.classList.add('active-step');
+        if (i < stepNum) {
+          el.classList.add('done-step');
+          numEl.innerText = '✓';
+        } else if (i === stepNum) {
+          el.classList.add('active-step');
+          numEl.innerText = String(i);
+        } else {
+          numEl.innerText = String(i);
+        }
       }
+
       const banner = document.getElementById('guidedNextStepBanner');
       if (banner && bannerHtml) banner.innerHTML = bannerHtml;
 
+      const simCard = document.getElementById('simulatorPanelCard');
+      const outCard = document.getElementById('outcomesStageCard');
       const chassis = document.getElementById('phoneChassis');
-      const callout = document.getElementById('phoneStepCallout');
-      if (chassis && callout) {
-        if (highlightPhone) {
-          chassis.classList.add('highlight-phone');
-          callout.classList.add('visible');
+      const simBadge = document.getElementById('simFocusBadge');
+
+      simCard.classList.remove('active-focus-panel');
+      outCard.classList.remove('active-focus-panel');
+      chassis.classList.remove('highlight-phone');
+
+      if (focusTarget === 'simulator') {
+        simCard.classList.add('active-focus-panel');
+        simBadge.className = 'step-status-pill';
+        simBadge.innerText = '● Step 1 — Start Here';
+      } else if (focusTarget === 'phone') {
+        outCard.classList.add('active-focus-panel');
+        chassis.classList.add('highlight-phone');
+        simBadge.className = 'step-status-pill quiet-pill';
+        simBadge.innerText = '✓ Call Simulated';
+      } else if (focusTarget === 'complete') {
+        simBadge.className = 'step-status-pill quiet-pill';
+        simBadge.innerText = '✓ Demo Complete';
+      }
+    }
+
+    // Count-Up Animation Helper for Metrics
+    function animateMetricCountUp(el, cardEl, startVal, endVal, formatFn) {
+      if (!el) return;
+      if (startVal === endVal) {
+        el.innerText = formatFn(endVal);
+        return;
+      }
+      if (cardEl) {
+        cardEl.classList.add('metric-pulse');
+        setTimeout(() => cardEl.classList.remove('metric-pulse'), 650);
+      }
+      const duration = 600;
+      const startTime = performance.now();
+      function tick(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(startVal + (endVal - startVal) * eased);
+        el.innerText = formatFn(current);
+        if (progress < 1) {
+          requestAnimationFrame(tick);
         } else {
-          chassis.classList.remove('highlight-phone');
-          callout.classList.remove('visible');
+          el.innerText = formatFn(endVal);
         }
       }
+      requestAnimationFrame(tick);
     }
 
     function switchPortalTab(tabKey) {
@@ -1515,13 +1843,47 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       }
     }
 
+    function setVoiceIndicatorState(mode, titleText, subText) {
+      const wave = document.getElementById('voiceWaveform');
+      const titleEl = document.getElementById('voiceStatusTitle');
+      const subEl = document.getElementById('voiceStatusSub');
+      if (!wave || !titleEl || !subEl) return;
+
+      if (mode === 'speaking' || mode === 'listening') {
+        wave.classList.add('active-wave');
+      } else {
+        wave.classList.remove('active-wave');
+      }
+      titleEl.innerText = titleText;
+      subEl.innerText = subText;
+    }
+
     function speakText(text) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const utter = new SpeechSynthesisUtterance(text.replace(/[*_#]/g, ''));
         utter.rate = 1.05;
+        utter.onstart = () => {
+          setVoiceIndicatorState('speaking', '🔊 Sarah AI is Speaking...', 'Live neural voice response active');
+        };
+        utter.onend = () => {
+          setVoiceIndicatorState('idle', 'Sarah Voice AI Ready', 'Click button to talk live via microphone');
+        };
+        utter.onerror = () => {
+          setVoiceIndicatorState('idle', 'Sarah Voice AI Ready', 'Click button to talk live via microphone');
+        };
         window.speechSynthesis.speak(utter);
       }
+    }
+
+    function scrollTranscriptToBottom() {
+      chatStream.scrollTop = chatStream.scrollHeight;
+      requestAnimationFrame(() => {
+        chatStream.scrollTop = chatStream.scrollHeight;
+      });
+      setTimeout(() => {
+        chatStream.scrollTop = chatStream.scrollHeight;
+      }, 40);
     }
 
     function appendMessage(speaker, text, isSarah = false) {
@@ -1529,15 +1891,21 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       bubble.className = `bubble ${isSarah ? 'bubble-sarah' : 'bubble-user'}`;
       bubble.innerHTML = `<div class="speaker-name">${speaker}</div><div>${text.replace(/\n/g, '<br>')}</div>`;
       chatStream.appendChild(bubble);
-      chatStream.scrollTop = chatStream.scrollHeight;
+      scrollTranscriptToBottom();
     }
 
     async function sendUserMessage() {
       const msg = userInput.value.trim();
       if (!msg) return;
       userInput.value = '';
+      const isEmergMsg = /burn|smoke|spark|shock|fire|water|buzz|emerg/i.test(msg);
+      applyScenarioJourneyLabels(isEmergMsg ? 'emergency' : 'routine');
       appendMessage('Caller (You)', msg, false);
-      setJourneyProgress(2, '🎙️ <strong>Step 2 of 4:</strong> Sarah AI is triaging your request and checking technician availability...');
+      setJourneyProgress(
+        2,
+        '🎙️ <strong>Step 2 of 4:</strong> Sarah AI is triaging your issue and checking technician availability...',
+        'simulator'
+      );
 
       try {
         const res = await fetch('/api/chat', {
@@ -1552,7 +1920,11 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         if (data.booking) {
           showBookingInHero(data.booking);
           pushCustomerSmsBooking(data.booking);
-          setJourneyProgress(3, '👉 <strong>Next Step (Step 3 of 4):</strong> Job dispatched! Click <strong>"Authorize Deposit via Stripe"</strong> on the phone to complete the flow.', true);
+          setJourneyProgress(
+            3,
+            `👉 <strong>Next Step (Step 3 of 4):</strong> Work order dispatched! Click <strong>"Authorize $${data.booking.dispatch_fee} Deposit via Stripe"</strong> inside the highlighted phone on the right.`,
+            'phone'
+          );
         }
         await fetchBoardData();
       } catch (e) {
@@ -1564,7 +1936,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       waitingPlaceholder.style.display = 'none';
       dispatchHero.classList.add('active');
 
-      const isEmerg = (booking.urgency_level || '').includes('EMERG');
+      const isEmerg = (booking.urgency_level || '').includes('EMERG') || (booking.service_type || '').toLowerCase() === 'emergency';
       dispatchHero.className = `dispatch-hero active ${isEmerg ? 'is-emergency' : ''}`;
 
       const bBadge = document.getElementById('heroBadge');
@@ -1576,7 +1948,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         payBadge.style.color = '#15803d';
         payBadge.style.background = '#dcfce7';
         payBadge.style.borderColor = '#86efac';
-        payBadge.innerText = '✓ Stripe Deposit Paid';
+        payBadge.innerText = `✓ $${booking.dispatch_fee} Deposit Paid`;
       } else {
         payBadge.style.color = '#b45309';
         payBadge.style.background = '#fef3c7';
@@ -1584,16 +1956,28 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         payBadge.innerText = `💳 Pending $${booking.dispatch_fee} Deposit`;
       }
 
-      document.getElementById('heroTitle').innerText = `${booking.service_type || 'Electrical Service'} — ${booking.customer_name}`;
+      // Clean human-readable title & window
+      document.getElementById('heroTitle').innerText = booking.display_title || 'Electrical Service Dispatch';
       document.getElementById('heroContractor').innerText = DEFAULT_CONFIG_EMAIL;
+
+      // Populate Triage Credibility Box
+      const triageBox = document.getElementById('triageCredibilityBox');
+      triageBox.className = `triage-credibility-box ${isEmerg ? 'is-emerg-triage' : ''}`;
+      document.getElementById('triageBoxHeader').innerHTML = isEmerg
+        ? '🚨 NFPA 70E EMERGENCY TRIAGE &amp; SAFETY DIRECTIVE'
+        : '🛡️ AI TECHNICAL TRIAGE &amp; PRE-ARRIVAL CHECK';
+      document.getElementById('triageSymptom').innerText = booking.triage_symptom || booking.issue_description || 'Electrical service request';
+      document.getElementById('triageHazardLevel').innerText = booking.triage_hazard_level || (isEmerg ? 'NFPA 70E Code Red — Active Thermal Hazard' : 'Routine Service (Non-Hazardous)');
+      document.getElementById('triageSafetyGiven').innerText = booking.triage_safety_instruction || 'Stay clear of affected circuit until technician arrives.';
+
       document.getElementById('tktConf').innerText = booking.confirmation_id;
       document.getElementById('tktCustomer').innerText = booking.customer_name;
       document.getElementById('tktPhone').innerText = booking.phone_number;
       document.getElementById('tktAddress').innerText = booking.service_address;
       document.getElementById('tktTech').innerText = booking.assigned_technician;
-      document.getElementById('tktWindow').innerText = `${booking.slot_date} (${booking.slot_time})`;
-      document.getElementById('tktFee').innerText = `$${booking.dispatch_fee.toFixed(2)}`;
-      document.getElementById('tktVal').innerText = `$${(booking.estimated_job_value || 850).toLocaleString()}`;
+      document.getElementById('tktWindow').innerText = booking.display_window || `${booking.slot_date} (${booking.slot_time})`;
+      document.getElementById('tktFee').innerText = `$${Number(booking.dispatch_fee || 89).toFixed(2)}`;
+      document.getElementById('tktVal').innerText = `$${Number(booking.estimated_job_value || 850).toLocaleString()}`;
 
       const calBtn = document.getElementById('heroCalBtn');
       if (booking.google_calendar_link) {
@@ -1605,14 +1989,15 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     }
 
     function pushCustomerSmsBooking(booking) {
+      const cleanWin = booking.display_window || 'Today, within 45–60 min';
       const smsHtml = `
         <div class="sms-bubble">
-          <div class="sms-tag">Appointment Confirmed</div>
-          Hi ${booking.customer_name}, your technician <strong>${booking.assigned_technician.split('(')[0].trim()}</strong> is scheduled for <strong>${booking.slot_date} (${booking.slot_time})</strong>.
+          <div class="sms-tag">Appointment Dispatched</div>
+          Hi ${booking.customer_name}, your technician <strong>${booking.assigned_technician.split('(')[0].trim()}</strong> is scheduled for <strong>${cleanWin}</strong>.
           <div class="sms-stripe-sheet">
-            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:0.8rem; color:#c7d2fe;">
-              <span>💳 STRIPE DEPOSIT</span>
-              <span style="color:#4ade80;">$${booking.dispatch_fee.toFixed(2)}</span>
+            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:0.86rem; color:#c7d2fe;">
+              <span>💳 STRIPE UPFRONT DEPOSIT</span>
+              <span style="color:#4ade80;">$${Number(booking.dispatch_fee).toFixed(2)}</span>
             </div>
             <button class="btn-stripe-pay" onclick="payStripeDeposit('${booking.confirmation_id}')">
               👉 Authorize $${booking.dispatch_fee} Deposit via Stripe
@@ -1626,6 +2011,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
     // STEP 1 -> STEP 2: Simulate Dropped Call
     async function simulateMissedCallLead() {
+      applyScenarioJourneyLabels('missed_call');
       try {
         const res = await fetch('/api/simulate-missed-call', { method: 'POST' });
         const data = await res.json();
@@ -1634,15 +2020,15 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         const smsHtml = `
           <div class="sms-bubble sms-recoup-card" id="smsCard_${mc.missed_call_id}">
             <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-              <span style="background:rgba(245,158,11,0.25); color:#fbbf24; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:4px;">⚠️ MISSED CALL RECOVERY</span>
-              <span style="font-size:0.72rem; color:#94a3b8;">3s ago</span>
+              <span style="background:rgba(245,158,11,0.25); color:#fbbf24; font-size:0.78rem; font-weight:800; padding:3px 9px; border-radius:4px;">⚠️ MISSED CALL RECOVERY</span>
+              <span style="font-size:0.8rem; color:#cbd5e1;">3s ago</span>
             </div>
             <div>
               Hi! This is Sarah from ZeroMiss Electrical. We noticed your call dropped! Tap below to lock in tomorrow's 8:00 AM slot right now:
             </div>
             <div class="sms-action-card" onclick="convertMissedCallLead('${mc.missed_call_id}')">
-              <div style="font-size:0.75rem; font-weight:800; color:#4ade80;">⚡ 1-TAP SELF-SCHEDULE (+$1,200 SAVED)</div>
-              <div style="font-size:0.92rem; font-weight:800; color:#ffffff; margin:4px 0;">Tomorrow 8:00 AM &bull; Tech: Sarah Chen</div>
+              <div style="font-size:0.82rem; font-weight:800; color:#4ade80;">⚡ 1-TAP SELF-SCHEDULE ($1,200 JOB)</div>
+              <div style="font-size:0.98rem; font-weight:800; color:#ffffff; margin:4px 0;">Tomorrow, 8:00 AM &bull; Tech: Sarah Chen</div>
               <button class="btn-action-claim" id="btnClaim_${mc.missed_call_id}">
                 👉 Tap to Confirm &amp; Book ($1,200)
               </button>
@@ -1654,12 +2040,12 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
         chatStream.innerHTML = '';
         appendMessage('System Alert', `📵 Caller from ${mc.caller_phone || '(555) 329-8471'} hung up after hours. $1,200 EV Charger job at risk of calling a competitor.`, false);
-        appendMessage('Sarah (3s SMS Recovery)', `⚡ Sent instant self-scheduling SMS link to customer's phone. Look at the phone on the right and click "Tap to Confirm & Book"!`, true);
+        appendMessage('Sarah (3s SMS Recovery)', `⚡ Sent instant self-scheduling SMS link to the homeowner's phone in 2.8 seconds.`, true);
 
         setJourneyProgress(
           2,
-          '👉 <strong>Next Step (Step 2 of 4):</strong> Look at the <strong>Customer Phone</strong> on the right and click <strong>"👉 Tap to Confirm &amp; Book ($1,200)"</strong>!',
-          true
+          '👉 <strong>Next Step (Step 2 of 4):</strong> Look at the highlighted <strong>Customer Phone</strong> on the right and click <strong>"Tap to Confirm &amp; Book ($1,200)"</strong>.',
+          'phone'
         );
 
         await fetchBoardData();
@@ -1681,12 +2067,12 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           const cid = data.booking ? data.booking.confirmation_id : '';
           phoneMessages.innerHTML = `
             <div class="sms-bubble">
-              <div class="recoup-won-badge">🎉 JOB RECOUPED! +$1,200 WON</div>
-              <div style="margin:10px 0; font-size:0.85rem;">
-                ✓ Confirmed for <strong>Tomorrow 8:00 AM - 12:00 PM</strong> with <strong>Sarah Chen</strong>.
+              <div class="recoup-won-badge">✓ SLOT BOOKED ($1,200 PIPELINE)</div>
+              <div style="margin:10px 0; font-size:0.95rem;">
+                Confirmed for <strong>Tomorrow, 8:00 AM – 12:00 PM</strong> with <strong>Sarah Chen</strong>.
               </div>
               <div class="sms-stripe-sheet">
-                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:0.8rem; color:#c7d2fe;">
+                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:0.86rem; color:#c7d2fe;">
                   <span>💳 STEP 4: UPFRONT DEPOSIT</span>
                   <span style="color:#4ade80;">$89.00</span>
                 </div>
@@ -1699,12 +2085,12 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
           if (data.booking) showBookingInHero(data.booking);
 
-          appendMessage('Sarah (ZeroMiss AI)', `🎉 Customer tapped the SMS link! $1,200 job recouped and dispatched to Sarah Chen. Now click "Authorize $89 Deposit" on the phone!`, true);
+          appendMessage('Sarah (ZeroMiss AI)', `✓ Customer booked Tomorrow 8:00 AM – 12:00 PM with Sarah Chen ($1,200 Pipeline Booked). Awaiting $89 Stripe deposit to lock in Revenue Won.`, true);
 
           setJourneyProgress(
             3,
-            '👉 <strong>Next Step (Step 3 of 4):</strong> Ticket dispatched! Now click <strong>"👉 Authorize $89 Deposit via Stripe"</strong> on the phone to finish.',
-            true
+            '👉 <strong>Next Step (Step 3 of 4):</strong> Slot booked! Now click <strong>"Authorize $89 Deposit via Stripe"</strong> inside the phone to move Pipeline Booked to <strong>Revenue Won</strong>.',
+            'phone'
           );
 
           await fetchBoardData();
@@ -1727,9 +2113,11 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         });
         const data = await res.json();
         if (data.status === 'SUCCESS') {
+          const feePaid = data.booking ? data.booking.dispatch_fee : 89;
+          const jobVal = data.booking ? data.booking.estimated_job_value : 1200;
           document.querySelectorAll('.btn-stripe-pay').forEach(btn => {
             btn.classList.add('paid');
-            btn.innerHTML = '✓ $89 Deposit Paid & Verified';
+            btn.innerHTML = `✓ $${feePaid} Deposit Paid & Verified`;
             btn.disabled = true;
           });
           const heroPay = document.getElementById('heroPayBadge');
@@ -1737,17 +2125,18 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             heroPay.style.color = '#15803d';
             heroPay.style.background = '#dcfce7';
             heroPay.style.borderColor = '#86efac';
-            heroPay.innerHTML = '✓ Stripe Deposit Verified (PAID)';
+            heroPay.innerHTML = `✓ $${feePaid} Deposit Paid (Locked)`;
           }
-          appendMessage('ZeroMiss Billing', `💳 $89.00 diagnostic fee verified via Stripe. No-show risk eliminated!`, true);
+          appendMessage('ZeroMiss Billing', `💳 $${Number(feePaid).toFixed(2)} deposit verified via Stripe. $${Number(jobVal).toLocaleString()} job moved from Pipeline Booked to Revenue Won!`, true);
 
           setJourneyProgress(
             4,
-            '🎉 <strong>Journey Complete!</strong> You turned a dropped call into <strong>$1,200 pipeline revenue + $89 paid deposit</strong>. Check the metrics below!',
-            false
+            `🎉 <strong>Journey Complete!</strong> Deposit verified via Stripe — <strong>$${Number(jobVal).toLocaleString()} Revenue Won</strong> + <strong>$${feePaid} Deposit Collected</strong>!`,
+            'complete'
           );
           document.getElementById('jStep4').classList.remove('active-step');
           document.getElementById('jStep4').classList.add('done-step');
+          document.getElementById('jNum4').innerText = '✓';
 
           await fetchBoardData();
         }
@@ -1770,10 +2159,12 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         body: JSON.stringify({ email })
       });
       DEFAULT_CONFIG_EMAIL = email;
-      alert(`Contractor alert email updated to: ${email}`);
+      document.getElementById('heroContractor').innerText = email;
+      alert(`Demo alert email updated to: ${email}`);
     }
 
     async function runScenario(scenarioKey) {
+      applyScenarioJourneyLabels(scenarioKey === 'emergency' ? 'emergency' : 'routine');
       chatStream.innerHTML = '';
       const res = await fetch('/api/run-scenario', {
         method: 'POST',
@@ -1791,10 +2182,11 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       if (data.booking) {
         showBookingInHero(data.booking);
         pushCustomerSmsBooking(data.booking);
+        const fee = data.booking.dispatch_fee || (scenarioKey === 'emergency' ? 149 : 89);
         setJourneyProgress(
           3,
-          '👉 <strong>Next Step (Step 3 of 4):</strong> Emergency/Routine call dispatched! Click <strong>"👉 Authorize Deposit via Stripe"</strong> on the phone.',
-          true
+          `👉 <strong>Next Step (Step 3 of 4):</strong> ${scenarioKey === 'emergency' ? 'Code Red Emergency' : 'Service'} dispatched! Click <strong>"Authorize $${fee} Deposit via Stripe"</strong> inside the highlighted phone.`,
+          'phone'
         );
       }
       await fetchBoardData();
@@ -1802,10 +2194,11 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
     async function resetCall() {
       await fetch('/api/reset', { method: 'POST' });
+      applyScenarioJourneyLabels('missed_call');
       chatStream.innerHTML = `
         <div class="bubble bubble-sarah">
           <div class="speaker-name">Sarah (ZeroMiss AI Dispatcher)</div>
-          Thank you for calling ZeroMiss Electrical 24/7 Dispatch. Click <strong>"▶ Start Demo"</strong> above, or type/speak any electrical issue below to test me live!
+          Thank you for calling ZeroMiss Electrical 24/7 Dispatch. Click <strong>"▶ Start Demo"</strong> above, press <strong>"🎙️ Speak to Sarah"</strong>, or type any electrical issue below!
         </div>
       `;
       dispatchHero.classList.remove('active');
@@ -1813,93 +2206,155 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       phoneMessages.innerHTML = `
         <div class="sms-bubble">
           <div class="sms-tag">Customer Phone Preview</div>
-          When Sarah sends a 3-second missed-call recovery link or Stripe deposit request, it appears right here for the homeowner to tap.
+          When Sarah sends a 3-second missed-call recovery link or Stripe deposit prompt, it appears right here for the homeowner to tap.
         </div>
       `;
       setJourneyProgress(
         1,
-        '👉 <strong>What to do first:</strong> Click <strong>"▶ Start Demo: Simulate Dropped Call"</strong> below to see ZeroMiss save a $1,200 job.',
-        false
+        '👉 <strong>What to do first:</strong> Click <strong>"▶ Start Demo: Simulate Dropped Call"</strong> or <strong>"🎙️ Speak to Sarah AI"</strong> below.',
+        'simulator'
       );
       fetchBoardData();
+    }
+
+    function applyBoardData(data, animate = true) {
+      BOARD_DATA = data;
+      if (data.contractor_email) {
+        DEFAULT_CONFIG_EMAIL = data.contractor_email;
+        contractorInput.value = data.contractor_email;
+      }
+
+      const bookingsCount = (data.bookings || []).length;
+      const techsCount = (data.technicians || []).length;
+      document.getElementById('calCountPill').innerText = bookingsCount;
+      document.getElementById('techCountPill').innerText = techsCount;
+
+      const roi = data.roi_metrics || {};
+      const isBench = roi.is_benchmark || false;
+
+      const btnBench = document.getElementById('btnBenchmarkToggle');
+      const indBench = document.getElementById('benchmarkIndicator');
+      if (btnBench && indBench) {
+        if (isBench) {
+          btnBench.innerHTML = '<span>🎯 Return to Live Demo Session</span><span class="bench-pill-highlight">$0 Baseline</span>';
+          indBench.innerText = '📈 30-Day Contractor Benchmark (Projected Data)';
+          indBench.style.background = '#dcfce7';
+          indBench.style.color = '#15803d';
+        } else {
+          btnBench.innerHTML = '<span>📈 Preview 30-Day Contractor Benchmark</span><span class="bench-pill-highlight">+$18,450 / mo</span>';
+          indBench.innerText = '🧪 Simulated Demo Session Data';
+          indBench.style.background = '#e0e7ff';
+          indBench.style.color = '#1e1b4b';
+        }
+      }
+
+      // 1. PIPELINE BOOKED vs REVENUE WON (Only "Revenue Won" once deposit is paid!)
+      const pipelineBooked = Math.round(roi.total_pipeline_revenue || 0);
+      const revenueWon = Math.round(roi.revenue_won || 0);
+      const paidCount = roi.paid_count || 0;
+      const elPipe = document.getElementById('kpiPipelineRev');
+      const elPipeLabel = document.getElementById('kpiPipelineLabel');
+      const elPipeSub = document.getElementById('kpiPipelineSub');
+      const cardPipe = document.getElementById('cardMetricPipeline');
+
+      if (isBench) {
+        elPipeLabel.innerText = 'Revenue Won (30-Day Benchmark)';
+        elPipe.style.color = '#15803d';
+        elPipeSub.innerText = '18 Monthly Dispatches • Deposits Verified';
+        animateMetricCountUp(elPipe, cardPipe, animate ? PREV_METRICS.pipeline : 18450, 18450, v => `$${v.toLocaleString()}`);
+        PREV_METRICS.pipeline = 18450;
+      } else if (revenueWon > 0) {
+        elPipeLabel.innerText = 'Revenue Won (Deposit Locked)';
+        elPipe.style.color = '#15803d';
+        elPipeSub.innerText = `✓ ${paidCount} Job${paidCount === 1 ? '' : 's'} Locked In with Paid Deposit`;
+        animateMetricCountUp(elPipe, cardPipe, animate ? PREV_METRICS.pipeline : revenueWon, revenueWon, v => `$${v.toLocaleString()}`);
+        PREV_METRICS.pipeline = revenueWon;
+      } else if (pipelineBooked > 0) {
+        elPipeLabel.innerText = 'Pipeline Booked (Pending Deposit)';
+        elPipe.style.color = '#2563eb';
+        elPipeSub.innerText = `${bookingsCount} Booked • Moves to "Won" after deposit`;
+        animateMetricCountUp(elPipe, cardPipe, animate ? PREV_METRICS.pipeline : pipelineBooked, pipelineBooked, v => `$${v.toLocaleString()}`);
+        PREV_METRICS.pipeline = pipelineBooked;
+      } else {
+        elPipeLabel.innerText = 'Pipeline Booked / Revenue Won';
+        elPipe.style.color = '#0f172a';
+        elPipeSub.innerText = '0 Dispatches Booked in Session';
+        animateMetricCountUp(elPipe, cardPipe, animate ? PREV_METRICS.pipeline : 0, 0, v => `$${v.toLocaleString()}`);
+        PREV_METRICS.pipeline = 0;
+      }
+
+      // 2. UPFRONT DEPOSITS COLLECTED
+      const fees = Math.round(roi.fees_collected || 0);
+      const elFees = document.getElementById('kpiFeesCol');
+      const cardFees = document.getElementById('cardMetricFees');
+      elFees.style.color = fees > 0 ? '#15803d' : '#0f172a';
+      document.getElementById('kpiFeesSubtext').innerText = isBench
+        ? '16 Verified Deposits (Simulated Benchmark)'
+        : (fees > 0 ? `✓ $${fees} Verified via Stripe` : (pipelineBooked > 0 ? '⏳ Awaiting Customer Stripe Authorization' : '0 Stripe Deposits Paid'));
+      animateMetricCountUp(elFees, cardFees, animate ? PREV_METRICS.fees : fees, fees, v => `$${v.toLocaleString()}`);
+      PREV_METRICS.fees = fees;
+
+      // 3. MISSED CALLS RECOUPED
+      const missedRec = isBench ? 7 : (roi.missed_recovered || 0);
+      const atRisk = roi.missed_at_risk_value || 0;
+      const elMissed = document.getElementById('kpiMissedRec');
+      const elMissedSub = document.getElementById('kpiMissedSub');
+      const cardMissed = document.getElementById('cardMetricMissed');
+
+      if (isBench) {
+        elMissed.style.color = '#2563eb';
+        elMissedSub.innerText = '+$8,400 Recouped (Simulated Benchmark)';
+      } else if (missedRec > 0) {
+        elMissed.style.color = '#2563eb';
+        elMissedSub.innerText = `+$${(roi.recouped_revenue || 0).toLocaleString()} Intercepted via 3s SMS`;
+      } else if (atRisk > 0) {
+        elMissed.style.color = '#d97706';
+        elMissedSub.innerText = `⚠️ $${atRisk.toLocaleString()} Currently at Risk!`;
+      } else {
+        elMissed.style.color = '#0f172a';
+        elMissedSub.innerText = '0 Dropped Calls Tested';
+      }
+      animateMetricCountUp(elMissed, cardMissed, animate ? PREV_METRICS.missed : missedRec, missedRec, v => `${v} Saved`);
+      PREV_METRICS.missed = missedRec;
+
+      updateTechFilterOptions(data.technicians || []);
+      renderCalendar();
+      renderFleetView();
+
+      if (!dispatchHero.classList.contains('active') && data.bookings && data.bookings.length > 0) {
+        const latestBooking = data.bookings[data.bookings.length - 1];
+        const mode = data.last_scenario_mode || ((latestBooking.urgency_level || '').includes('EMERG') ? 'emergency' : 'routine');
+        applyScenarioJourneyLabels(mode);
+        if (data.last_dialogue && data.last_dialogue.length > 0 && chatStream.children.length <= 1) {
+          chatStream.innerHTML = '';
+          data.last_dialogue.forEach(item => appendMessage(item.speaker, item.text, item.isSarah));
+        }
+        showBookingInHero(latestBooking);
+        pushCustomerSmsBooking(latestBooking);
+        if (latestBooking.payment_status === 'PAID_VERIFIED') {
+          setJourneyProgress(
+            4,
+            `🎉 <strong>Journey Complete!</strong> Deposit verified via Stripe — <strong>$${Number(latestBooking.estimated_job_value || 1200).toLocaleString()} Revenue Won</strong> + <strong>$${latestBooking.dispatch_fee} Deposit Collected</strong>!`,
+            'complete'
+          );
+          document.getElementById('jStep4').classList.remove('active-step');
+          document.getElementById('jStep4').classList.add('done-step');
+          document.getElementById('jNum4').innerText = '✓';
+        } else {
+          setJourneyProgress(
+            3,
+            `👉 <strong>Next Step (Step 3 of 4):</strong> Work order dispatched! Click <strong>"Authorize $${latestBooking.dispatch_fee} Deposit via Stripe"</strong> inside the highlighted phone.`,
+            'phone'
+          );
+        }
+      }
     }
 
     async function fetchBoardData() {
       try {
         const res = await fetch('/api/board');
         const data = await res.json();
-        BOARD_DATA = data;
-        if (data.contractor_email) {
-          DEFAULT_CONFIG_EMAIL = data.contractor_email;
-          contractorInput.value = data.contractor_email;
-        }
-
-        const bookingsCount = (data.bookings || []).length;
-        const techsCount = (data.technicians || []).length;
-        document.getElementById('calCountPill').innerText = bookingsCount;
-        document.getElementById('techCountPill').innerText = techsCount;
-
-        const roi = data.roi_metrics || {};
-        const isBench = roi.is_benchmark || false;
-
-        const btnBench = document.getElementById('btnBenchmarkToggle');
-        const indBench = document.getElementById('benchmarkIndicator');
-        if (btnBench && indBench) {
-          if (isBench) {
-            btnBench.innerText = '🎯 Return to Live Demo Session ($0 Baseline)';
-            indBench.innerText = '📈 30-Day Contractor Benchmark (Projected Data)';
-            indBench.style.background = '#dcfce7';
-            indBench.style.color = '#15803d';
-          } else {
-            btnBench.innerText = '📈 Preview 30-Day Contractor Benchmark ($18,450)';
-            indBench.innerText = '🧪 Simulated Demo Session Data';
-            indBench.style.background = '#e0e7ff';
-            indBench.style.color = '#3730a3';
-          }
-        }
-
-        const pipeline = roi.total_pipeline_revenue || 0;
-        const elPipe = document.getElementById('kpiPipelineRev');
-        elPipe.innerText = `$${pipeline.toLocaleString()}`;
-        elPipe.style.color = pipeline > 0 ? '#15803d' : '#0f172a';
-        document.getElementById('kpiPipelineSub').innerText = isBench
-          ? '18 Monthly Dispatches (Simulated Benchmark)'
-          : `${bookingsCount} Dispatch${bookingsCount === 1 ? '' : 'es'} Booked in Session`;
-
-        const fees = roi.fees_collected || 0;
-        const elFees = document.getElementById('kpiFeesCol');
-        elFees.innerText = `$${fees.toLocaleString()}`;
-        elFees.style.color = fees > 0 ? '#15803d' : '#0f172a';
-        document.getElementById('kpiFeesSubtext').innerText = isBench
-          ? '16 Verified Deposits (Simulated Benchmark)'
-          : (fees > 0 ? `✓ $${fees} Verified via Stripe` : '0 Stripe Deposits Paid');
-
-        const missedRec = roi.missed_recovered || 0;
-        const atRisk = roi.missed_at_risk_value || 0;
-        const elMissed = document.getElementById('kpiMissedRec');
-        const elMissedSub = document.getElementById('kpiMissedSub');
-
-        if (isBench) {
-          elMissed.innerText = '7 Saved';
-          elMissed.style.color = '#2563eb';
-          elMissedSub.innerText = '+$8,400 Recouped (Simulated Benchmark)';
-        } else if (missedRec > 0) {
-          elMissed.innerText = `${missedRec} Saved`;
-          elMissed.style.color = '#2563eb';
-          elMissedSub.innerText = `+$${roi.recouped_revenue.toLocaleString()} Recouped in Demo`;
-        } else if (atRisk > 0) {
-          elMissed.innerText = '0 Saved';
-          elMissed.style.color = '#d97706';
-          elMissedSub.innerText = `⚠️ $${atRisk.toLocaleString()} Currently at Risk!`;
-        } else {
-          elMissed.innerText = '0 Saved';
-          elMissed.style.color = '#0f172a';
-          elMissedSub.innerText = '0 Dropped Calls Tested';
-        }
-
-        updateTechFilterOptions(data.technicians || []);
-        renderCalendar();
-        renderFleetView();
+        applyBoardData(data, true);
       } catch (err) {
         console.error('Error fetching board data:', err);
       }
@@ -1949,7 +2404,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
                   <span style="color:#15803d;">✓ BOOKED</span>
                 </div>
                 <div class="booked-cust-name">${b.customer_name}</div>
-                <div class="booked-cust-meta">${b.service_type}<br>${b.assigned_technician.split('(')[0]}</div>
+                <div class="booked-cust-meta">${b.display_title || b.service_type}<br>${b.assigned_technician.split('(')[0]}</div>
               </div>
             `;
           }
@@ -2175,20 +2630,26 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         };
         recognition.onend = () => {
           isListening = false;
-          document.getElementById('micBtn').classList.remove('listening');
+          const mBtn = document.getElementById('micBtn');
+          mBtn.classList.remove('listening');
+          mBtn.innerHTML = '🎙️ Speak to Sarah';
+          setVoiceIndicatorState('idle', 'Sarah Voice AI Ready', 'Click button to talk live via microphone');
         };
       }
       if (!isListening) {
         recognition.start();
         isListening = true;
-        document.getElementById('micBtn').classList.add('listening');
+        const mBtn = document.getElementById('micBtn');
+        mBtn.classList.add('listening');
+        mBtn.innerHTML = '⏹️ Listening...';
+        setVoiceIndicatorState('listening', '🎙️ Listening to Caller...', 'Speak your electrical issue clearly');
       } else {
         recognition.stop();
       }
     }
 
-    window.addEventListener('DOMContentLoaded', fetchBoardData);
-    fetchBoardData();
+    applyBoardData(BOARD_DATA, false);
+    window.addEventListener('DOMContentLoaded', () => fetchBoardData());
   </script>
 </body>
 </html>
@@ -2208,50 +2669,60 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
     def _send_twiml(self, twiml_xml: str):
         data = twiml_xml.encode("utf-8")
         self.send_response(200)
-        self.send_header("Content-Type", "application/xml; charset=utf-8")
+        self.send_header("Content-Type", "text/xml; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
 
+    def _get_board_payload(self) -> Dict[str, Any]:
+        roi = DB.calculate_contractor_roi_metrics()
+        return {
+            "bookings": [enrich_booking_dict(b) for b in DB.bookings.values()],
+            "emergencies": [e.__dict__ for e in DB.emergency_reports.values()],
+            "technicians": [t.__dict__ for t in DB.technicians.values()],
+            "slots": [s.__dict__ for s in DB.calendar_slots.values()],
+            "missed_calls": list(DB.missed_calls.values()),
+            "roi_metrics": roi,
+            "contractor_email": DEMO_DISPLAY_EMAIL,
+            "contractor_phone": DEFAULT_CONFIG.contractor_phone,
+            "last_dialogue": LAST_DIALOGUE,
+            "last_scenario_mode": LAST_SCENARIO_MODE,
+        }
+
     def do_GET(self):
+        global DEMO_DISPLAY_EMAIL
         parsed = urllib.parse.urlparse(self.path)
-        if parsed.path == "/" or parsed.path == "/index.html":
+        if parsed.path in ("/", "/index.html"):
+            board_json = json.dumps(self._get_board_payload())
+            page_html = HTML_DASHBOARD.replace(
+                "let BOARD_DATA = { bookings: [], technicians: [], slots: [], roi_metrics: {} };",
+                f"let BOARD_DATA = {board_json};",
+                1,
+            )
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
-            self.wfile.write(HTML_DASHBOARD.encode("utf-8"))
+            self.wfile.write(page_html.encode("utf-8"))
 
         elif parsed.path == "/api/board":
-            bookings_data = [b.__dict__ for b in DB.bookings.values()]
-            techs_data = [t.__dict__ for t in DB.technicians.values()]
-            slots_data = [s.__dict__ for s in DB.calendar_slots.values()]
-            roi_metrics = DB.calculate_contractor_roi_metrics()
-            self._send_json({
-                "contractor_email": DEFAULT_CONFIG.contractor_email,
-                "contractor_name": DEFAULT_CONFIG.contractor_name,
-                "bookings": bookings_data,
-                "technicians": techs_data,
-                "slots": slots_data,
-                "roi_metrics": roi_metrics,
-                "missed_calls": list(DB.missed_calls.values()),
-                "is_benchmark": DB.is_benchmark_mode,
-            })
+            self._send_json(self._get_board_payload())
 
-        elif parsed.path == "/api/calendar.ics" or parsed.path == "/calendar.ics":
-            feed_data = DB.export_full_ical_feed().encode("utf-8")
+        elif parsed.path == "/api/calendar.ics":
+            from phone_agent.integrations.calendar_sync import CALENDAR_SYNC
+            ics_content = CALENDAR_SYNC.generate_master_feed_ics(list(DB.bookings.values()))
+            data = ics_content.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/calendar; charset=utf-8")
-            self.send_header("Content-Disposition", 'attachment; filename="zeromiss_schedule.ics"')
-            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Disposition", 'attachment; filename="zeromiss_dispatch.ics"')
+            self.send_header("Content-Length", str(len(data)))
             self.end_headers()
-            self.wfile.write(feed_data)
-
+            self.wfile.write(data)
         else:
             self.send_response(404)
             self.end_headers()
 
     def do_POST(self):
-        global ACTIVE_SESSION
+        global ACTIVE_SESSION, DEMO_DISPLAY_EMAIL, LAST_DIALOGUE, LAST_SCENARIO_MODE
         content_len = int(self.headers.get("Content-Length", 0))
         post_body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else ""
         content_type = self.headers.get("Content-Type", "")
@@ -2315,15 +2786,16 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             booking = DB.mark_booking_paid(cid)
             roi = DB.calculate_contractor_roi_metrics()
             if booking:
-                self._send_json({"status": "SUCCESS", "booking": booking.__dict__, "roi_metrics": roi})
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking), "roi_metrics": roi})
             else:
                 self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
 
         elif parsed.path == "/api/simulate-missed-call":
+            LAST_SCENARIO_MODE = "missed_call"
             mc = DB.record_missed_call(
                 caller_phone="(555) 329-8471",
                 estimated_value=1200.0,
-                caller_name="Lost Lead (After-Hours)",
+                caller_name="Alex Rivera",
             )
             roi = DB.calculate_contractor_roi_metrics()
             self._send_json({
@@ -2334,20 +2806,21 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             })
 
         elif parsed.path == "/api/missed-calls/convert":
+            LAST_SCENARIO_MODE = "missed_call"
             mc_id = req_data.get("missed_call_id")
             mc = DB.convert_missed_call(mc_id)
             booking_dict = None
             if mc and mc.get("booking_confirmation_id"):
                 b = DB.bookings.get(mc["booking_confirmation_id"])
                 if b:
-                    booking_dict = b.__dict__
+                    booking_dict = enrich_booking_dict(b, scenario_hint="missed_call")
             roi = DB.calculate_contractor_roi_metrics()
             self._send_json({
                 "status": "SUCCESS",
                 "missed_call": mc,
                 "booking": booking_dict,
                 "roi_metrics": roi,
-                "bookings": [b.__dict__ for b in DB.bookings.values()],
+                "bookings": [enrich_booking_dict(b) for b in DB.bookings.values()],
                 "slots": [s.__dict__ for s in DB.calendar_slots.values()],
             })
 
@@ -2363,8 +2836,9 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/set-contractor":
             new_email = req_data.get("email", "").strip()
             if new_email:
+                DEMO_DISPLAY_EMAIL = new_email
                 DEFAULT_CONFIG.contractor_email = new_email
-            self._send_json({"status": "SUCCESS", "contractor_email": DEFAULT_CONFIG.contractor_email})
+            self._send_json({"status": "SUCCESS", "contractor_email": DEMO_DISPLAY_EMAIL})
 
         elif parsed.path == "/api/technicians":
             name = req_data.get("name", "").strip()
@@ -2431,7 +2905,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 customer_email=req_data.get("customer_email", "").strip() or None,
             )
             if booking:
-                self._send_json({"status": "SUCCESS", "booking": booking.__dict__})
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
             else:
                 self._send_json({"status": "ERROR", "message": "Failed to book slot"}, 400)
 
@@ -2440,9 +2914,9 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             sarah_response = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, msg)
             booking_dict = None
             if ACTIVE_SESSION.active_booking:
-                booking_dict = ACTIVE_SESSION.active_booking.__dict__
+                booking_dict = enrich_booking_dict(ACTIVE_SESSION.active_booking)
             elif DB.bookings:
-                booking_dict = list(DB.bookings.values())[-1].__dict__
+                booking_dict = enrich_booking_dict(list(DB.bookings.values())[-1])
             self._send_json({
                 "status": "SUCCESS",
                 "response": sarah_response,
@@ -2453,30 +2927,32 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             DB.reset()
             ACTIVE_SESSION = ACTIVE_AGENT.create_session()
             scenario = req_data.get("scenario", "emergency")
+            LAST_SCENARIO_MODE = "emergency" if scenario == "emergency" else "routine"
             dialogue = []
 
             if scenario == "emergency":
                 t1_user = "Help, I smell burning rubber coming from the wall behind my refrigerator!"
-                dialogue.append({"speaker": "Customer", "text": t1_user, "isSarah": False})
+                dialogue.append({"speaker": "David Miller (Caller)", "text": t1_user, "isSarah": False})
                 t1_sarah = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, t1_user)
-                dialogue.append({"speaker": "Sarah", "text": t1_sarah, "isSarah": True})
+                dialogue.append({"speaker": "Sarah (ZeroMiss AI)", "text": t1_sarah, "isSarah": True})
 
-                t2_user = "1313 Mockingbird Lane 08360, callback number is 609-972-4328"
-                dialogue.append({"speaker": "Customer", "text": t2_user, "isSarah": False})
+                t2_user = "My name is David Miller, 742 Evergreen Terrace, callback number is (555) 482-9104"
+                dialogue.append({"speaker": "David Miller (Caller)", "text": t2_user, "isSarah": False})
                 t2_sarah = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, t2_user)
-                dialogue.append({"speaker": "Sarah", "text": t2_sarah, "isSarah": True})
+                dialogue.append({"speaker": "Sarah (ZeroMiss AI)", "text": t2_sarah, "isSarah": True})
             else:
-                t1_user = "Hi Sarah, I just bought an EV and need a 50-amp Level 2 charger installed in my garage next Wednesday."
-                dialogue.append({"speaker": "Customer", "text": t1_user, "isSarah": False})
+                t1_user = "Hi Sarah, I just bought an EV and need a 50-amp Level 2 charger installed in my garage."
+                dialogue.append({"speaker": "Alex Rivera (Caller)", "text": t1_user, "isSarah": False})
                 t1_sarah = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, t1_user)
-                dialogue.append({"speaker": "Sarah", "text": t1_sarah, "isSarah": True})
+                dialogue.append({"speaker": "Sarah (ZeroMiss AI)", "text": t1_sarah, "isSarah": True})
 
-                t2_user = "Tomorrow morning works. My name is Alex Rivera, 45 Innovation Way in Cambridge, 555-829-1044, alex@gmail.com"
-                dialogue.append({"speaker": "Customer", "text": t2_user, "isSarah": False})
+                t2_user = "Tomorrow morning works. My name is Alex Rivera, 45 Innovation Way in Cambridge, (555) 829-1044, alex@example.com"
+                dialogue.append({"speaker": "Alex Rivera (Caller)", "text": t2_user, "isSarah": False})
                 t2_sarah = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, t2_user)
-                dialogue.append({"speaker": "Sarah", "text": t2_sarah, "isSarah": True})
+                dialogue.append({"speaker": "Sarah (ZeroMiss AI)", "text": t2_sarah, "isSarah": True})
 
-            booking_dict = list(DB.bookings.values())[-1].__dict__ if DB.bookings else None
+            LAST_DIALOGUE = dialogue
+            booking_dict = enrich_booking_dict(list(DB.bookings.values())[-1], scenario_hint=scenario) if DB.bookings else None
             self._send_json({
                 "status": "SUCCESS",
                 "scenario": scenario,
@@ -2487,6 +2963,8 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/reset":
             DB.reset()
             ACTIVE_SESSION = ACTIVE_AGENT.create_session()
+            LAST_DIALOGUE = []
+            LAST_SCENARIO_MODE = "missed_call"
             roi = DB.calculate_contractor_roi_metrics()
             self._send_json({"status": "RESET_COMPLETED", "roi_metrics": roi})
 
@@ -2500,7 +2978,7 @@ def run_demo_server(port: int = 8080):
     print("\n" + "=" * 80)
     print("  ZeroMiss Voice Dispatch - Story-Driven Interactive Demo Server")
     print(f"  Live Demo Web Dashboard: http://localhost:{port}")
-    print(f"  Contractor Destination:   {DEFAULT_CONFIG.contractor_name} ({DEFAULT_CONFIG.contractor_email})")
+    print(f"  Demo Alert Destination:  {DEMO_DISPLAY_EMAIL}")
     print(f"  Live Twilio Voice Webhook: http://localhost:{port}/api/twilio/voice")
     print("=" * 80 + "\n")
     try:

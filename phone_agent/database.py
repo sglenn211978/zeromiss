@@ -712,6 +712,7 @@ class DispatchDatabase:
                     "is_benchmark": True,
                     "benchmark_label": "30-Day Contractor Benchmark",
                     "total_pipeline_revenue": 18450.0,
+                    "revenue_won": 18450.0,
                     "fees_collected": 1424.0,
                     "total_bookings": 18,
                     "emergency_count": 6,
@@ -727,6 +728,11 @@ class DispatchDatabase:
 
             # Live Session: 100% Mathematically Real (Starts strictly at $0.00)
             active_pipeline = sum(getattr(b, "estimated_job_value", 0.0) for b in self.bookings.values())
+            revenue_won = sum(
+                getattr(b, "estimated_job_value", 0.0)
+                for b in self.bookings.values()
+                if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "PAID_VERIFIED"
+            )
             fees_collected = sum(
                 b.dispatch_fee for b in self.bookings.values()
                 if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "PAID_VERIFIED"
@@ -753,6 +759,7 @@ class DispatchDatabase:
                 "is_benchmark": False,
                 "benchmark_label": "Live Demo Session",
                 "total_pipeline_revenue": total_pipeline,
+                "revenue_won": revenue_won,
                 "fees_collected": fees_collected,
                 "total_bookings": len(self.bookings),
                 "emergency_count": emergency_count,
