@@ -1074,26 +1074,162 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     }
 
     /* VIEW 2: CALENDAR & VIEW 3: FLEET */
+    .gcal-sync-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #f8fafc;
+      border: 2px solid #3b82f6;
+      border-radius: 14px;
+      padding: 16px 22px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+    .gcal-sync-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .gcal-live-pill {
+      background: #16a34a;
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .gcal-sync-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #ffffff;
+    }
+    .gcal-sync-sub {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+    }
+    .gcal-sync-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn-gcal-sync {
+      background: #2563eb;
+      color: #ffffff;
+      border: 1px solid #60a5fa;
+      padding: 9px 15px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn-gcal-sync:hover { background: #1d4ed8; }
+    .btn-gcal-outline {
+      background: rgba(255, 255, 255, 0.1);
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-gcal-outline:hover { background: rgba(255, 255, 255, 0.18); }
+
+    /* ACTIVE DISPATCHES LIVE QUEUE STRIP */
+    .active-dispatch-strip {
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .dispatch-queue-card {
+      background: #f0fdf4;
+      border: 2px solid #22c55e;
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+    .dispatch-queue-card.is-emerg-queue {
+      background: #fff1f2;
+      border: 2px solid #dc2626;
+    }
+    .dq-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: #dcfce7;
+      color: #15803d;
+      margin-right: 8px;
+    }
+    .dispatch-queue-card.is-emerg-queue .dq-badge {
+      background: #dc2626;
+      color: #ffffff;
+    }
+    .dq-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .dq-meta {
+      font-size: 0.94rem;
+      color: var(--text-body);
+      margin-top: 4px;
+    }
+    .dq-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .reassign-select {
+      background: #ffffff;
+      border: 1px solid #94a3b8;
+      border-radius: 8px;
+      padding: 7px 11px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
     .cal-controls-bar {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 16px 22px;
+      padding: 14px 20px;
       margin-bottom: 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 14px;
     }
-    .cal-controls-left { display: flex; align-items: center; gap: 12px; }
+    .cal-controls-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .cal-controls-left select {
       background: var(--surface-muted);
       border: 1px solid var(--border-strong);
       padding: 9px 14px;
       border-radius: 8px;
       font-size: 0.95rem;
-      font-weight: 600;
+      font-weight: 700;
     }
     .btn-cal-action {
       background: var(--surface-muted);
@@ -1119,6 +1255,12 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .cal-col.has-emergency-col {
+      border: 2px solid #dc2626;
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.12);
     }
     .cal-col-header {
       background: var(--surface-muted);
@@ -1126,25 +1268,50 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       padding: 12px;
       text-align: center;
     }
+    .cal-col.has-emergency-col .cal-col-header {
+      background: #fef2f2;
+      border-bottom-color: #fecaca;
+    }
     .cal-col-day { font-size: 1.05rem; font-weight: 800; }
-    .cal-col-sub { font-size: 0.88rem; color: var(--text-muted); }
-    .cal-col-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .cal-col-sub { font-size: 0.88rem; color: var(--text-muted); font-weight: 600; }
+    .cal-col-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
     .slot-box {
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 12px;
       background: var(--surface-muted);
     }
-    .slot-time-header { display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 6px; font-weight: 700; }
-    .slot-tech-avail { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 8px; }
-    .slot-actions { display: flex; gap: 6px; }
-    .btn-slot-act { padding: 6px 12px; border-radius: 6px; font-size: 0.84rem; font-weight: 700; cursor: pointer; border: none; }
+    .slot-time-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; margin-bottom: 6px; font-weight: 800; }
+    .slot-tech-avail { font-size: 0.86rem; color: var(--text-body); margin-bottom: 8px; line-height: 1.4; }
+    .slot-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .btn-slot-act { padding: 6px 11px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; border: none; }
     .btn-slot-book { background: var(--primary); color: white; }
     .btn-slot-block { background: #e2e8f0; color: var(--text-body); }
-    .slot-box.is-booked-routine { background: #f0fdf4; border-color: #86efac; }
-    .slot-box.is-booked-emergency { background: #fef2f2; border-color: #fca5a5; }
-    .booked-cust-name { font-size: 1rem; font-weight: 800; margin-bottom: 4px; }
-    .booked-cust-meta { font-size: 0.88rem; line-height: 1.4; }
+    .slot-box.is-booked-routine { background: #f0fdf4; border: 2px solid #22c55e; }
+    .slot-box.is-booked-emergency { background: #fff1f2; border: 2px solid #dc2626; }
+    .slot-box.is-gcal-busy { background: #eff6ff; border: 1.5px dashed #3b82f6; }
+    .booked-cust-name { font-size: 0.98rem; font-weight: 800; margin-bottom: 4px; color: var(--text-main); }
+    .booked-cust-meta { font-size: 0.86rem; line-height: 1.4; color: var(--text-body); }
+    .tech-avail-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+    .tech-mini-pill {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+    }
+    .tech-mini-pill.busy-pill {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #991b1b;
+    }
+    .tech-mini-pill.gcal-pill {
+      background: #dbeafe;
+      border-color: #93c5fd;
+      color: #1e40af;
+    }
 
     /* FLEET ROSTER */
     .fleet-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
@@ -1152,19 +1319,47 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     .kpi-label { font-size: 0.88rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
     .kpi-val { font-size: 1.7rem; font-weight: 800; margin-top: 4px; }
     .kpi-sub { font-size: 0.9rem; color: var(--primary); margin-top: 2px; font-weight: 600; }
-    .fleet-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .fleet-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
     .btn-add-electrician { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
-    .fleet-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
-    .tech-card-pro { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .fleet-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 18px; }
+    .tech-card-pro { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .tech-card-pro.is-dispatched-emerg { border-color: #dc2626; background: #fffafa; }
+    .tech-card-pro.is-dispatched-routine { border-color: #22c55e; }
     .tech-card-top { display: flex; align-items: center; gap: 12px; }
     .tech-avatar { width: 48px; height: 48px; border-radius: 10px; background: var(--surface-muted); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
-    .tech-name { font-size: 1.1rem; font-weight: 800; }
+    .tech-name { font-size: 1.12rem; font-weight: 800; }
     .tech-license, .tech-phone { font-size: 0.9rem; color: var(--text-muted); }
     .tech-badge-oncall { background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; }
+    .tech-badge-emerg { background: #dc2626; color: #ffffff; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; }
     .tech-badge-offduty { background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; }
+    .tech-gcal-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .tech-active-job-box {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-left: 4px solid #dc2626;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+    }
+    .tech-active-job-box.routine-job {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      border-left-color: #16a34a;
+    }
     .tech-specialties-row { display: flex; flex-wrap: wrap; gap: 6px; }
     .spec-pill { font-size: 0.84rem; background: var(--surface-muted); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); font-weight: 600; }
-    .tech-actions-row { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .tech-actions-row { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); margin-top: auto; }
     .btn-tech-toggle-oncall { flex: 1; background: #f0fdf4; border: 1px solid #86efac; color: #15803d; padding: 8px; border-radius: 6px; font-weight: 700; cursor: pointer; }
     .btn-tech-edit, .btn-tech-del { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--surface-muted); cursor: pointer; font-weight: 600; }
 
@@ -1511,18 +1706,37 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
     <!-- TAB 2: FLEET DISPATCH CALENDAR -->
     <div class="tab-view" id="viewCalendar">
+      <!-- GOOGLE CALENDAR TWO-WAY SYNC BAR -->
+      <div class="gcal-sync-banner" id="gcalSyncBanner">
+        <div class="gcal-sync-left">
+          <span class="gcal-live-pill" id="gcalLiveBadge">● Google Calendar Two-Way Sync</span>
+          <div>
+            <div class="gcal-sync-title" id="gcalSyncStatusTitle">Connected: Master Dispatch + 4 Technician Google Calendars</div>
+            <div class="gcal-sync-sub" id="gcalSyncStatusSub">Dispatches push instantly to Google Calendar &bull; External Google Calendar busy blocks prevent double-booking</div>
+          </div>
+        </div>
+        <div class="gcal-sync-actions">
+          <button class="btn-gcal-sync" onclick="triggerGcalTwoWaySync()">🔄 Sync Google Calendar Busy Blocks</button>
+          <button class="btn-gcal-outline" onclick="openGcalSyncModal()">🔗 Configure Google Calendar Sync</button>
+          <a href="/api/calendar.ics" class="btn-gcal-outline" download="zeromiss_schedule.ics">⬇️ Export .ICS</a>
+        </div>
+      </div>
+
+      <!-- LIVE ACTIVE DISPATCHES STRIP (INSTANTLY SHOWS EMERGENCIES & BOOKINGS) -->
+      <div class="active-dispatch-strip" id="activeDispatchStrip"></div>
+
       <div class="cal-controls-bar">
         <div class="cal-controls-left">
           <label style="font-weight:800;">Filter Electrician:</label>
           <select id="calTechFilter" onchange="renderCalendar()">
-            <option value="ALL">⚡ All Electricians (4 Simulated Techs)</option>
+            <option value="ALL">⚡ All Electricians (Full 4-Tech Dispatch Board)</option>
           </select>
+          <span id="calOccupancySummary" style="font-size:0.9rem; color:var(--text-muted); font-weight:700;"></span>
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn-cal-action" onclick="copyIcalFeedUrl()">📋 Copy iCal Feed URL</button>
-          <a href="/api/calendar.ics" class="btn-cal-action" download="zeromiss_schedule.ics">⬇️ Download .ICS</a>
-          <button class="btn-cal-action btn-cal-primary" onclick="openManualBookModal()">+ Manual Booking</button>
+          <button class="btn-cal-action" onclick="copyIcalFeedUrl()">📋 Copy Live iCal Feed URL</button>
+          <button class="btn-cal-action btn-cal-primary" onclick="openManualBookModal()">+ Manual Dispatch Booking</button>
         </div>
       </div>
 
@@ -1533,9 +1747,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     <div class="tab-view" id="viewFleet">
       <div class="fleet-kpi-grid">
         <div class="kpi-card">
-          <div class="kpi-label">Simulated Fleet Roster</div>
+          <div class="kpi-label">Active Fleet Roster</div>
           <div class="kpi-val" id="kpiFleetTotal">4</div>
-          <div class="kpi-sub">Demo Electricians</div>
+          <div class="kpi-sub">Google Calendar Linked ✓</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">24/7 On-Call Lead</div>
@@ -1545,21 +1759,24 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <div class="kpi-card">
           <div class="kpi-label">Open Weekly Slots</div>
           <div class="kpi-val" id="kpiFleetOpenSlots">42</div>
-          <div class="kpi-sub">Available Windows</div>
+          <div class="kpi-sub">Synced with GCal Busy Blocks</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Session Jobs Booked</div>
+          <div class="kpi-label">Active Dispatches</div>
           <div class="kpi-val" id="kpiFleetBookedJobs">0</div>
-          <div class="kpi-sub">Synced to Calendar</div>
+          <div class="kpi-sub">Live on Fleet Calendar</div>
         </div>
       </div>
 
       <div class="fleet-header-row">
         <div>
-          <h2 style="font-size:1.35rem; font-weight:800;">Electrician Roster &amp; On-Call Status (Demo Data)</h2>
-          <p style="color:var(--text-muted); font-size:0.95rem;">Toggle on-call status or add technicians to see how Sarah assigns jobs.</p>
+          <h2 style="font-size:1.35rem; font-weight:800;">Electrician Roster, Live Dispatch Status &amp; Google Calendar Sync</h2>
+          <p style="color:var(--text-muted); font-size:0.95rem;">Each electrician's Google Calendar syncs two-way with Sarah AI so she never double-books an occupied truck.</p>
         </div>
-        <button class="btn-add-electrician" onclick="openAddTechModal()">+ Add Electrician</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn-cal-action" onclick="triggerGcalTwoWaySync()">🔄 Sync Tech Google Calendars</button>
+          <button class="btn-add-electrician" onclick="openAddTechModal()">+ Add Electrician</button>
+        </div>
       </div>
 
       <div class="fleet-cards-grid" id="fleetCardsGrid"></div>
@@ -1688,6 +1905,35 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <div class="form-group"><label>Address:</label><input type="text" id="manualCustomerAddress"></div>
         <div class="form-group"><label>Issue Description:</label><textarea id="manualIssueDesc" rows="2"></textarea></div>
         <button class="btn-modal-submit" onclick="submitManualBooking()">Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Google Calendar Two-Way Sync -->
+  <div class="modal-overlay" id="gcalSyncModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📅 Google Calendar Two-Way Fleet Sync</h3>
+        <button class="modal-close" onclick="closeGcalSyncModal()">&times;</button>
+      </div>
+      <div style="font-size:0.95rem; color:var(--text-body); line-height:1.5;">
+        <p style="margin-bottom:12px;">
+          ZeroMiss syncs two-way with your shop's <strong>Google Calendar</strong> so dispatches appear immediately on your phone and external events block Sarah from double-booking your electricians:
+        </p>
+        <div class="form-group">
+          <label>1. Outbound Feed (Add ZeroMiss Dispatches to Your Google Calendar):</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="gcalOutboundInput" readonly style="flex:1; font-family:monospace; background:#f8fafc;">
+            <button class="utility-btn" style="background:#0f172a; color:#fff;" onclick="copyIcalFeedUrl()">Copy URL</button>
+          </div>
+          <span style="font-size:0.82rem; color:var(--text-muted);">Paste into Google Calendar &rarr; Settings &rarr; Add Calendar &rarr; From URL</span>
+        </div>
+        <div class="form-group" style="margin-top:14px;">
+          <label>2. Inbound Busy-Block Sync (Your Google Calendar .ICS URL):</label>
+          <input type="text" id="gcalInboundInput" value="https://calendar.google.com/calendar/ical/apex-electrical-fleet%40group.calendar.google.com/public/basic.ics" style="font-family:monospace;">
+          <span style="font-size:0.82rem; color:var(--text-muted);">Imports external busy events (inspections, supply runs, time off) onto the Fleet Dispatch Board</span>
+        </div>
+        <button class="btn-modal-submit" onclick="submitGcalSyncModal()">🔄 Sync Google Calendar Now</button>
       </div>
     </div>
   </div>
@@ -2364,7 +2610,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       const select = document.getElementById('calTechFilter');
       if (!select) return;
       const currentVal = select.value;
-      let html = '<option value="ALL">⚡ All Electricians (Full Demo Fleet)</option>';
+      let html = '<option value="ALL">⚡ All Electricians (Full 4-Tech Dispatch Board)</option>';
       techs.forEach(t => {
         html += `<option value="${t.technician_id}">${t.name} (${t.license_type})</option>`;
       });
@@ -2379,65 +2625,222 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       const techFilter = document.getElementById('calTechFilter').value;
       const slots = BOARD_DATA.slots || [];
       const bookings = BOARD_DATA.bookings || [];
+      const techs = BOARD_DATA.technicians || [];
       const filteredSlots = techFilter === 'ALL' ? slots : slots.filter(s => s.technician_id === techFilter);
 
+      // Update Google Calendar Two-Way Sync Banner
+      const gcalTitle = document.getElementById('gcalSyncStatusTitle');
+      const gcalSub = document.getElementById('gcalSyncStatusSub');
+      const gcalBlockedCount = slots.filter(s => s.is_blocked && (s.blocked_reason || '').includes('Google Calendar')).length;
+      if (gcalTitle && gcalSub) {
+        gcalTitle.innerText = `Connected: Master Dispatch + ${techs.length} Technician Google Calendars (${BOARD_DATA.gcal_last_sync || 'Two-Way Active'})`;
+        gcalSub.innerText = `${bookings.length} Outbound Dispatch${bookings.length === 1 ? '' : 'es'} Pushed to Google Calendar • ${gcalBlockedCount} External Google Calendar Busy Block${gcalBlockedCount === 1 ? '' : 's'} Imported`;
+      }
+
+      const occEl = document.getElementById('calOccupancySummary');
+      if (occEl) {
+        const openCount = filteredSlots.filter(s => s.time_window_key !== 'emergency_asap' && !s.is_booked && !s.is_blocked).length;
+        occEl.innerText = `${bookings.length} Active Dispatch${bookings.length === 1 ? '' : 'es'} • ${gcalBlockedCount} GCal Busy Block${gcalBlockedCount === 1 ? '' : 's'} • ${openCount} Open Tech Windows`;
+      }
+
+      // Render Active Dispatches Live Strip at Top of Calendar
+      const stripEl = document.getElementById('activeDispatchStrip');
+      if (stripEl) {
+        if (bookings.length === 0) {
+          stripEl.innerHTML = '';
+        } else {
+          stripEl.innerHTML = bookings.map(b => {
+            const isEmerg = (b.urgency_level || '').includes('EMERG') || (b.service_type || '').toLowerCase() === 'emergency';
+            const safeObj = JSON.stringify(b).replace(/'/g, "&#39;");
+            const assignedShort = (b.assigned_technician || '').split('(')[0].trim();
+            const techOptions = techs.map(t => {
+              const sel = assignedShort.toLowerCase() === t.name.toLowerCase() ? 'selected' : '';
+              return `<option value="${t.technician_id}" ${sel}>👷 ${t.name} (${t.license_type})</option>`;
+            }).join('');
+            const payPill = b.payment_status === 'PAID_VERIFIED'
+              ? `<span style="background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:800;">✓ $${b.dispatch_fee} Deposit Paid</span>`
+              : `<span style="background:#fef3c7; color:#b45309; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:800;">💳 Pending $${b.dispatch_fee} Deposit</span>`;
+
+            return `
+              <div class="dispatch-queue-card ${isEmerg ? 'is-emerg-queue' : ''}">
+                <div>
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+                    <span class="dq-badge">${isEmerg ? '🚨 CODE RED EMERGENCY DISPATCH' : '⚡ CONFIRMED SERVICE DISPATCH'}</span>
+                    <span style="font-weight:800; font-size:0.88rem; color:#475569;">#${b.confirmation_id}</span>
+                    ${payPill}
+                    <span style="background:#dbeafe; color:#1e40af; padding:4px 10px; border-radius:6px; font-size:0.78rem; font-weight:800;">📅 Synced to Google Calendar ✓</span>
+                  </div>
+                  <div class="dq-title">${b.display_title || b.service_type} — ${b.customer_name} (${b.phone_number})</div>
+                  <div class="dq-meta">
+                    📍 <strong>${b.service_address}</strong> &bull; 🕒 <strong>${b.display_window || b.slot_time}</strong> &bull; 💰 Est. Job: <strong>$${Number(b.estimated_job_value || 850).toLocaleString()}</strong>
+                  </div>
+                </div>
+                <div class="dq-actions">
+                  <div style="display:flex; flex-direction:column; gap:3px;">
+                    <span style="font-size:0.74rem; font-weight:800; color:#475569; text-transform:uppercase;">Assigned Electrician (Reassign):</span>
+                    <select class="reassign-select" onchange="reassignBookingTech('${b.confirmation_id}', this.value)">
+                      ${techOptions}
+                    </select>
+                  </div>
+                  ${b.google_calendar_link ? `<a href="${b.google_calendar_link}" target="_blank" class="btn-cal-magic" style="padding:9px 14px; font-size:0.86rem;">📅 Open in Google Calendar</a>` : ''}
+                  <button class="btn-cal-action" onclick='selectCalendarBooking(${safeObj})'>📋 View Ticket</button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
       const dates = [...new Set(slots.map(s => s.date))].slice(0, 5);
-      grid.innerHTML = dates.map(dt => {
+      grid.innerHTML = dates.map((dt, dayIdx) => {
         const dObj = new Date(dt + 'T12:00:00');
         const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
         const dateStr = dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const dayLabel = dayIdx === 0 ? `Today (${dayName})` : (dayIdx === 1 ? `Tomorrow (${dayName})` : dayName);
 
-        const windows = [
-          { label: 'Morning', key: '08:00 AM - 12:00 PM', shortTime: '8 AM - 12 PM' },
-          { label: 'Afternoon', key: '12:00 PM - 04:00 PM', shortTime: '12 PM - 4 PM' },
-          { label: 'Evening', key: '04:00 PM - 07:00 PM', shortTime: '4 PM - 7 PM' }
-        ];
+        // 1. Check for Emergency Dispatches on this date
+        const dayEmergencies = bookings.filter(bk => {
+          const isEm = (bk.urgency_level || '').includes('EMERG') || (bk.slot_time || '').toLowerCase().includes('45-60') || (bk.service_type || '').toLowerCase() === 'emergency';
+          if (!isEm || bk.slot_date !== dt) return false;
+          if (techFilter === 'ALL') return true;
+          const tObj = techs.find(t => t.technician_id === techFilter);
+          return tObj && (bk.assigned_technician || '').toLowerCase().includes(tObj.name.toLowerCase());
+        });
 
-        const slotsHtml = windows.map(w => {
-          const b = bookings.find(bk => bk.slot_date === dt && ((bk.slot_time || '').includes(w.key) || w.key.includes(bk.slot_time || '---')));
-          if (b) {
-            const safeObj = JSON.stringify(b).replace(/'/g, "&#39;");
-            return `
-              <div class="slot-box is-booked-routine" style="cursor:pointer;" onclick='selectCalendarBooking(${safeObj})'>
-                <div class="slot-time-header">
-                  <span style="color:#15803d;">⚡ ${w.label}</span>
-                  <span style="color:#15803d;">✓ BOOKED</span>
-                </div>
-                <div class="booked-cust-name">${b.customer_name}</div>
-                <div class="booked-cust-meta">${b.display_title || b.service_type}<br>${b.assigned_technician.split('(')[0]}</div>
-              </div>
-            `;
-          }
-
-          const matchingSlot = filteredSlots.find(s => s.date === dt && (s.time_window || '').includes(w.key));
-          if (!matchingSlot || matchingSlot.is_blocked) {
-            return `
-              <div class="slot-box">
-                <div class="slot-time-header"><span>${w.label}</span><span style="color:#64748b;">BLOCKED</span></div>
-                <div class="slot-tech-avail">Unavailable</div>
-              </div>
-            `;
-          }
-
+        const emergCardsHtml = dayEmergencies.map(eb => {
+          const safeObj = JSON.stringify(eb).replace(/'/g, "&#39;");
+          const techShort = (eb.assigned_technician || 'Marcus Vance').split('(')[0].trim();
           return `
-            <div class="slot-box">
-              <div class="slot-time-header"><span>${w.label} (${w.shortTime})</span><span style="color:#16a34a;">OPEN</span></div>
-              <div class="slot-tech-avail">Tech: ${matchingSlot.technician_name}</div>
-              <div class="slot-actions">
-                <button class="btn-slot-act btn-slot-book" onclick="openManualBookModal('${matchingSlot.slot_id}')">+ Book</button>
-                <button class="btn-slot-act btn-slot-block" onclick="toggleBlockSlot('${matchingSlot.slot_id}')">Block</button>
+            <div class="slot-box is-booked-emergency" style="cursor:pointer;" onclick='selectCalendarBooking(${safeObj})'>
+              <div class="slot-time-header">
+                <span style="color:#dc2626;">🚨 CODE RED (45–60m)</span>
+                <span style="background:#dc2626; color:#fff; padding:2px 7px; border-radius:4px; font-size:0.74rem;">DISPATCHED</span>
+              </div>
+              <div class="booked-cust-name">${eb.customer_name}</div>
+              <div class="booked-cust-meta">
+                <strong>${eb.display_title || 'Electrical Emergency'}</strong><br>
+                📍 ${eb.service_address}<br>
+                👷 Tech: <strong>${techShort}</strong><br>
+                <span style="color:#1e40af; font-weight:800; font-size:0.78rem;">📅 Synced to Google Calendar ✓</span>
               </div>
             </div>
           `;
         }).join('');
 
+        const windows = [
+          { label: 'Morning', wKey: 'morning', key: '08:00 AM - 12:00 PM', shortTime: '8 AM - 12 PM' },
+          { label: 'Afternoon', wKey: 'afternoon', key: '12:00 PM - 04:00 PM', shortTime: '12 PM - 4 PM' },
+          { label: 'Evening', wKey: 'evening', key: '04:00 PM - 07:00 PM', shortTime: '4 PM - 7 PM' }
+        ];
+
+        const slotsHtml = windows.map(w => {
+          // Find routine bookings in this window
+          const winBookings = bookings.filter(bk => {
+            const isEm = (bk.urgency_level || '').includes('EMERG') || (bk.slot_time || '').toLowerCase().includes('45-60') || (bk.service_type || '').toLowerCase() === 'emergency';
+            if (isEm || bk.slot_date !== dt) return false;
+            const timeMatch = (bk.slot_time || '').includes(w.key) || w.key.includes(bk.slot_time || '---') || (bk.slot_time || '').toLowerCase().includes(w.wKey);
+            if (!timeMatch) return false;
+            if (techFilter === 'ALL') return true;
+            const tObj = techs.find(t => t.technician_id === techFilter);
+            return tObj && (bk.assigned_technician || '').toLowerCase().includes(tObj.name.toLowerCase());
+          });
+
+          const windowSlots = filteredSlots.filter(s => s.date === dt && s.time_window_key === w.wKey);
+          const gcalBusySlots = windowSlots.filter(s => s.is_blocked && (s.blocked_reason || '').includes('Google Calendar'));
+          const manualBlockedSlots = windowSlots.filter(s => s.is_blocked && !(s.blocked_reason || '').includes('Google Calendar'));
+          const openWindowSlots = windowSlots.filter(s => !s.is_booked && !s.is_blocked);
+
+          let cards = [];
+
+          // Render routine booked cards in this window
+          winBookings.forEach(b => {
+            const safeObj = JSON.stringify(b).replace(/'/g, "&#39;");
+            const techShort = (b.assigned_technician || '').split('(')[0].trim();
+            cards.push(`
+              <div class="slot-box is-booked-routine" style="cursor:pointer;" onclick='selectCalendarBooking(${safeObj})'>
+                <div class="slot-time-header">
+                  <span style="color:#15803d;">⚡ ${w.label} (${w.shortTime})</span>
+                  <span style="background:#16a34a; color:#fff; padding:2px 7px; border-radius:4px; font-size:0.74rem;">BOOKED</span>
+                </div>
+                <div class="booked-cust-name">${b.customer_name}</div>
+                <div class="booked-cust-meta">
+                  <strong>${b.display_title || b.service_type}</strong><br>
+                  📍 ${b.service_address}<br>
+                  👷 Tech: <strong>${techShort}</strong><br>
+                  <span style="color:#1e40af; font-weight:800; font-size:0.78rem;">📅 Synced to Google Calendar ✓</span>
+                </div>
+              </div>
+            `);
+          });
+
+          // Render Google Calendar Busy blocks imported via Two-Way Sync
+          gcalBusySlots.forEach(gs => {
+            cards.push(`
+              <div class="slot-box is-gcal-busy">
+                <div class="slot-time-header">
+                  <span style="color:#1e40af;">📅 ${w.label} (${w.shortTime})</span>
+                  <span style="background:#2563eb; color:#fff; padding:2px 7px; border-radius:4px; font-size:0.72rem;">GCAL BUSY</span>
+                </div>
+                <div class="booked-cust-name" style="font-size:0.9rem; color:#1e3a8a;">${(gs.blocked_reason || 'Google Calendar Event').replace('📅 Google Calendar Busy: ', '')}</div>
+                <div class="booked-cust-meta">
+                  👷 Tech: <strong>${gs.technician_name}</strong> (Blocked via GCal)<br>
+                  <button class="btn-slot-act btn-slot-block" style="margin-top:6px;" onclick="toggleBlockSlot('${gs.slot_id}')">Clear Busy Block</button>
+                </div>
+              </div>
+            `);
+          });
+
+          // Render Open / Multi-Tech Availability box for remaining slots in this window
+          if (openWindowSlots.length > 0) {
+            const primarySlot = openWindowSlots[0];
+            const techPills = windowSlots.map(ws => {
+              const shortName = ws.technician_name.split(' ')[0] + ' ' + (ws.technician_name.split(' ')[1] || '').charAt(0) + '.';
+              if (ws.is_blocked && (ws.blocked_reason || '').includes('Google Calendar')) {
+                return `<span class="tech-mini-pill gcal-pill" title="${ws.blocked_reason}">📅 ${shortName} (GCal)</span>`;
+              }
+              if (ws.is_booked || ws.is_blocked) {
+                return `<span class="tech-mini-pill busy-pill">🔴 ${shortName} ( Dispatched )</span>`;
+              }
+              return `<span class="tech-mini-pill">🟢 ${shortName}</span>`;
+            }).join('');
+
+            cards.push(`
+              <div class="slot-box">
+                <div class="slot-time-header">
+                  <span>${w.label} (${w.shortTime})</span>
+                  <span style="color:#16a34a;">${openWindowSlots.length} TECH${openWindowSlots.length === 1 ? '' : 'S'} OPEN</span>
+                </div>
+                <div class="tech-avail-pills">${techPills}</div>
+                <div class="slot-actions">
+                  <button class="btn-slot-act btn-slot-book" onclick="openManualBookModal('${primarySlot.slot_id}')">+ Book Tech</button>
+                  <button class="btn-slot-act btn-slot-block" onclick="toggleBlockSlot('${primarySlot.slot_id}')">Block</button>
+                </div>
+              </div>
+            `);
+          } else if (cards.length === 0 && manualBlockedSlots.length > 0) {
+            const bs = manualBlockedSlots[0];
+            cards.push(`
+              <div class="slot-box">
+                <div class="slot-time-header"><span>${w.label}</span><span style="color:#64748b;">BLOCKED</span></div>
+                <div class="slot-tech-avail">${bs.blocked_reason || 'Unavailable / Off-Duty'}</div>
+                <button class="btn-slot-act btn-slot-block" onclick="toggleBlockSlot('${bs.slot_id}')">Unblock</button>
+              </div>
+            `);
+          }
+
+          return cards.join('');
+        }).join('');
+
         return `
-          <div class="cal-col">
+          <div class="cal-col ${dayEmergencies.length > 0 ? 'has-emergency-col' : ''}">
             <div class="cal-col-header">
-              <div class="cal-col-day">${dayName}</div>
-              <div class="cal-col-sub">${dateStr}</div>
+              <div class="cal-col-day">${dayLabel}</div>
+              <div class="cal-col-sub">${dateStr} ${dayEmergencies.length > 0 ? '• 🚨 CODE RED' : ''}</div>
             </div>
-            <div class="cal-col-body">${slotsHtml}</div>
+            <div class="cal-col-body">
+              ${emergCardsHtml}
+              ${slotsHtml}
+            </div>
           </div>
         `;
       }).join('');
@@ -2459,25 +2862,71 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       document.getElementById('kpiFleetTotal').innerText = techs.length;
       const onCallTech = techs.find(t => t.is_on_call);
       document.getElementById('kpiFleetOnCall').innerText = onCallTech ? onCallTech.name : 'None';
-      document.getElementById('kpiFleetOpenSlots').innerText = slots.filter(s => !s.is_booked && !s.is_blocked).length;
+      document.getElementById('kpiFleetOpenSlots').innerText = slots.filter(s => s.time_window_key !== 'emergency_asap' && !s.is_booked && !s.is_blocked).length;
       document.getElementById('kpiFleetBookedJobs').innerText = bookings.length;
 
       grid.innerHTML = techs.map(t => {
         const specHtml = (t.specialties || []).map(s => `<span class="spec-pill">${s.replace(/_/g, ' ')}</span>`).join('');
         const safeTech = JSON.stringify(t).replace(/'/g, "&#39;");
+        const techBookings = bookings.filter(b => (b.assigned_technician || '').toLowerCase().includes(t.name.toLowerCase()));
+        const hasEmerg = techBookings.some(b => (b.urgency_level || '').includes('EMERG') || (b.service_type || '').toLowerCase() === 'emergency');
+        const gcalBusy = slots.filter(s => s.technician_id === t.technician_id && s.is_blocked && (s.blocked_reason || '').includes('Google Calendar'));
+        const gcalEmail = `${t.name.toLowerCase().replace(/\s+/g, '.')}@apex-electrical.com`;
+
+        let statusBadge = `<span class="${t.is_on_call ? 'tech-badge-oncall' : 'tech-badge-offduty'}">${t.is_on_call ? '● ON-CALL 24/7 LEAD' : 'STANDARD SHIFT'}</span>`;
+        if (hasEmerg) {
+          statusBadge = `<span class="tech-badge-emerg">🚨 DISPATCHED: CODE RED</span>`;
+        } else if (techBookings.length > 0) {
+          statusBadge = `<span class="tech-badge-oncall">⚡ ASSIGNED (${techBookings.length} JOB${techBookings.length > 1 ? 'S' : ''})</span>`;
+        }
+
+        const activeJobsHtml = techBookings.map(tb => {
+          const isEm = (tb.urgency_level || '').includes('EMERG') || (tb.service_type || '').toLowerCase() === 'emergency';
+          const safeBooking = JSON.stringify(tb).replace(/'/g, "&#39;");
+          return `
+            <div class="tech-active-job-box ${isEm ? '' : 'routine-job'}">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; margin-bottom:3px;">
+                <span>${isEm ? '🚨 CODE RED DISPATCH' : '⚡ SCHEDULED DISPATCH'} (#${tb.confirmation_id})</span>
+                <span style="font-size:0.78rem;">${tb.display_window || tb.slot_time}</span>
+              </div>
+              <div><strong>${tb.display_title || tb.service_type}</strong> — ${tb.customer_name}</div>
+              <div style="color:#475569; font-size:0.82rem; margin-top:2px;">📍 ${tb.service_address}</div>
+              <div style="display:flex; gap:8px; margin-top:8px;">
+                ${tb.google_calendar_link ? `<a href="${tb.google_calendar_link}" target="_blank" style="background:#16a34a; color:#fff; text-decoration:none; padding:4px 10px; border-radius:6px; font-size:0.78rem; font-weight:800;">📅 Google Calendar</a>` : ''}
+                <button class="btn-slot-act btn-slot-block" onclick='selectCalendarBooking(${safeBooking})'>Inspect Ticket</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        const gcalBusyHtml = gcalBusy.map(gb => `
+          <div style="background:#eff6ff; border:1px dashed #3b82f6; border-radius:8px; padding:8px 10px; font-size:0.82rem; color:#1e3a8a; font-weight:700;">
+            ${gb.blocked_reason} (${gb.date} • ${gb.time_window})
+          </div>
+        `).join('');
+
         return `
-          <div class="tech-card-pro">
+          <div class="tech-card-pro ${hasEmerg ? 'is-dispatched-emerg' : (techBookings.length > 0 ? 'is-dispatched-routine' : '')}">
             <div class="tech-card-top">
-              <div class="tech-avatar">👷</div>
+              <div class="tech-avatar">${hasEmerg ? '🚨' : '👷'}</div>
               <div style="flex:1;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
                   <div class="tech-name">${t.name}</div>
-                  <span class="${t.is_on_call ? 'tech-badge-oncall' : 'tech-badge-offduty'}">${t.is_on_call ? '● ON-CALL 24/7' : 'STANDARD'}</span>
+                  ${statusBadge}
                 </div>
                 <div class="tech-license">${t.license_type} &bull; ⭐ ${t.rating || 4.95}</div>
                 <div class="tech-phone">${t.phone}</div>
               </div>
             </div>
+
+            <div class="tech-gcal-row">
+              <span>📅 GCal: <strong>${gcalEmail}</strong></span>
+              <span style="color:#16a34a;">✓ Two-Way Synced</span>
+            </div>
+
+            ${activeJobsHtml}
+            ${gcalBusyHtml}
+
             <div class="tech-specialties-row">${specHtml}</div>
             <div class="tech-actions-row">
               <button class="btn-tech-toggle-oncall" onclick="toggleTechOnCall('${t.technician_id}')">
@@ -2489,6 +2938,42 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           </div>
         `;
       }).join('');
+    }
+
+    async function triggerGcalTwoWaySync(customUrl = '') {
+      const res = await fetch('/api/calendar/gcal-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ external_ics_url: customUrl })
+      });
+      await res.json();
+      await fetchBoardData();
+    }
+
+    async function reassignBookingTech(confirmationId, technicianId) {
+      const res = await fetch('/api/bookings/reassign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: confirmationId, technician_id: technicianId })
+      });
+      const data = await res.json();
+      if (data.booking) {
+        showBookingInHero(data.booking);
+      }
+      await fetchBoardData();
+    }
+
+    function openGcalSyncModal() {
+      document.getElementById('gcalOutboundInput').value = `${window.location.origin}/api/calendar.ics`;
+      document.getElementById('gcalSyncModal').classList.add('active');
+    }
+    function closeGcalSyncModal() {
+      document.getElementById('gcalSyncModal').classList.remove('active');
+    }
+    async function submitGcalSyncModal() {
+      const url = document.getElementById('gcalInboundInput').value.trim();
+      closeGcalSyncModal();
+      await triggerGcalTwoWaySync(url);
     }
 
     async function toggleTechOnCall(techId) {
@@ -2649,6 +3134,10 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     }
 
     applyBoardData(BOARD_DATA, false);
+    const initTab = new URLSearchParams(window.location.search).get('tab');
+    if (initTab === 'calendar' || initTab === 'fleet' || initTab === 'console') {
+      switchPortalTab(initTab);
+    }
     window.addEventListener('DOMContentLoaded', () => fetchBoardData());
   </script>
 </body>
@@ -2687,6 +3176,9 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             "contractor_phone": DEFAULT_CONFIG.contractor_phone,
             "last_dialogue": LAST_DIALOGUE,
             "last_scenario_mode": LAST_SCENARIO_MODE,
+            "gcal_connected": getattr(DB, "gcal_connected", True),
+            "gcal_last_sync": getattr(DB, "gcal_last_sync", "Two-Way Sync Active"),
+            "gcal_external_url": getattr(DB, "gcal_external_url", ""),
         }
 
     def do_GET(self):
@@ -2789,6 +3281,20 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking), "roi_metrics": roi})
             else:
                 self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/bookings/reassign":
+            cid = req_data.get("confirmation_id", "").strip()
+            tid = req_data.get("technician_id", "").strip()
+            booking = DB.reassign_booking_technician(cid, tid)
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking or technician not found"}, 404)
+
+        elif parsed.path == "/api/calendar/gcal-sync":
+            ext_url = req_data.get("external_ics_url", "").strip() or None
+            sync_info = DB.sync_google_calendar_busy_blocks(ext_url)
+            self._send_json({"status": "SUCCESS", "sync_info": sync_info})
 
         elif parsed.path == "/api/simulate-missed-call":
             LAST_SCENARIO_MODE = "missed_call"
