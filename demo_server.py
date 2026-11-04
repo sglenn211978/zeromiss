@@ -1,12 +1,7 @@
-"""ZeroMiss Voice Dispatch - Fleet, Schedule & Revenue Command Center Server.
+"""ZeroMiss Voice Dispatch - Story-Driven Interactive Demo & Fleet Command Server.
 
-Serves an enterprise-grade, maximum-ROI web dashboard for electrical contractors.
-Features:
-1. Executive Revenue Command Center & Interactive ROI Calculator (pipeline value, fees, annual gain).
-2. Customer Smartphone Simulator with 1-click Stripe fee payment and missed-call lead recovery.
-3. Full-width Fleet Dispatch Calendar with 1-click Google Calendar subscription feed (/api/calendar.ics).
-4. Electrician Fleet Management with 1-click live on-call switching and complete CRUD.
-5. Production Twilio Voice Webhook (/api/twilio/voice) & Phone Setup Wizard for live mobile calls.
+Designed around the core end-to-end product story:
+Missed Call -> AI Triage & 3s SMS Recovery -> Instant Dispatch -> Upfront Stripe Deposit.
 """
 
 import json
@@ -31,1491 +26,949 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZeroMiss Voice Dispatch | Contractor Fleet & Revenue Command Center</title>
+  <title>ZeroMiss Voice Dispatch | Interactive Product Demo</title>
   <style>
     :root {
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --card-border: #e2e8f0;
-      --card-border-hover: #cbd5e1;
-      --navy-header: #0f172a;
-      --navy-subhead: #1e293b;
-      --primary: #0284c7;
-      --primary-hover: #0369a1;
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface-muted: #f8fafc;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --navy: #0f172a;
       --text-main: #0f172a;
-      --text-secondary: #334155;
+      --text-body: #334155;
       --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;
       --success: #16a34a;
-      --success-bg: #dcfce7;
+      --success-soft: #dcfce7;
       --success-text: #15803d;
-      --danger: #dc2626;
-      --danger-bg: #fee2e2;
-      --danger-text: #b91c1c;
       --warning: #d97706;
-      --warning-bg: #fef3c7;
+      --warning-soft: #fef3c7;
       --warning-text: #b45309;
-      --accent: #2563eb;
-      --accent-bg: #eff6ff;
-      --purple: #7c3aed;
-      --purple-bg: #f3e8ff;
-      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+      --danger-text: #b91c1c;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.12);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text-main);
+      font-size: 16px;
+      line-height: 1.5;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* TOP COMMERCIAL HEADER (DEEP NAVY) */
+    /* TOP HEADER BAR - CLEAN & UNCLUTTERED */
     header {
-      background: var(--navy-header);
+      background: var(--navy);
       color: #ffffff;
-      border-bottom: 1px solid #1e293b;
-      padding: 12px 24px;
+      padding: 14px 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 16px;
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
     .brand-icon {
-      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      background: #2563eb;
       color: white;
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
-      font-weight: bold;
-      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+      font-size: 22px;
+      font-weight: 800;
     }
-    .brand h1 { font-size: 1.22rem; font-weight: 700; letter-spacing: -0.02em; color: #ffffff; }
-    .brand p { font-size: 0.78rem; color: #94a3b8; }
-
-    .header-actions {
+    .brand-title-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
     }
-    .contractor-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #1e293b;
-      padding: 5px 10px;
-      border-radius: 8px;
-      border: 1px solid #334155;
+    .brand h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #ffffff;
     }
-    .contractor-bar label {
-      font-size: 0.76rem;
-      color: #94a3b8;
-      font-weight: 600;
-    }
-    .contractor-bar input {
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: white;
-      padding: 5px 8px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      width: 190px;
-      outline: none;
-    }
-    .btn-hdr-action {
-      background: #0284c7;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.8rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      transition: all 0.2s;
-    }
-    .btn-hdr-action:hover { background: #0369a1; }
-    .btn-hdr-twilio {
-      background: #e11d48;
-    }
-    .btn-hdr-twilio:hover { background: #be123c; }
-
-    /* EXECUTIVE REVENUE & ROI COMMAND BAR */
-    .revenue-kpi-bar {
-      background: #ffffff;
-      border-bottom: 1px solid var(--card-border);
-      padding: 14px 24px 16px;
-      width: 100%;
-      box-shadow: var(--shadow-sm);
-    }
-    .kpi-top-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 12px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #f1f5f9;
-    }
-    .kpi-mode-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .kpi-mode-label {
+    .demo-mode-pill {
+      background: #f59e0b;
+      color: #0f172a;
       font-size: 0.75rem;
       font-weight: 800;
-      color: var(--text-muted);
-      letter-spacing: 0.05em;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
     }
-    .btn-benchmark-toggle {
-      background: #f1f5f9;
-      color: #0f172a;
-      border: 1px solid #cbd5e1;
-      padding: 5px 12px;
-      border-radius: 6px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
+    .brand p {
+      font-size: 0.88rem;
+      color: #94a3b8;
+    }
+
+    /* NAVIGATION & UTILITY TOOLS */
+    .header-right {
       display: flex;
       align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-    .btn-benchmark-toggle:hover {
-      background: #e2e8f0;
-      border-color: #94a3b8;
-    }
-    .benchmark-indicator {
-      font-size: 0.76rem;
-      font-weight: 700;
-      color: #15803d;
-      background: #dcfce7;
-      padding: 3px 8px;
-      border-radius: 12px;
-      border: 1px solid #86efac;
-    }
-    .kpi-actions-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      gap: 12px;
       flex-wrap: wrap;
     }
-    .btn-hdr-roi {
-      background: #10b981;
-    }
-    .btn-hdr-roi:hover { background: #059669; }
-    .btn-hdr-guide {
-      background: #8b5cf6;
-    }
-    .btn-hdr-guide:hover { background: #7c3aed; }
-    .btn-hdr-reset {
-      background: #f1f5f9;
-      color: #475569;
-      border: 1px solid #cbd5e1;
-    }
-    .btn-hdr-reset:hover {
-      background: #e2e8f0;
-      color: #0f172a;
-    }
-
-    .rev-metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      width: 100%;
-    }
-    @media (max-width: 1100px) {
-      .rev-metrics-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 640px) {
-      .rev-metrics-grid { grid-template-columns: 1fr; }
-    }
-    .rev-metric-card {
-      background: #f8fafc;
-      border: 1px solid var(--card-border);
+    .nav-tabs {
+      display: flex;
+      background: #1e293b;
+      padding: 4px;
       border-radius: 10px;
-      padding: 12px 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 98px;
-      transition: all 0.2s;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    }
-    .rev-metric-card:hover {
-      border-color: #94a3b8;
-      background: #ffffff;
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-sm);
-    }
-    .rev-label-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      margin-bottom: 2px;
-    }
-    .rev-label {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      white-space: nowrap;
-    }
-    .rev-pill-badge {
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      white-space: nowrap;
-    }
-    .badge-green { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-    .badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-    .badge-gold { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-    .badge-purple { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
-
-    .rev-val {
-      font-size: 1.45rem;
-      font-weight: 800;
-      color: var(--text-main);
-      line-height: 1.2;
-      margin: 3px 0;
-      font-variant-numeric: tabular-nums;
-    }
-    .rev-subtext {
-      font-size: 0.74rem;
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
       gap: 4px;
-      font-weight: 600;
     }
-    .rev-desc {
-      font-size: 0.68rem;
-      color: var(--text-muted);
-      margin-top: 2px;
-      line-height: 1.3;
-    }
-
-    /* PORTAL NAVIGATION TABS */
-    .portal-nav {
-      background: #ffffff;
-      border-bottom: 1px solid var(--card-border);
-      padding: 0 24px;
-      display: flex;
-      gap: 8px;
-    }
-    .nav-btn {
+    .nav-tab {
       background: transparent;
+      color: #cbd5e1;
       border: none;
-      border-bottom: 3px solid transparent;
-      color: var(--text-secondary);
-      padding: 12px 18px;
-      font-size: 0.86rem;
+      padding: 8px 16px;
+      border-radius: 7px;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 8px;
-      transition: all 0.2s;
+      transition: all 0.15s;
     }
-    .nav-btn:hover {
-      color: var(--primary);
-      background: #f8fafc;
-    }
-    .nav-btn.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
-      background: #f0f9ff;
+    .nav-tab:hover { color: #ffffff; background: rgba(255,255,255,0.06); }
+    .nav-tab.active {
+      background: #2563eb;
+      color: #ffffff;
       font-weight: 700;
     }
-    .nav-pill {
-      font-size: 0.68rem;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 10px;
-      background: #e2e8f0;
-      color: #334155;
-    }
-    .nav-btn.active .nav-pill {
-      background: #0284c7;
-      color: white;
-    }
-    .live-pulse {
-      width: 8px;
-      height: 8px;
-      background: #16a34a;
-      border-radius: 50%;
-      box-shadow: 0 0 0 rgba(22, 163, 74, 0.4);
-      animation: pulseGreen 1.6s infinite;
-    }
-    @keyframes pulseGreen {
-      0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
-      70% { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+    .nav-count {
+      background: rgba(255,255,255,0.2);
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 0.78rem;
     }
 
-    /* MAIN CONTAINER & VIEWS */
+    .utility-btn {
+      background: #1e293b;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .utility-btn:hover { background: #334155; color: #ffffff; }
+
+    /* MAIN CONTAINER */
     main {
-      padding: 20px 24px;
-      max-width: 1680px;
-      margin: 0 auto;
+      max-width: 1400px;
       width: 100%;
+      margin: 0 auto;
+      padding: 24px 32px 40px;
       flex: 1;
     }
     .tab-view { display: none; }
     .tab-view.active { display: block; }
 
-    /* COMMERCIAL 3-STEP WALKTHROUGH BANNER */
-    .walkthrough-banner {
-      background: #ffffff;
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 14px 18px;
-      margin-bottom: 18px;
+    /* VISUAL BACKBONE: 4-STEP END-TO-END STORY JOURNEY */
+    .story-backbone {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 24px;
+      margin-bottom: 20px;
       box-shadow: var(--shadow-sm);
     }
-    .walkthrough-header {
+    .backbone-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-    }
-    .walkthrough-title-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .walkthrough-icon { font-size: 1.4rem; }
-    .walkthrough-title { font-size: 0.95rem; font-weight: 700; color: var(--text-main); }
-    .walkthrough-subtitle { font-size: 0.76rem; color: var(--text-muted); }
-    .btn-toggle-guide {
-      background: #f1f5f9;
-      border: 1px solid #cbd5e1;
-      color: var(--text-secondary);
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .btn-toggle-guide:hover { background: #e2e8f0; color: #0f172a; }
-    .walkthrough-steps {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr auto 1fr;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
       gap: 12px;
-      align-items: center;
     }
-    @media (max-width: 960px) {
-      .walkthrough-steps { grid-template-columns: 1fr; }
-      .step-arrow { display: none; }
-    }
-    .step-card {
-      background: #f8fafc;
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 12px 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .step-card:hover {
-      border-color: #0284c7;
-      background: #ffffff;
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-    .step-badge {
-      display: inline-block;
-      font-size: 0.65rem;
+    .backbone-label {
+      font-size: 0.82rem;
       font-weight: 800;
       text-transform: uppercase;
-      color: #0284c7;
-      background: #e0f2fe;
-      padding: 2px 6px;
-      border-radius: 4px;
-      margin-bottom: 6px;
-    }
-    .step-head {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: var(--text-main);
-      margin-bottom: 4px;
+      letter-spacing: 0.06em;
+      color: var(--primary);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
-    .step-body {
-      font-size: 0.74rem;
-      color: var(--text-muted);
-      line-height: 1.4;
-      margin-bottom: 6px;
-    }
-    .step-hint {
-      font-size: 0.72rem;
-      color: #0284c7;
+    .next-step-banner {
+      background: #eff6ff;
+      border: 1.5px solid #93c5fd;
+      color: #1e3a8a;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.92rem;
       font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 4px;
-    }
-    .step-arrow {
-      color: #94a3b8;
-      font-size: 1.2rem;
-      font-weight: bold;
-      text-align: center;
+      gap: 8px;
     }
 
-    /* 3-COLUMN COCKPIT GRID */
-    .console-triple-grid {
+    .journey-steps {
       display: grid;
-      grid-template-columns: 1fr 1.35fr 360px;
-      gap: 20px;
-      align-items: start;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
     }
-    @media (max-width: 1280px) {
-      .console-triple-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-      .phone-column-wrap {
-        grid-column: span 2;
-        display: flex;
-        justify-content: center;
-      }
+    @media (max-width: 980px) {
+      .journey-steps { grid-template-columns: repeat(2, 1fr); }
     }
-    @media (max-width: 860px) {
-      .console-triple-grid {
-        grid-template-columns: 1fr;
-      }
-      .phone-column-wrap {
-        grid-column: span 1;
-      }
+    .j-step {
+      background: var(--surface-muted);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      opacity: 0.65;
+    }
+    .j-step.active-step {
+      background: #eff6ff;
+      border-color: #2563eb;
+      opacity: 1;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    .j-step.done-step {
+      background: #f0fdf4;
+      border-color: #22c55e;
+      opacity: 1;
+    }
+    .j-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .j-step.active-step .j-num { background: #2563eb; color: #ffffff; }
+    .j-step.done-step .j-num { background: #16a34a; color: #ffffff; }
+    .j-title { font-size: 0.92rem; font-weight: 700; color: var(--text-main); }
+    .j-desc { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* PRIMARY WORKSPACE: CLEAR HIERARCHY (START ON LEFT -> RESULTS ON RIGHT) */
+    .demo-stage-grid {
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 1180px) {
+      .demo-stage-grid { grid-template-columns: 1fr; }
     }
 
-    .panel-card {
-      background: #ffffff;
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 16px;
+    /* PRIMARY ACTION PANEL (LEFT) */
+    .primary-simulator-card {
+      background: var(--surface);
+      border: 2px solid #2563eb;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: var(--shadow-md);
       display: flex;
       flex-direction: column;
-      box-shadow: var(--shadow-sm);
+      position: relative;
     }
-    .card-header {
+    .step-one-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .sim-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 10px;
+      margin-bottom: 14px;
     }
-    .card-header h2 { font-size: 0.96rem; font-weight: 700; color: var(--text-main); }
-    .status-badge {
-      font-size: 0.72rem;
-      background: #dcfce7;
-      color: #15803d;
-      padding: 3px 8px;
+    .sim-header h2 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 6px;
+    }
+
+    /* HERO PRIMARY CTA BUTTON */
+    .btn-hero-start {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      border: none;
       border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-weight: 700;
-      border: 1px solid #86efac;
-    }
-    .status-dot { width: 6px; height: 6px; background: #16a34a; border-radius: 50%; }
-
-    .panel-subhead {
-      background: #f8fafc;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 0.74rem;
-      color: var(--text-secondary);
-      line-height: 1.4;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* SCENARIO ACTION BUTTONS */
-    .scenario-triggers {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    .scenario-btn {
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--card-border);
+      padding: 16px 20px;
       text-align: left;
       cursor: pointer;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
       transition: all 0.2s;
+      margin-bottom: 12px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 4px;
     }
-    .scenario-btn .btn-title {
-      font-size: 0.8rem;
-      font-weight: 700;
+    .btn-hero-start:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.36);
+    }
+    .hero-btn-top {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 6px;
+      font-size: 1.05rem;
+      font-weight: 800;
     }
-    .scenario-btn .btn-sub {
-      font-size: 0.68rem;
-      color: var(--text-muted);
+    .hero-btn-sub {
+      font-size: 0.85rem;
+      color: #dbeafe;
+      font-weight: 500;
     }
-    .btn-emergency {
+
+    /* SECONDARY SCENARIO PILLS */
+    .secondary-scenarios {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-sec-scenario {
+      flex: 1;
+      background: var(--surface-muted);
+      border: 1px solid var(--border-strong);
+      color: var(--text-body);
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .btn-sec-scenario:hover {
+      background: #e2e8f0;
+      color: var(--text-main);
+    }
+    .btn-sec-emerg {
       background: #fef2f2;
       border-color: #fecaca;
       color: #991b1b;
     }
-    .btn-emergency:hover {
-      background: #dc2626;
-      border-color: #dc2626;
-      color: white;
-    }
-    .btn-emergency:hover .btn-sub { color: #fecaca; }
+    .btn-sec-emerg:hover { background: #fee2e2; }
 
-    .btn-routine {
-      background: #f0fdf4;
-      border-color: #bbf7d0;
-      color: #166534;
+    /* LIVE CALL TRANSCRIPT STREAM */
+    .transcript-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
     }
-    .btn-routine:hover {
-      background: #0284c7;
-      border-color: #0284c7;
-      color: white;
-    }
-    .btn-routine:hover .btn-sub { color: #e0f2fe; }
-
-    .btn-missed {
-      background: #fffbeb;
-      border-color: #fde68a;
-      color: #92400e;
-    }
-    .btn-missed:hover {
-      background: #d97706;
-      border-color: #d97706;
-      color: white;
-    }
-    .btn-missed:hover .btn-sub { color: #fef3c7; }
-
-    .scenario-btn.btn-reset {
-      background: #f8fafc;
-      border-color: #cbd5e1;
-      color: #475569;
-    }
-    .scenario-btn.btn-reset:hover {
-      background: #475569;
-      color: white;
-    }
-
-    /* CONVERSATION & DISPATCH AUDIO */
     .chat-container {
-      background: #f8fafc;
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      height: 310px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      height: 270px;
       overflow-y: auto;
-      padding: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin-bottom: 10px;
+      gap: 12px;
+      margin-bottom: 12px;
     }
     .bubble {
-      max-width: 88%;
-      padding: 10px 14px;
+      max-width: 90%;
+      padding: 12px 16px;
       border-radius: 12px;
-      font-size: 0.8rem;
-      line-height: 1.45;
+      font-size: 0.92rem;
+      line-height: 1.5;
     }
     .bubble-user {
       align-self: flex-end;
       background: #ffffff;
-      color: #0f172a;
-      border: 1px solid #cbd5e1;
-      border-bottom-right-radius: 2px;
+      color: var(--text-main);
+      border: 1px solid var(--border-strong);
     }
     .bubble-sarah {
       align-self: flex-start;
       background: #eff6ff;
       color: #1e3a8a;
       border: 1px solid #bfdbfe;
-      border-bottom-left-radius: 2px;
     }
     .speaker-name {
-      font-size: 0.68rem;
-      font-weight: 700;
-      margin-bottom: 3px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      margin-bottom: 4px;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .bubble-user .speaker-name { color: #0284c7; text-align: right; }
-    .bubble-sarah .speaker-name { color: #1d4ed8; }
-
-    .audio-bar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      height: 24px;
-      margin-bottom: 10px;
-      opacity: 0.3;
-      transition: opacity 0.3s;
-    }
-    .audio-bar.speaking { opacity: 1; }
-    .wave-line {
-      width: 3px;
-      height: 6px;
-      background: #0284c7;
-      border-radius: 3px;
-      transition: height 0.15s ease;
-    }
-    .speaking .wave-line:nth-child(odd) { height: 18px; animation: wave 0.4s infinite alternate; }
-    .speaking .wave-line:nth-child(even) { height: 12px; animation: wave 0.4s infinite alternate 0.2s; }
-    @keyframes wave {
-      0% { height: 6px; }
-      100% { height: 20px; }
+      color: #2563eb;
     }
 
     .input-row {
       display: flex;
       gap: 8px;
+      margin-top: auto;
     }
     .btn-mic {
-      background: #f1f5f9;
-      border: 1px solid #cbd5e1;
-      color: #0f172a;
+      background: var(--surface-muted);
+      border: 1px solid var(--border-strong);
       border-radius: 8px;
-      padding: 0 12px;
-      font-size: 1.1rem;
+      padding: 0 14px;
+      font-size: 1.15rem;
       cursor: pointer;
-      transition: all 0.2s;
     }
-    .btn-mic:hover { background: #e2e8f0; }
-    .btn-mic.listening {
-      background: #ef4444;
-      color: white;
-      border-color: #dc2626;
-      animation: pulseMic 1s infinite;
-    }
-    @keyframes pulseMic {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.06); }
-      100% { transform: scale(1); }
-    }
+    .btn-mic.listening { background: #dc2626; color: white; }
     .input-row input {
       flex: 1;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      color: #0f172a;
-      padding: 9px 12px;
+      border: 1px solid var(--border-strong);
+      padding: 11px 14px;
       border-radius: 8px;
-      font-size: 0.82rem;
+      font-size: 0.92rem;
       outline: none;
     }
-    .input-row input:focus { border-color: #0284c7; }
-    .input-row button {
-      background: #0284c7;
+    .input-row input:focus { border-color: var(--primary); }
+    .input-row button.btn-send {
+      background: var(--navy);
       color: white;
       border: none;
-      padding: 0 16px;
+      padding: 0 18px;
       border-radius: 8px;
       font-weight: 700;
-      font-size: 0.82rem;
+      font-size: 0.9rem;
       cursor: pointer;
-      transition: all 0.2s;
     }
-    .input-row button:hover { background: #0369a1; }
 
-    /* CENTER COCKPIT / HERO DISPATCH CARD */
-    .cockpit-body {
+    /* RIGHT STAGE: LIVE OUTCOMES (PHONE + DISPATCH TICKET) */
+    .outcomes-stage {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
-      gap: 12px;
     }
-    .dispatch-hero {
-      background: #ffffff;
-      border: 2px solid #0284c7;
-      border-radius: 12px;
-      padding: 16px;
-      display: none;
-      box-shadow: var(--shadow-sm);
-    }
-    .dispatch-hero.active { display: block; }
-    .dispatch-hero.is-emergency {
-      border-color: #dc2626;
-      background: #fffafa;
-    }
-    .hero-badge {
-      display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 4px 10px;
-      border-radius: 6px;
-    }
-    .badge-emergency {
-      background: #fee2e2;
-      color: #b91c1c;
-      border: 1px solid #fca5a5;
-    }
-    .badge-standard {
-      background: #dcfce7;
-      color: #15803d;
-      border: 1px solid #86efac;
-    }
-    .hero-title { font-size: 1.12rem; font-weight: 700; margin-bottom: 3px; color: var(--text-main); }
-    .hero-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; }
-
-    .btn-cal-magic {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #16a34a;
-      color: white;
-      text-decoration: none;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 0.82rem;
-      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
-      transition: all 0.2s;
-    }
-    .btn-cal-magic:hover {
-      background: #15803d;
-      transform: translateY(-1px);
-    }
-
-    .ticket-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.78rem;
-      margin-top: 10px;
-      background: #ffffff;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .ticket-table tr {
-      border-bottom: 1px solid #f1f5f9;
-    }
-    .ticket-table tr:last-child { border-bottom: none; }
-    .ticket-table td {
-      padding: 7px 10px;
-    }
-    .ticket-table td:first-child {
-      color: var(--text-muted);
-      width: 130px;
-      font-weight: 600;
-      background: #f8fafc;
-    }
-    .ticket-table td:last-child {
-      color: var(--text-main);
-      font-weight: 600;
-    }
-
-    .waiting-preview-box {
-      background: #f8fafc;
-      border: 1px dashed #cbd5e1;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-    }
-    .preview-badge {
-      font-size: 0.68rem;
-      font-weight: 800;
-      color: #0284c7;
-      background: #e0f2fe;
-      padding: 3px 8px;
-      border-radius: 6px;
-      display: inline-block;
-      margin-bottom: 8px;
-    }
-    .waiting-preview-box h3 { font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
-    .preview-subtitle { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; }
-    .preview-features-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      text-align: left;
-      margin-bottom: 16px;
-    }
-    .p-feat {
+    .outcomes-header {
       display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      font-size: 0.76rem;
-      background: #ffffff;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--card-border);
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .p-feat-icon { font-size: 1.2rem; }
-    .p-feat strong { color: var(--text-main); }
-    .preview-cta {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 0.8rem;
-      color: #1d4ed8;
-      font-weight: 600;
+    .outcomes-header h2 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .outcomes-split {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+      align-items: start;
+      flex: 1;
+    }
+    @media (max-width: 920px) {
+      .outcomes-split { grid-template-columns: 1fr; }
     }
 
-    /* RIGHT COLUMN: REALISTIC SMARTPHONE CHASSIS */
+    /* REALISTIC SMARTPHONE SIMULATOR */
     .phone-column-wrap {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
     }
+    .phone-step-callout {
+      background: #fef3c7;
+      border: 1.5px solid #f59e0b;
+      color: #92400e;
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+    .phone-step-callout.visible { display: inline-flex; }
+
     .phone-chassis {
-      background: linear-gradient(145deg, #d1d5db, #9ca3af, #cbd5e1);
-      padding: 11px;
-      border-radius: 44px;
-      box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.28), inset 0 1px 2px rgba(255, 255, 255, 0.9);
-      width: 340px;
-      position: relative;
+      background: linear-gradient(145deg, #cbd5e1, #94a3b8, #cbd5e1);
+      padding: 10px;
+      border-radius: 42px;
+      box-shadow: var(--shadow-lg);
+      width: 330px;
+      transition: all 0.25s;
+    }
+    .phone-chassis.highlight-phone {
+      box-shadow: 0 0 0 4px #2563eb, 0 16px 32px rgba(37, 99, 235, 0.25);
     }
     .phone-screen {
-      background: #090d16;
-      border-radius: 36px;
-      padding: 8px 10px 12px;
-      height: 560px;
+      background: #0f172a;
+      border-radius: 34px;
+      padding: 10px 12px 14px;
+      height: 500px;
       display: flex;
       flex-direction: column;
-      position: relative;
       overflow: hidden;
-      border: 1px solid #1e293b;
     }
     .phone-dynamic-island {
-      width: 90px;
-      height: 20px;
+      width: 84px;
+      height: 18px;
       background: #000000;
       border-radius: 12px;
       margin: 0 auto 6px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding: 0 8px;
-      border: 1px solid #1f2937;
-    }
-    .island-lens {
-      width: 7px;
-      height: 7px;
-      background: #1e293b;
-      border-radius: 50%;
-      border: 1px solid #334155;
     }
     .phone-status-bar {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 0 8px 6px;
-      font-size: 0.72rem;
+      padding: 0 8px 8px;
+      font-size: 0.78rem;
       color: #f8fafc;
       font-weight: 700;
-      letter-spacing: 0.02em;
     }
     .phone-imessage-header {
-      background: #182234;
-      border: 1px solid #283548;
-      border-radius: 12px;
-      padding: 6px 10px;
-      margin-bottom: 8px;
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
     .imessage-avatar {
-      width: 30px;
-      height: 30px;
-      background: linear-gradient(135deg, #0284c7, #2563eb);
+      width: 32px;
+      height: 32px;
+      background: #2563eb;
       border-radius: 50%;
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 0.72rem;
-      flex-shrink: 0;
-    }
-    .imessage-info {
-      flex: 1;
-      min-width: 0;
-      text-align: left;
-    }
-    .imessage-name {
       font-size: 0.8rem;
-      font-weight: 700;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     }
-    .imessage-sub {
-      font-size: 0.65rem;
-      color: #94a3b8;
-    }
+    .imessage-name { font-size: 0.88rem; font-weight: 700; color: #ffffff; }
+    .imessage-sub { font-size: 0.72rem; color: #94a3b8; }
+
     .phone-messages {
       flex: 1;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       padding: 4px 2px;
     }
     .sms-bubble {
       background: #1e293b;
       border: 1px solid #334155;
       border-radius: 14px;
-      padding: 10px 12px;
-      font-size: 0.76rem;
-      line-height: 1.4;
-      color: #e2e8f0;
-      position: relative;
+      padding: 12px 14px;
+      font-size: 0.86rem;
+      line-height: 1.45;
+      color: #f1f5f9;
     }
     .sms-tag {
-      font-size: 0.65rem;
+      font-size: 0.72rem;
       font-weight: 800;
       color: #38bdf8;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
       margin-bottom: 4px;
     }
     .sms-recoup-card {
-      border: 1.5px solid #f59e0b;
+      border: 2px solid #f59e0b;
       background: #1c1917;
-    }
-    .sms-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-    .sms-badge-risk {
-      font-size: 0.62rem;
-      font-weight: 800;
-      color: #fbbf24;
-      background: rgba(245, 158, 11, 0.2);
-      padding: 2px 6px;
-      border-radius: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
     }
     .sms-action-card {
       background: #0f172a;
-      border: 1px solid #38bdf8;
+      border: 1.5px solid #38bdf8;
       border-radius: 10px;
-      padding: 10px;
-      margin-top: 8px;
+      padding: 12px;
+      margin-top: 10px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.2s;
-    }
-    .sms-action-card:hover {
-      background: #1e293b;
-      transform: translateY(-1px);
-    }
-    .action-card-tag {
-      font-size: 0.62rem;
-      font-weight: 800;
-      color: #38bdf8;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .action-card-val {
-      font-size: 0.7rem;
-      font-weight: 800;
-      color: #4ade80;
-      margin-left: 6px;
-    }
-    .action-card-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #ffffff;
-      margin: 4px 0 2px;
-    }
-    .action-card-desc {
-      font-size: 0.72rem;
-      color: #94a3b8;
-      margin-bottom: 8px;
     }
     .btn-action-claim {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
+      background: #2563eb;
       color: white;
       border: none;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 0.76rem;
-      cursor: pointer;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-    .btn-action-claim:hover {
-      background: #0369a1;
-    }
-    .recoup-won-badge {
-      background: rgba(34, 197, 94, 0.2);
-      border: 1px solid #22c55e;
-      color: #4ade80;
-      padding: 8px;
+      padding: 11px 14px;
       border-radius: 8px;
       font-weight: 800;
-      font-size: 0.78rem;
+      font-size: 0.88rem;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 8px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+    .btn-action-claim:hover { background: #1d4ed8; }
+
+    .recoup-won-badge {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1.5px solid #22c55e;
+      color: #4ade80;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.88rem;
       text-align: center;
-      animation: fadeIn 0.3s ease;
     }
     .sms-stripe-sheet {
       border: 1.5px solid #6366f1;
       background: #1e1b4b;
       border-radius: 10px;
-      padding: 10px;
-      margin-top: 8px;
-    }
-    .stripe-sheet-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.72rem;
-      font-weight: 800;
-      color: #c7d2fe;
-      margin-bottom: 4px;
-    }
-    .stripe-sheet-desc {
-      font-size: 0.7rem;
-      color: #a5b4fc;
-      margin-bottom: 8px;
+      padding: 12px;
+      margin-top: 10px;
     }
     .btn-stripe-pay {
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      background: #4f46e5;
       color: white;
       border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 0.76rem;
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.88rem;
       cursor: pointer;
       width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      transition: all 0.2s;
+      margin-top: 8px;
     }
-    .btn-stripe-pay:hover { opacity: 0.95; }
-    .btn-stripe-pay.paid {
-      background: #16a34a;
-      cursor: default;
-    }
+    .btn-stripe-pay.paid { background: #16a34a; cursor: default; }
     .phone-home-bar {
-      width: 110px;
+      width: 100px;
       height: 4px;
       background: #64748b;
       border-radius: 2px;
-      margin: 8px auto 0;
+      margin: 10px auto 0;
     }
 
-    /* VIEW 2: FLEET DISPATCH CALENDAR */
-    .cal-controls-bar {
+    /* CONTRACTOR DISPATCH TICKET (QUIET UNTIL BOOKED) */
+    .cockpit-column {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .waiting-quiet-box {
+      background: var(--surface-muted);
+      border: 2px dashed var(--border-strong);
+      border-radius: 14px;
+      padding: 36px 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 480px;
+      color: var(--text-muted);
+    }
+    .waiting-icon {
+      font-size: 2.4rem;
+      margin-bottom: 12px;
+      opacity: 0.7;
+    }
+    .waiting-quiet-box h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-body);
+      margin-bottom: 8px;
+    }
+    .waiting-quiet-box p {
+      font-size: 0.95rem;
+      max-width: 380px;
+      margin-bottom: 20px;
+    }
+    .quiet-checklist {
+      text-align: left;
       background: #ffffff;
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      color: var(--text-body);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .dispatch-hero {
+      background: #ffffff;
+      border: 2px solid #16a34a;
+      border-radius: 14px;
+      padding: 20px;
+      display: none;
+      box-shadow: var(--shadow-md);
+    }
+    .dispatch-hero.active { display: block; }
+    .dispatch-hero.is-emergency { border-color: #dc2626; background: #fffafa; }
+    .hero-badge {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+    .badge-emergency { background: #fee2e2; color: #b91c1c; }
+    .badge-standard { background: #dcfce7; color: #15803d; }
+    .hero-title { font-size: 1.25rem; font-weight: 800; margin: 10px 0 4px; color: var(--text-main); }
+    .hero-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px; }
+
+    .ticket-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .ticket-table tr { border-bottom: 1px solid var(--border); }
+    .ticket-table td { padding: 10px 14px; }
+    .ticket-table td:first-child {
+      background: var(--surface-muted);
+      color: var(--text-muted);
+      font-weight: 700;
+      width: 155px;
+    }
+    .ticket-table td:last-child { font-weight: 700; color: var(--text-main); }
+
+    .btn-cal-magic {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #16a34a;
+      color: white;
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    /* SUPPORTING DEMO METRICS BAR (CLEARLY LABELED AS DEMO DATA) */
+    .demo-metrics-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .metrics-bar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .metrics-context-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .demo-data-tag {
+      background: #e0e7ff;
+      color: #3730a3;
+      border: 1px solid #c7d2fe;
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .metrics-context-sub {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .btn-benchmark-toggle {
+      background: var(--surface-muted);
+      color: var(--primary);
+      border: 1px solid #bfdbfe;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-benchmark-toggle:hover { background: #eff6ff; }
+
+    .rev-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+    @media (max-width: 860px) {
+      .rev-metrics-grid { grid-template-columns: 1fr; }
+    }
+    .rev-metric-card {
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 14px 20px;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .rev-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 4px;
+    }
+    .rev-subtext {
+      font-size: 0.88rem;
+      color: var(--text-body);
+      font-weight: 600;
+    }
+    .rev-val {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* VIEW 2: CALENDAR & VIEW 3: FLEET */
+    .cal-controls-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 22px;
       margin-bottom: 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
-      box-shadow: var(--shadow-sm);
     }
-    .cal-controls-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .cal-controls-left label {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      font-weight: 700;
-    }
+    .cal-controls-left { display: flex; align-items: center; gap: 12px; }
     .cal-controls-left select {
-      background: #f8fafc;
-      border: 1px solid var(--card-border);
-      color: var(--text-main);
-      padding: 7px 12px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border-strong);
+      padding: 9px 14px;
       border-radius: 8px;
-      font-size: 0.85rem;
-      outline: none;
-      min-width: 220px;
+      font-size: 0.92rem;
       font-weight: 600;
-    }
-
-    .sync-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
     }
     .btn-cal-action {
-      background: #f1f5f9;
-      border: 1px solid var(--card-border);
-      color: var(--text-secondary);
-      padding: 7px 12px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border-strong);
+      color: var(--text-body);
+      padding: 9px 14px;
       border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.88rem;
+      font-weight: 700;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
       text-decoration: none;
-      transition: all 0.2s;
     }
-    .btn-cal-action:hover {
-      background: #e2e8f0;
-      color: var(--text-main);
-    }
-    .btn-cal-primary {
-      background: #0284c7;
-      color: white;
-      border-color: #0284c7;
-    }
-    .btn-cal-primary:hover {
-      background: #0369a1;
-      color: white;
-    }
+    .btn-cal-primary { background: var(--primary); color: white; border-color: var(--primary); }
 
     .full-calendar-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 14px;
-      align-items: start;
-    }
-    @media (max-width: 1200px) {
-      .full-calendar-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (max-width: 768px) {
-      .full-calendar-grid { grid-template-columns: 1fr; }
-    }
-    .cal-col {
-      background: #ffffff;
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-shadow: var(--shadow-sm);
-    }
-    .cal-col-header {
-      background: #f8fafc;
-      border-bottom: 1px solid var(--card-border);
-      padding: 10px 14px;
-      text-align: center;
-    }
-    .cal-col-day { font-size: 0.95rem; font-weight: 700; color: var(--text-main); }
-    .cal-col-sub { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
-    .cal-col-body {
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .slot-box {
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 9px 10px;
-      background: #f8fafc;
-      transition: all 0.2s;
-      position: relative;
-    }
-    .slot-box:hover { border-color: #94a3b8; }
-    .slot-time-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.72rem;
-      margin-bottom: 4px;
-    }
-    .slot-time-title { font-weight: 700; color: var(--text-secondary); }
-    .slot-tech-avail { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 6px; }
-    .slot-actions {
-      display: flex;
-      gap: 6px;
-      margin-top: 6px;
-    }
-    .btn-slot-act {
-      border: none;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-slot-book { background: #0284c7; color: white; }
-    .btn-slot-book:hover { background: #0369a1; }
-    .btn-slot-block { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-    .btn-slot-block:hover { background: #e2e8f0; color: #0f172a; }
-
-    .slot-box.is-booked-routine {
-      background: #f0fdf4;
-      border: 1px solid #86efac;
-    }
-    .slot-box.is-booked-routine .slot-time-title { color: #15803d; font-weight: 800; }
-    .booked-cust-name { font-size: 0.86rem; font-weight: 700; color: var(--text-main); margin-bottom: 2px; }
-    .booked-cust-meta { font-size: 0.72rem; color: #166534; line-height: 1.35; }
-
-    .slot-box.is-booked-emergency {
-      background: #fef2f2;
-      border: 1.5px solid #fca5a5;
-    }
-    .slot-box.is-booked-emergency .slot-time-title { color: #b91c1c; font-weight: 800; }
-    .booked-emerg-meta { font-size: 0.72rem; color: #991b1b; line-height: 1.35; }
-
-    .slot-box.is-blocked {
-      background: #f1f5f9;
-      border: 1px dashed #cbd5e1;
-      opacity: 0.85;
-    }
-    .slot-box.is-blocked .slot-time-title { color: #64748b; }
-    .blocked-label { font-size: 0.72rem; color: #64748b; font-weight: 600; margin: 4px 0; }
-
-    /* VIEW 3: FLEET ROSTER MANAGEMENT */
-    .fleet-kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-    @media (max-width: 900px) {
-      .fleet-kpi-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    .kpi-card {
-      background: #ffffff;
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 14px 18px;
-      box-shadow: var(--shadow-sm);
-    }
-    .kpi-label { font-size: 0.76rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-    .kpi-val { font-size: 1.45rem; font-weight: 800; color: var(--text-main); margin-top: 4px; font-variant-numeric: tabular-nums; }
-    .kpi-sub { font-size: 0.74rem; color: #0284c7; margin-top: 2px; font-weight: 600; }
-
-    .fleet-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .fleet-header-row h2 { font-size: 1.15rem; font-weight: 700; color: var(--text-main); }
-    .btn-add-electrician {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
-      transition: all 0.2s;
-    }
-    .btn-add-electrician:hover { background: #0369a1; transform: translateY(-1px); }
-
-    .fleet-cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 16px;
     }
-    .tech-card-pro {
-      background: #ffffff;
-      border: 1px solid var(--card-border);
+    @media (max-width: 1100px) { .full-calendar-grid { grid-template-columns: repeat(2, 1fr); } }
+    .cal-col {
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.2s;
-      position: relative;
+      overflow: hidden;
     }
-    .tech-card-pro:hover {
-      border-color: #94a3b8;
-      box-shadow: var(--shadow-md);
-      transform: translateY(-2px);
+    .cal-col-header {
+      background: var(--surface-muted);
+      border-bottom: 1px solid var(--border);
+      padding: 12px;
+      text-align: center;
     }
-    .tech-card-pro.is-on-call-glow {
-      border: 1.5px solid #86efac;
-      background: #fcfdfc;
+    .cal-col-day { font-size: 1rem; font-weight: 800; }
+    .cal-col-sub { font-size: 0.82rem; color: var(--text-muted); }
+    .cal-col-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .slot-box {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--surface-muted);
     }
-    .tech-card-top {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .tech-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      background: #f1f5f9;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.3rem;
-      border: 1px solid #cbd5e1;
-    }
-    .tech-title-wrap { flex: 1; }
-    .tech-name { font-size: 0.98rem; font-weight: 700; color: var(--text-main); }
-    .tech-license { font-size: 0.74rem; color: var(--text-muted); font-weight: 600; }
-    .tech-phone { font-size: 0.72rem; color: var(--text-secondary); margin-top: 1px; }
+    .slot-time-header { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 6px; font-weight: 700; }
+    .slot-tech-avail { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; }
+    .slot-actions { display: flex; gap: 6px; }
+    .btn-slot-act { padding: 5px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; border: none; }
+    .btn-slot-book { background: var(--primary); color: white; }
+    .btn-slot-block { background: #e2e8f0; color: var(--text-body); }
+    .slot-box.is-booked-routine { background: #f0fdf4; border-color: #86efac; }
+    .slot-box.is-booked-emergency { background: #fef2f2; border-color: #fca5a5; }
+    .booked-cust-name { font-size: 0.95rem; font-weight: 800; margin-bottom: 4px; }
+    .booked-cust-meta, .booked-emerg-meta { font-size: 0.82rem; line-height: 1.4; }
 
-    .tech-badge-oncall {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: #dcfce7;
-      color: #15803d;
-      border: 1px solid #86efac;
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .tech-badge-offduty {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: #f1f5f9;
-      color: #64748b;
-      border: 1px solid #cbd5e1;
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-size: 0.68rem;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
+    /* FLEET ROSTER */
+    .fleet-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
+    .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    .kpi-label { font-size: 0.82rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+    .kpi-val { font-size: 1.6rem; font-weight: 800; margin-top: 4px; }
+    .kpi-sub { font-size: 0.84rem; color: var(--primary); margin-top: 2px; font-weight: 600; }
+    .fleet-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .btn-add-electrician { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+    .fleet-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
+    .tech-card-pro { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .tech-card-top { display: flex; align-items: center; gap: 12px; }
+    .tech-avatar { width: 48px; height: 48px; border-radius: 10px; background: var(--surface-muted); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+    .tech-name { font-size: 1.05rem; font-weight: 800; }
+    .tech-license, .tech-phone { font-size: 0.84rem; color: var(--text-muted); }
+    .tech-badge-oncall { background: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; }
+    .tech-badge-offduty { background: #f1f5f9; color: #64748b; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+    .tech-specialties-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .spec-pill { font-size: 0.78rem; background: var(--surface-muted); padding: 3px 9px; border-radius: 6px; border: 1px solid var(--border); font-weight: 600; }
+    .tech-actions-row { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .btn-tech-toggle-oncall { flex: 1; background: #f0fdf4; border: 1px solid #86efac; color: #15803d; padding: 8px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+    .btn-tech-edit, .btn-tech-del { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--surface-muted); cursor: pointer; font-weight: 600; }
 
-    .tech-specialties-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-    }
-    .spec-pill {
-      font-size: 0.68rem;
-      background: #f1f5f9;
-      color: #334155;
-      padding: 2px 7px;
-      border-radius: 4px;
-      border: 1px solid #e2e8f0;
-      font-weight: 600;
-    }
-    .spec-pill.spec-emerg {
-      background: #fee2e2;
-      color: #b91c1c;
-      border-color: #fca5a5;
-      font-weight: 700;
-    }
-
-    .tech-actions-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 4px;
-      border-top: 1px solid #f1f5f9;
-      padding-top: 10px;
-    }
-    .btn-tech-toggle-oncall {
-      flex: 1;
-      background: #f0fdf4;
-      border: 1px solid #86efac;
-      color: #15803d;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-tech-toggle-oncall:hover { background: #dcfce7; }
-    .btn-tech-toggle-oncall.is-active-btn {
-      background: #fff1f2;
-      border-color: #fca5a5;
-      color: #b91c1c;
-    }
-    .btn-tech-toggle-oncall.is-active-btn:hover { background: #fee2e2; }
-
-    .btn-tech-edit {
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      color: var(--text-secondary);
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .btn-tech-edit:hover { background: #e2e8f0; color: #0f172a; }
-
-    .btn-tech-del {
-      background: #fee2e2;
-      border: 1px solid #fca5a5;
-      color: #b91c1c;
-      padding: 6px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .btn-tech-del:hover { background: #fecaca; }
-
-    /* MODAL WINDOWS (CLEAN LIGHT THEME) */
+    /* MODALS */
     .modal-overlay {
       display: none;
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      inset: 0;
       background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
       z-index: 1000;
       align-items: center;
       justify-content: center;
@@ -1523,685 +976,464 @@ HTML_DASHBOARD = """<!DOCTYPE html>
     }
     .modal-overlay.active { display: flex; }
     .modal-card {
-      background: #ffffff;
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
+      background: var(--surface);
+      border-radius: 16px;
       width: 100%;
-      max-width: 540px;
-      padding: 22px;
+      max-width: 560px;
+      padding: 26px;
       box-shadow: var(--shadow-lg);
-      animation: modalPop 0.2s ease-out;
-      color: var(--text-main);
     }
-    @keyframes modalPop {
-      from { transform: scale(0.96); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 12px;
-    }
-    .modal-header h3 { font-size: 1.05rem; font-weight: 700; color: var(--text-main); }
-    .modal-close {
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      font-size: 1.4rem;
-      cursor: pointer;
-      padding: 0 4px;
-    }
-    .modal-close:hover { color: #0f172a; }
-    .form-group {
-      margin-bottom: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-    .form-group label {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--text-secondary);
-    }
-    .form-group input, .form-group select, .form-group textarea {
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      color: #0f172a;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      outline: none;
-    }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-      border-color: #0284c7;
-    }
-    .btn-modal-submit {
-      background: #0284c7;
-      color: white;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 10px;
-      transition: all 0.2s;
-    }
-    .btn-modal-submit:hover { background: #0369a1; }
-
-    /* ROI CALCULATOR MODAL STYLING */
-    .slider-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 14px 0 6px;
-    }
-    .slider-label { font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); }
-    .slider-val { font-size: 0.92rem; font-weight: 800; color: #0284c7; }
-    input[type=range] {
-      width: 100%;
-      accent-color: #0284c7;
-      cursor: pointer;
-    }
-    .roi-result-banner {
-      background: #f0fdf4;
-      border: 1px solid #86efac;
-      border-radius: 10px;
-      padding: 14px;
-      margin: 16px 0;
-      text-align: center;
-    }
-    .roi-big-gain {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: #15803d;
-      margin: 4px 0;
-    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .modal-header h3 { font-size: 1.15rem; font-weight: 800; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+    .form-group { margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.88rem; font-weight: 700; }
+    .form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 0.92rem; }
+    .btn-modal-submit { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.95rem; width: 100%; cursor: pointer; margin-top: 10px; }
+    .slider-row { display: flex; justify-content: space-between; margin: 14px 0 6px; font-weight: 700; }
+    .roi-result-banner { background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 18px; margin: 18px 0; text-align: center; }
+    .roi-big-gain { font-size: 2rem; font-weight: 800; color: #15803d; }
 
     footer {
-      background: #0f172a;
-      border-top: 1px solid #1e293b;
-      padding: 14px 24px;
-      text-align: center;
-      font-size: 0.78rem;
+      background: var(--navy);
       color: #94a3b8;
+      text-align: center;
+      padding: 16px;
+      font-size: 0.85rem;
       margin-top: auto;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 1; transform: translateY(0); }
-      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Header -->
+  <!-- CLEAN TOP HEADER -->
   <header>
     <div class="brand">
       <div class="brand-icon">⚡</div>
       <div>
-        <div style="display:flex; align-items:center; gap:8px;">
+        <div class="brand-title-row">
           <h1>ZeroMiss Voice Dispatch</h1>
-          <span style="background:rgba(34,197,94,0.15); color:#4ade80; border:1px solid rgba(34,197,94,0.3); font-size:0.68rem; font-weight:700; padding:2px 8px; border-radius:10px;">● CONTRACTOR FLEET OS</span>
+          <span class="demo-mode-pill">Interactive Product Demo</span>
         </div>
-        <p>Autonomous Voice Reception, Emergency Triage & Lead Recovery for Electrical Contractors</p>
+        <p>Missed Call Recovery, AI Hazard Triage &amp; Autonomous Scheduling for Contractors</p>
       </div>
     </div>
-    <div class="header-actions">
-      <div class="contractor-bar">
-        <label>Contractor Email:</label>
-        <input type="email" id="contractorEmail" value="sean.glenn21@gmail.com" placeholder="contractor@domain.com">
-        <button class="btn-hdr-action" onclick="saveContractorEmail()">Set Client</button>
+
+    <div class="header-right">
+      <div class="nav-tabs">
+        <button class="nav-tab active" id="btnTabConsole" onclick="switchPortalTab('console')">
+          🎙️ Interactive Demo
+        </button>
+        <button class="nav-tab" id="btnTabCalendar" onclick="switchPortalTab('calendar')">
+          📅 Dispatch Calendar <span class="nav-count" id="calCountPill">0</span>
+        </button>
+        <button class="nav-tab" id="btnTabFleet" onclick="switchPortalTab('fleet')">
+          👷 Tech Roster <span class="nav-count" id="techCountPill">4</span>
+        </button>
       </div>
+
+      <button class="utility-btn" onclick="openRoiModal()">📊 ROI Calculator</button>
+      <button class="utility-btn" onclick="openPitchModal()">💡 Sales Guide</button>
+      <button class="utility-btn" onclick="openTwilioModal()">📞 Connect Phone</button>
     </div>
   </header>
 
-  <!-- EXECUTIVE REVENUE & ROI COMMAND BAR -->
-  <div class="revenue-kpi-bar">
-    <div class="kpi-top-controls">
-      <div class="kpi-mode-wrap">
-        <span class="kpi-mode-label">EXECUTIVE METRICS:</span>
-        <button class="btn-benchmark-toggle" id="btnBenchmarkToggle" onclick="toggleBenchmarkMode()">
-          📈 Load 30-Day Benchmark ($18,450)
-        </button>
-        <span class="benchmark-indicator" id="benchmarkIndicator">● Live Demo Session ($0.00 Baseline)</span>
-      </div>
-      <div class="kpi-actions-wrap">
-        <button class="btn-hdr-action btn-hdr-roi" onclick="openRoiModal()">
-          📊 ROI Calculator
-        </button>
-        <button class="btn-hdr-action btn-hdr-guide" onclick="openPitchModal()">
-          💡 Sales Pitch Script
-        </button>
-        <button class="btn-hdr-action btn-hdr-twilio" onclick="openTwilioModal()">
-          📞 Connect Twilio Phone
-        </button>
-        <button class="btn-hdr-action btn-hdr-reset" onclick="resetCall()">
-          ↺ Reset Session
-        </button>
-      </div>
-    </div>
-
-    <div class="rev-metrics-grid">
-      <!-- Card 1: Pipeline Revenue -->
-      <div class="rev-metric-card">
-        <div class="rev-label-row">
-          <span class="rev-label">Pipeline Revenue Won</span>
-          <span class="rev-pill-badge badge-green" id="badgePipeline">Real-Time</span>
-        </div>
-        <span class="rev-val" id="kpiPipelineRev">$0.00</span>
-        <span class="rev-subtext" id="kpiPipelineSub">⚡ 0 Scheduled Dispatches</span>
-        <span class="rev-desc" id="kpiPipelineDesc">Closed by Sarah AI without human dispatcher</span>
-      </div>
-
-      <!-- Card 2: Missed Calls Recouped -->
-      <div class="rev-metric-card">
-        <div class="rev-label-row">
-          <span class="rev-label">Missed Calls Recouped</span>
-          <span class="rev-pill-badge badge-blue" id="badgeMissed">3s Recovery</span>
-        </div>
-        <span class="rev-val" id="kpiMissedRec">0 Recouped</span>
-        <span class="rev-subtext" id="kpiMissedSub">📵 0 Dropped Calls</span>
-        <span class="rev-desc" id="kpiMissedDesc">Intercepts lost leads before calling competitor</span>
-      </div>
-
-      <!-- Card 3: Upfront Diagnostic Fees -->
-      <div class="rev-metric-card">
-        <div class="rev-label-row">
-          <span class="rev-label">Diagnostic Fees Collected</span>
-          <span class="rev-pill-badge badge-gold" id="badgeFees">Stripe Link</span>
-        </div>
-        <span class="rev-val" id="kpiFeesCol">$0.00</span>
-        <span class="rev-subtext" id="kpiFeesSubtext">💳 0 Verified Deposits</span>
-        <span class="rev-desc" id="kpiFeesDesc">Eliminates 22% contractor no-shows</span>
-      </div>
-
-      <!-- Card 4: Fleet & Pickup -->
-      <div class="rev-metric-card">
-        <div class="rev-label-row">
-          <span class="rev-label">Electrician Fleet / Answer</span>
-          <span class="rev-pill-badge badge-purple">Twilio TwiML</span>
-        </div>
-        <span class="rev-val" id="kpiFleetCount">4 Electricians</span>
-        <span class="rev-subtext" id="kpiOnCallLead">Marcus Vance (Master On-Call)</span>
-        <span class="rev-desc">⚡ Ring 1 Answer (0.8s) • 24/7/365</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Portal Navigation Tabs -->
-  <nav class="portal-nav">
-    <button class="nav-btn active" id="btnTabConsole" onclick="switchPortalTab('console')">
-      <span class="live-pulse"></span>
-      🎙️ Live Voice Dispatch
-    </button>
-    <button class="nav-btn" id="btnTabCalendar" onclick="switchPortalTab('calendar')">
-      📅 Fleet Dispatch Calendar
-      <span class="nav-pill" id="calCountPill">0 Bookings</span>
-    </button>
-    <button class="nav-btn" id="btnTabFleet" onclick="switchPortalTab('fleet')">
-      👷 Electrician Fleet Management
-      <span class="nav-pill" id="techCountPill">4 Active</span>
-    </button>
-  </nav>
-
   <main>
-    <!-- 3-STEP COMMERCIAL DEMO WALKTHROUGH -->
-    <div class="walkthrough-banner" id="walkthroughBanner">
-      <div class="walkthrough-header">
-        <div class="walkthrough-title-wrap">
-          <span class="walkthrough-icon">🎯</span>
-          <div>
-            <div class="walkthrough-title">How ZeroMiss Works (3-Step Commercial Sales Walkthrough)</div>
-            <div class="walkthrough-subtitle">Watch how ZeroMiss captures lost phone calls and converts them into booked, paid electrical jobs.</div>
-          </div>
-        </div>
-        <button class="btn-toggle-guide" onclick="toggleWalkthrough()" id="btnToggleGuide">Hide Guide ✕</button>
-      </div>
-      <div class="walkthrough-steps">
-        <div class="step-card" onclick="runScenario('emergency')">
-          <span class="step-badge">STEP 1: INBOUND CALL</span>
-          <div class="step-head">📞 AI Answers on Ring 1 (0.8s)</div>
-          <div class="step-body">Sarah triages NFPA 70E hazards (burning smells/sparks) or quotes EV chargers/panels 24/7/365.</div>
-          <div class="step-hint">👉 Click: <strong>🚨 Burning Rubber Emergency</strong></div>
-        </div>
-        <div class="step-arrow">➔</div>
-        <div class="step-card" onclick="switchPortalTab('calendar')">
-          <span class="step-badge">STEP 2: DISPATCH & SYNC</span>
-          <div class="step-head">⚡ Real-Time Calendar Sync</div>
-          <div class="step-body">ZeroMiss matches an available certified electrician, locks the time slot, and sends an instant Google/Outlook calendar invite.</div>
-          <div class="step-hint">👉 View in: <strong>Center Cockpit & Calendar Tab</strong></div>
-        </div>
-        <div class="step-arrow">➔</div>
-        <div class="step-card" onclick="focusPhoneSimulator()">
-          <span class="step-badge">STEP 3: NO-SHOW ELIMINATION</span>
-          <div class="step-head">💳 Upfront Stripe Deposit</div>
-          <div class="step-body">Customer's phone receives an SMS with a secure Stripe link for the $89 routine or $199 emergency diagnostic fee.</div>
-          <div class="step-hint">👉 Click: <strong>"Authorize Fee" on Phone Simulator</strong></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 1: LIVE VOICE DISPATCH CONSOLE -->
+    <!-- TAB 1: STORY-DRIVEN INTERACTIVE DEMO -->
     <div class="tab-view active" id="viewConsole">
-      <div class="console-triple-grid">
-        <!-- Col 1: Call Simulator -->
-        <div class="panel-card">
-          <div class="card-header">
-            <h2>📞 Live Caller Simulator (Sarah Engine)</h2>
-            <span class="status-badge"><span class="status-dot"></span> Ring 1 Answer</span>
+
+      <!-- THE VISUAL BACKBONE: 4-STEP END-TO-END STORY -->
+      <div class="story-backbone">
+        <div class="backbone-top">
+          <div class="backbone-label">
+            <span>⚡ END-TO-END PRODUCT JOURNEY</span>
           </div>
-          <div class="panel-subhead">
-            <span>📞</span> <strong>Step 1: Test Inbound Actions</strong> — Click any test below to run Sarah's response.
+          <div class="next-step-banner" id="guidedNextStepBanner">
+            👉 <strong>What to do first:</strong> Click <strong>"▶ Start Demo: Simulate Dropped Call"</strong> below to see ZeroMiss save a $1,200 job.
+          </div>
+        </div>
+
+        <div class="journey-steps">
+          <div class="j-step active-step" id="jStep1">
+            <div class="j-num">1</div>
+            <div>
+              <div class="j-title">Missed or Inbound Call</div>
+              <div class="j-desc">Caller hangs up or reports hazard</div>
+            </div>
+          </div>
+          <div class="j-step" id="jStep2">
+            <div class="j-num">2</div>
+            <div>
+              <div class="j-title">AI Triage &amp; 3s Text-Back</div>
+              <div class="j-desc">Sarah intercepts lead via SMS</div>
+            </div>
+          </div>
+          <div class="j-step" id="jStep3">
+            <div class="j-num">3</div>
+            <div>
+              <div class="j-title">Instant Dispatch</div>
+              <div class="j-desc">Slot locked &amp; tech assigned</div>
+            </div>
+          </div>
+          <div class="j-step" id="jStep4">
+            <div class="j-num">4</div>
+            <div>
+              <div class="j-title">Upfront Stripe Deposit</div>
+              <div class="j-desc">$89 fee eliminates no-shows</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRIMARY STAGE: LEFT = CLEAR STARTING POINT, RIGHT = LIVE RESULTS -->
+      <div class="demo-stage-grid">
+
+        <!-- LEFT: CLEAR STARTING POINT (SIMULATOR) -->
+        <div class="primary-simulator-card">
+          <div class="sim-header">
+            <div>
+              <span class="step-one-pill">● Step 1 — Start Here</span>
+              <h2>Live Caller Simulator</h2>
+            </div>
+            <button class="utility-btn" style="background:#f1f5f9; color:#334155; border-color:#cbd5e1;" onclick="resetCall()">↺ Reset Demo</button>
           </div>
 
-          <div class="scenario-triggers">
-            <button class="scenario-btn btn-emergency" onclick="runScenario('emergency')">
-              <span class="btn-title">🚨 Burning Rubber Emergency</span>
-              <span class="btn-sub">Level 2 Hazard • 45m Code Red</span>
+          <!-- UNMISTAKABLE PRIMARY ACTION -->
+          <button class="btn-hero-start" onclick="simulateMissedCallLead()">
+            <div class="hero-btn-top">
+              <span>▶ Start Demo: Simulate Dropped Call</span>
+              <span style="background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:6px; font-size:0.82rem;">+$1,200 Story</span>
+            </div>
+            <div class="hero-btn-sub">
+              Caller hangs up after hours &rarr; Sarah texts back in 3s &rarr; Customer books &amp; pays deposit
+            </div>
+          </button>
+
+          <!-- SECONDARY SCENARIOS -->
+          <div class="secondary-scenarios">
+            <button class="btn-sec-scenario btn-sec-emerg" onclick="runScenario('emergency')">
+              🚨 Test Burning Smell Emergency
             </button>
-            <button class="scenario-btn btn-routine" onclick="runScenario('ev_charger')">
-              <span class="btn-title">⚡ Tesla EV Charger Quote</span>
-              <span class="btn-sub">50A Circuit • Standard Booking</span>
+            <button class="btn-sec-scenario" onclick="runScenario('ev_charger')">
+              ⚡ Test EV Charger Quote
             </button>
-            <button class="scenario-btn btn-missed" onclick="simulateMissedCallLead()">
-              <span class="btn-title">📵 Simulate Dropped Call ($1,200 at Risk)</span>
-              <span class="btn-sub">Lost Lead • 3s Recovery SMS</span>
-            </button>
-            <button class="scenario-btn btn-reset" onclick="resetCall()">
-              <span class="btn-title">🔄 Reset Demo</span>
-            </button>
+          </div>
+
+          <div class="transcript-label">
+            <span>Live Call &amp; AI Event Transcript</span>
+            <span id="audioStatusText" style="color:#16a34a;">● Sarah AI Ready</span>
           </div>
 
           <div class="chat-container" id="chatStream">
             <div class="bubble bubble-sarah">
-              <div class="speaker-name">Sarah (ZeroMiss Dispatcher)</div>
-              Thank you for calling ZeroMiss Electrical 24/7 Dispatch. My name is Sarah. Are you reporting an electrical emergency, or calling to schedule service?
+              <div class="speaker-name">Sarah (ZeroMiss AI Dispatcher)</div>
+              Thank you for calling ZeroMiss Electrical 24/7 Dispatch. Click <strong>"▶ Start Demo"</strong> above, or type/speak any electrical issue below to test me live!
             </div>
-          </div>
-
-          <div class="audio-bar" id="audioBar">
-            <div class="wave-line"></div>
-            <div class="wave-line"></div>
-            <div class="wave-line"></div>
-            <div class="wave-line"></div>
-            <div class="wave-line"></div>
-            <div class="wave-line"></div>
-            <div class="wave-line"></div>
           </div>
 
           <div class="input-row">
-            <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Push-to-Talk via Microphone">🎙️</button>
-            <input type="text" id="userInput" placeholder="Speak or type a customer issue..." onkeydown="if(event.key==='Enter') sendUserMessage()">
-            <button onclick="sendUserMessage()">Call</button>
+            <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Speak via Microphone">🎙️</button>
+            <input type="text" id="userInput" placeholder="Or type what a caller would say..." onkeydown="if(event.key==='Enter') sendUserMessage()">
+            <button class="btn-send" onclick="sendUserMessage()">Send</button>
           </div>
         </div>
 
-        <!-- Col 2: Dispatch Cockpit / Hero Card -->
-        <div class="panel-card">
-          <div class="card-header">
-            <h2>⚡ Contractor Dispatch Cockpit (What You Receive)</h2>
-            <span style="font-size: 0.8rem; color: #0284c7; font-weight: 700;">Real-Time Feed</span>
-          </div>
-          <div class="panel-subhead">
-            <span>⚡</span> <strong>Step 2: Contractor Cockpit</strong> — Real-time ticket details, address, assigned technician, and 1-click Google Calendar sync.
-          </div>
-
-          <div class="cockpit-body">
-            <!-- Magic Moment Hero Card -->
-            <div class="dispatch-hero" id="dispatchHero">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span class="hero-badge badge-standard" id="heroBadge">Confirmed Dispatch</span>
-                <span id="heroPayBadge" style="font-size:0.75rem; font-weight:700; color:#b45309; background:#fef3c7; padding:3px 8px; border-radius:4px; border:1px solid #fde68a;">
-                  💳 Pending Fee Authorization
-                </span>
-              </div>
-              <div class="hero-title" id="heroTitle">New Service Call Scheduled</div>
-              <div class="hero-subtitle" id="heroSubtitle">Dispatched directly to <strong id="heroContractor">sean.glenn21@gmail.com</strong></div>
-
-              <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
-                <a href="#" id="heroCalBtn" target="_blank" class="btn-cal-magic">
-                  📅 Click to Add to Google Calendar
-                </a>
-                <button class="btn-cal-action" onclick="switchPortalTab('calendar')">
-                  📅 View on Calendar →
-                </button>
-              </div>
-
-              <table class="ticket-table" id="ticketTable">
-                <tr><td>Confirmation Code:</td><td id="tktConf">-</td></tr>
-                <tr><td>Customer Name:</td><td id="tktCustomer">-</td></tr>
-                <tr><td>Callback Phone:</td><td id="tktPhone">-</td></tr>
-                <tr><td>Service Address:</td><td id="tktAddress">-</td></tr>
-                <tr><td>Assigned Electrician:</td><td id="tktTech">-</td></tr>
-                <tr><td>Arrival Window:</td><td id="tktWindow">-</td></tr>
-                <tr><td>Diagnostic Fee:</td><td id="tktFee">-</td></tr>
-                <tr><td>Est. Pipeline Value:</td><td id="tktVal" style="color:#15803d; font-weight:800;">-</td></tr>
-              </table>
-            </div>
-
-            <!-- Waiting Placeholder Enhanced Preview Card -->
-            <div id="waitingPlaceholder" class="waiting-preview-box">
-              <div class="preview-badge">⚡ REAL-TIME DISPATCH COCKPIT</div>
-              <h3>Live Service Ticket Preview</h3>
-              <p class="preview-subtitle">
-                When a homeowner calls, Sarah AI handles the entire dispatch workflow in real-time. This cockpit displays:
-              </p>
-              <div class="preview-features-grid">
-                <div class="p-feat">
-                  <span class="p-feat-icon">🚨</span>
-                  <div><strong>NFPA 70E Safety Triage</strong><br>Instant hazard categorization (Level 1, 2, or 3)</div>
-                </div>
-                <div class="p-feat">
-                  <span class="p-feat-icon">👷</span>
-                  <div><strong>Electrician Matching</strong><br>Auto-assigned to qualified on-call technician</div>
-                </div>
-                <div class="p-feat">
-                  <span class="p-feat-icon">📅</span>
-                  <div><strong>1-Click Google Calendar</strong><br>Direct calendar invite pushed to your inbox</div>
-                </div>
-                <div class="p-feat">
-                  <span class="p-feat-icon">💳</span>
-                  <div><strong>Stripe Deposit Verification</strong><br>Eliminates no-shows via upfront SMS checkout</div>
-                </div>
-              </div>
-              <div class="preview-cta">
-                👈 <strong>Try It Live:</strong> Click <strong>"🚨 Burning Rubber Emergency"</strong> or <strong>"Simulate Dropped Call"</strong> on the left!
-              </div>
+        <!-- RIGHT: SUPPORTING RESULTS (PHONE + COCKPIT) -->
+        <div class="outcomes-stage">
+          <div class="outcomes-header">
+            <h2>Live Results (Updates Automatically During Call)</h2>
+            <div style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--text-muted);">
+              <span>Contractor Alert Email:</span>
+              <input type="email" id="contractorEmail" value="sean.glenn21@gmail.com" style="border:1px solid #cbd5e1; border-radius:6px; padding:4px 8px; font-size:0.84rem; width:190px;">
+              <button class="btn-slot-act btn-slot-book" onclick="saveContractorEmail()">Save</button>
             </div>
           </div>
-        </div>
 
-        <!-- Col 3: Customer Smartphone Simulator Widget -->
-        <div class="phone-column-wrap">
-          <div class="phone-chassis">
-            <div class="phone-screen">
-              <!-- Dynamic Island -->
-              <div class="phone-dynamic-island">
-                <div class="island-lens"></div>
+          <div class="outcomes-split">
+            <!-- Customer Smartphone Outcome -->
+            <div class="phone-column-wrap">
+              <div class="phone-step-callout" id="phoneStepCallout">
+                👇 Click the blue button inside the phone!
               </div>
-              <!-- Cellular Status Bar -->
-              <div class="phone-status-bar">
-                <span>9:41</span>
-                <span>●●●● 5G 92%</span>
-              </div>
-              <!-- iMessage Header -->
-              <div class="phone-imessage-header">
-                <div class="imessage-avatar">ZM</div>
-                <div class="imessage-info">
-                  <div class="imessage-name">ZeroMiss Dispatch <span style="color:#38bdf8; font-size:0.7rem;">✓</span></div>
-                  <div class="imessage-sub">iMessage • Today 9:41 AM</div>
-                </div>
-              </div>
-
-              <!-- Message Stream -->
-              <div class="phone-messages" id="phoneMessages">
-                <div class="sms-bubble">
-                  <div class="sms-tag">ZeroMiss 24/7 Dispatch</div>
-                  Welcome! When Sarah books your electrical appointment, your instant SMS confirmation & Stripe diagnostic fee checkout link will land right here.
-                  <div style="margin-top:6px; font-size:0.72rem; color:#38bdf8; font-weight:600;">
-                    👉 Try it: Click a demo call on the left, then click "Authorize Fee" here!
+              <div class="phone-chassis" id="phoneChassis">
+                <div class="phone-screen">
+                  <div class="phone-dynamic-island"></div>
+                  <div class="phone-status-bar">
+                    <span>9:41</span>
+                    <span>5G &bull; 92%</span>
                   </div>
+                  <div class="phone-imessage-header">
+                    <div class="imessage-avatar">ZM</div>
+                    <div>
+                      <div class="imessage-name">ZeroMiss Dispatch ✓</div>
+                      <div class="imessage-sub">Customer SMS Feed</div>
+                    </div>
+                  </div>
+
+                  <div class="phone-messages" id="phoneMessages">
+                    <div class="sms-bubble">
+                      <div class="sms-tag">Customer Phone Preview</div>
+                      When Sarah sends a 3-second missed-call recovery link or Stripe deposit request, it appears right here for the homeowner to tap.
+                    </div>
+                  </div>
+
+                  <div class="phone-home-bar"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contractor Dispatch Ticket Outcome -->
+            <div class="cockpit-column">
+              <!-- Quiet Placeholder Before Booking -->
+              <div id="waitingPlaceholder" class="waiting-quiet-box">
+                <div class="waiting-icon">📋</div>
+                <h3>Contractor Dispatch Ticket</h3>
+                <p>Once a caller books a slot or claims a missed-call recovery link, the complete work order appears here.</p>
+                <div class="quiet-checklist">
+                  <div>✓ <strong>NFPA 70E Hazard Triage</strong> (Code Red vs. Routine)</div>
+                  <div>✓ <strong>Auto-Assigned Electrician</strong> from active roster</div>
+                  <div>✓ <strong>1-Click Google Calendar</strong> &amp; iCal dispatch sync</div>
+                  <div>✓ <strong>Upfront Stripe Deposit</strong> verification status</div>
                 </div>
               </div>
 
-              <!-- Home Bar -->
-              <div class="phone-home-bar"></div>
+              <!-- Active Ticket Card -->
+              <div class="dispatch-hero" id="dispatchHero">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                  <span class="hero-badge badge-standard" id="heroBadge">Confirmed Dispatch</span>
+                  <span id="heroPayBadge" style="font-size:0.82rem; font-weight:800; color:#b45309; background:#fef3c7; padding:4px 10px; border-radius:6px; border:1px solid #fde68a;">
+                    💳 Pending $89 Deposit
+                  </span>
+                </div>
+                <div class="hero-title" id="heroTitle">New Service Call Scheduled</div>
+                <div class="hero-subtitle">Dispatched to <strong id="heroContractor">sean.glenn21@gmail.com</strong></div>
+
+                <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+                  <a href="#" id="heroCalBtn" target="_blank" class="btn-cal-magic">
+                    📅 Add to Google Calendar
+                  </a>
+                  <button class="btn-cal-action" onclick="switchPortalTab('calendar')">
+                    View on Fleet Calendar &rarr;
+                  </button>
+                </div>
+
+                <table class="ticket-table" id="ticketTable">
+                  <tr><td>Confirmation:</td><td id="tktConf">-</td></tr>
+                  <tr><td>Customer:</td><td id="tktCustomer">-</td></tr>
+                  <tr><td>Phone:</td><td id="tktPhone">-</td></tr>
+                  <tr><td>Address:</td><td id="tktAddress">-</td></tr>
+                  <tr><td>Assigned Tech:</td><td id="tktTech">-</td></tr>
+                  <tr><td>Window:</td><td id="tktWindow">-</td></tr>
+                  <tr><td>Deposit Fee:</td><td id="tktFee">-</td></tr>
+                  <tr><td>Est. Job Value:</td><td id="tktVal" style="color:#15803d; font-weight:800;">-</td></tr>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- SUPPORTING DEMO METRICS BAR (WITH CLEAR DEMO CONTEXT) -->
+      <div class="demo-metrics-section">
+        <div class="metrics-bar-header">
+          <div class="metrics-context-title">
+            <span class="demo-data-tag" id="benchmarkIndicator">🧪 Simulated Demo Session Data</span>
+            <span class="metrics-context-sub">Starts at $0 — tallies live as you test calls above</span>
+          </div>
+          <button class="btn-benchmark-toggle" id="btnBenchmarkToggle" onclick="toggleBenchmarkMode()">
+            📈 Preview 30-Day Contractor Benchmark ($18,450)
+          </button>
+        </div>
+
+        <div class="rev-metrics-grid">
+          <div class="rev-metric-card">
+            <div>
+              <div class="rev-label">Demo Pipeline Revenue Won</div>
+              <div class="rev-subtext" id="kpiPipelineSub">0 Dispatches Booked in Session</div>
+            </div>
+            <div class="rev-val" id="kpiPipelineRev">$0</div>
+          </div>
+
+          <div class="rev-metric-card">
+            <div>
+              <div class="rev-label">Missed Calls Recouped</div>
+              <div class="rev-subtext" id="kpiMissedSub">0 Dropped Calls Tested</div>
+            </div>
+            <div class="rev-val" id="kpiMissedRec">0 Saved</div>
+          </div>
+
+          <div class="rev-metric-card">
+            <div>
+              <div class="rev-label">Upfront Deposits Collected</div>
+              <div class="rev-subtext" id="kpiFeesSubtext">0 Stripe Deposits Paid</div>
+            </div>
+            <div class="rev-val" id="kpiFeesCol">$0</div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- TAB 2: FLEET DISPATCH CALENDAR -->
     <div class="tab-view" id="viewCalendar">
-      <!-- Calendar Explainer Banner -->
-      <div class="panel-subhead" style="border-radius:10px; margin-bottom:14px; background:#ffffff; padding:12px 16px;">
-        <span style="font-size:1.2rem;">ℹ️</span>
-        <div>
-          <strong>Live Master Fleet Dispatch Schedule:</strong> Every service call booked by Sarah AI or created manually syncs here in real-time across morning, afternoon, and evening windows. Electricians and dispatchers can subscribe via Google Calendar, Apple Calendar, or Outlook using the iCal feed. Click <strong>"🚫 Block"</strong> to take technicians off-duty, or <strong>"+ Book Job"</strong> for manual walk-ins.
-        </div>
-      </div>
-
-      <!-- Calendar Legend -->
-      <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-bottom:14px; padding:0 4px; font-size:0.75rem;">
-        <span style="color:var(--text-muted); font-weight:700; text-transform:uppercase;">Color Legend:</span>
-        <span style="display:flex; align-items:center; gap:6px; color:#b91c1c;"><span style="width:10px; height:10px; background:#dc2626; border-radius:3px; display:inline-block;"></span> 🚨 Emergency Code Red (45-60m Priority)</span>
-        <span style="display:flex; align-items:center; gap:6px; color:#15803d;"><span style="width:10px; height:10px; background:#16a34a; border-radius:3px; display:inline-block;"></span> ⚡ Scheduled Routine Dispatch</span>
-        <span style="display:flex; align-items:center; gap:6px; color:#475569;"><span style="width:10px; height:10px; background:#f8fafc; border:1px solid #94a3b8; border-radius:3px; display:inline-block;"></span> 🟢 Available Open Slot</span>
-        <span style="display:flex; align-items:center; gap:6px; color:#64748b;"><span style="width:10px; height:10px; background:#e2e8f0; border-radius:3px; display:inline-block;"></span> 🚫 Blocked / Off-Duty (Personal Time)</span>
-      </div>
-
       <div class="cal-controls-bar">
         <div class="cal-controls-left">
-          <label>Filter Electrician:</label>
+          <label style="font-weight:800;">Filter Electrician:</label>
           <select id="calTechFilter" onchange="renderCalendar()">
-            <option value="ALL">⚡ All Electricians (Full Fleet)</option>
+            <option value="ALL">⚡ All Electricians (4 Simulated Techs)</option>
           </select>
         </div>
 
-        <div class="sync-actions">
-          <button class="btn-cal-action" onclick="copyIcalFeedUrl()">
-            📋 Copy iCal Feed URL
-          </button>
-          <a href="/api/calendar.ics" class="btn-cal-action" download="zeromiss_schedule.ics">
-            ⬇️ Download .ICS File
-          </a>
-          <button class="btn-cal-action btn-cal-primary" onclick="openManualBookModal()">
-            + Manual Dispatch Booking
-          </button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn-cal-action" onclick="copyIcalFeedUrl()">📋 Copy iCal Feed URL</button>
+          <a href="/api/calendar.ics" class="btn-cal-action" download="zeromiss_schedule.ics">⬇️ Download .ICS</a>
+          <button class="btn-cal-action btn-cal-primary" onclick="openManualBookModal()">+ Manual Booking</button>
         </div>
       </div>
 
-      <div class="full-calendar-grid" id="fullCalendarGrid">
-        <!-- Rendered dynamically via renderCalendar() -->
-      </div>
+      <div class="full-calendar-grid" id="fullCalendarGrid"></div>
     </div>
 
-    <!-- TAB 3: ELECTRICIAN FLEET ROSTER & ON-CALL MANAGEMENT -->
+    <!-- TAB 3: ELECTRICIAN FLEET ROSTER -->
     <div class="tab-view" id="viewFleet">
-      <!-- Fleet KPI Summary -->
       <div class="fleet-kpi-grid">
         <div class="kpi-card">
-          <div class="kpi-label">Active Technicians</div>
+          <div class="kpi-label">Simulated Fleet Roster</div>
           <div class="kpi-val" id="kpiFleetTotal">4</div>
-          <div class="kpi-sub">Certified Electricians</div>
+          <div class="kpi-sub">Demo Electricians</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">24/7 On-Call Lead</div>
-          <div class="kpi-val" id="kpiFleetOnCall" style="font-size:1.15rem; color:#15803d;">Marcus Vance</div>
-          <div class="kpi-sub">Priority 45m Emergency Dispatch</div>
+          <div class="kpi-val" id="kpiFleetOnCall" style="font-size:1.3rem; color:#15803d;">Marcus Vance</div>
+          <div class="kpi-sub">45m Emergency Dispatch</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Weekly Open Capacity</div>
+          <div class="kpi-label">Open Weekly Slots</div>
           <div class="kpi-val" id="kpiFleetOpenSlots">42</div>
-          <div class="kpi-sub">Available Dispatch Windows</div>
+          <div class="kpi-sub">Available Windows</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Confirmed Jobs Booked</div>
+          <div class="kpi-label">Session Jobs Booked</div>
           <div class="kpi-val" id="kpiFleetBookedJobs">0</div>
-          <div class="kpi-sub">Synced Across Fleet</div>
+          <div class="kpi-sub">Synced to Calendar</div>
         </div>
       </div>
 
       <div class="fleet-header-row">
         <div>
-          <h2>Electrician Fleet Roster & On-Call Status</h2>
-          <p style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
-            Manage electricians, set on-call night/weekend emergency leads, and configure specialties for Sarah AI's matching engine.
-          </p>
+          <h2 style="font-size:1.3rem; font-weight:800;">Electrician Roster &amp; On-Call Status (Demo Data)</h2>
+          <p style="color:var(--text-muted); font-size:0.9rem;">Toggle on-call status or add technicians to see how Sarah assigns jobs.</p>
         </div>
-        <button class="btn-add-electrician" onclick="openAddTechModal()">
-          + Add New Electrician
-        </button>
+        <button class="btn-add-electrician" onclick="openAddTechModal()">+ Add Electrician</button>
       </div>
 
-      <div class="fleet-cards-grid" id="fleetCardsGrid">
-        <!-- Rendered dynamically via renderFleetView() -->
-      </div>
+      <div class="fleet-cards-grid" id="fleetCardsGrid"></div>
     </div>
   </main>
 
-  <!-- MODAL: Sales Pitch & Live Demo Guide -->
+  <!-- MODAL: Sales Pitch -->
   <div class="modal-overlay" id="pitchModal">
-    <div class="modal-card" style="max-width: 620px;">
+    <div class="modal-card">
       <div class="modal-header">
-        <h3>💡 Contractor Sales Pitch & Demo Walkthrough Guide</h3>
+        <h3>💡 The End-to-End Story: Why Contractors Buy ZeroMiss</h3>
         <button class="modal-close" onclick="closePitchModal()">&times;</button>
       </div>
-      <div class="modal-body" style="font-size:0.83rem; line-height:1.5; color:var(--text-secondary); max-height: 70vh; overflow-y:auto;">
-        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px; margin-bottom:14px;">
-          <strong style="color:#1d4ed8; font-size:0.9rem;">🎯 The Core Pitch to Electrical Contractors:</strong>
-          <p style="margin-top:6px; color:#1e3a8a;">
-            "35% of homeowner electrical calls happen after 5:00 PM or on weekends. 80% of callers who reach a voicemail hang up and call the next electrician on Google. That is <strong>$150,000+ in lost revenue</strong> every year. ZeroMiss answers on Ring 1 with conversational AI, triages NFPA 70E hazards, books the job directly into your calendar, and collects an upfront diagnostic fee via SMS to eliminate no-shows."
-          </p>
-        </div>
-
-        <strong style="color:var(--text-main); font-size:0.88rem;">🚀 5-Step Live Sales Demo Script:</strong>
-        <ol style="margin-left:20px; margin-top:8px; margin-bottom:16px; display:flex; flex-direction:column; gap:8px;">
-          <li>
-            <strong style="color:#b91c1c;">Simulate Dropped Call:</strong> Click <strong>"Simulate Dropped Call ($1,200 at Risk)"</strong> on the left. Show the contractor how Sarah detects the drop and fires an automated SMS recovery link to the homeowner's phone within 3 seconds.
-          </li>
-          <li>
-            <strong style="color:#15803d;">Tap to Recoup:</strong> Tap <strong>"👉 Tap to Confirm & Book ($1,200)"</strong> on the phone simulator. Watch the missed call flip to "RECOUPED_WON" and instantly add $1,200 to the live pipeline!
-          </li>
-          <li>
-            <strong style="color:#0284c7;">Simulate Emergency:</strong> Click <strong>"🚨 Burning Rubber Emergency"</strong>. Listen to Sarah give NFPA 70E safety instructions and dispatch a 45-min Code Red electrician.
-          </li>
-          <li>
-            <strong style="color:#6366f1;">Simulate Fee Collection:</strong> Click <strong>"💳 Authorize $89 via Stripe"</strong> on the phone. Watch the status turn to "PAID_VERIFIED" and explain how upfront deposits eliminate 22% contractor no-shows.
-          </li>
-          <li>
-            <strong style="color:#d97706;">Show Calendar & Fleet:</strong> Switch to the <strong>"Fleet Calendar"</strong> tab to show the master board and Google Calendar iCal feed export.
-          </li>
+      <div style="font-size:0.95rem; color:var(--text-body); line-height:1.6;">
+        <p style="margin-bottom:14px;">
+          <strong>The Problem:</strong> 35% of homeowner calls happen after hours or while electricians are on a ladder. 80% of callers who hit voicemail hang up and call the next contractor on Google.
+        </p>
+        <p style="margin-bottom:14px;">
+          <strong>The ZeroMiss Journey:</strong>
+        </p>
+        <ol style="margin-left:20px; margin-bottom:18px; display:flex; flex-direction:column; gap:8px;">
+          <li><strong>Missed Call Intercepted:</strong> Sarah detects the dropped call and texts the customer within 3 seconds.</li>
+          <li><strong>Instant Booking:</strong> Customer taps the link on their phone to lock in tomorrow's 8:00 AM slot (+$1,200 job saved).</li>
+          <li><strong>No-Show Elimination:</strong> Customer authorizes the $89 diagnostic deposit via Stripe right inside the SMS thread.</li>
         </ol>
-
-        <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:12px; margin-bottom:14px;">
-          <strong style="color:#15803d;">💰 The ROI Equation (Proven Math):</strong>
-          <p style="margin-top:4px; font-size:0.78rem; color:#166534;">
-            Saving just <strong>10 to 15 after-hours calls per month</strong> @ $1,200 average electrical ticket = <strong>+$140,000 to +$216,000 in net annual revenue</strong> that otherwise went to competitors.
-          </p>
-        </div>
-
-        <button class="btn-modal-submit" onclick="closePitchModal()">Start Demo Walkthrough</button>
+        <button class="btn-modal-submit" onclick="closePitchModal()">Got It — Back to Demo</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: Interactive Contractor ROI Calculator -->
+  <!-- MODAL: ROI Calculator -->
   <div class="modal-overlay" id="roiModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>📊 Contractor ROI & Revenue Recovery Calculator</h3>
+        <h3>📊 Contractor ROI Calculator</h3>
         <button class="modal-close" onclick="closeRoiModal()">&times;</button>
       </div>
-      <div class="modal-body">
-        <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:14px;">
-          Adjust your company's metrics below to see how ZeroMiss eliminates lost calls and unlocks guaranteed revenue.
-        </p>
+      <div>
+        <div class="slider-row">
+          <span>Monthly Inbound Calls:</span>
+          <span id="valSliderCalls" style="color:var(--primary);">50 Calls / Mo</span>
+        </div>
+        <input type="range" id="sliderCalls" min="10" max="250" value="50" oninput="updateRoiCalculation()" style="width:100%;">
 
         <div class="slider-row">
-          <span class="slider-label">Monthly Inbound Calls:</span>
-          <span class="slider-val" id="valSliderCalls">50 Calls / Mo</span>
+          <span>Average Job Ticket:</span>
+          <span id="valSliderTicket" style="color:var(--primary);">$1,200</span>
         </div>
-        <input type="range" id="sliderCalls" min="10" max="250" value="50" oninput="updateRoiCalculation()">
-
-        <div class="slider-row">
-          <span class="slider-label">Average Job Revenue Ticket:</span>
-          <span class="slider-val" id="valSliderTicket">$1,200</span>
-        </div>
-        <input type="range" id="sliderTicket" min="300" max="4000" step="50" value="1200" oninput="updateRoiCalculation()">
+        <input type="range" id="sliderTicket" min="300" max="4000" step="50" value="1200" oninput="updateRoiCalculation()" style="width:100%;">
 
         <div class="roi-result-banner">
-          <div style="font-size:0.8rem; color:#15803d; font-weight:700; text-transform:uppercase;">
-            Projected Recouped Annual Revenue:
-          </div>
-          <div class="roi-big-gain" id="roiAnnualGain">+$147,000 / yr</div>
-          <div style="font-size:0.75rem; color:var(--text-muted);" id="roiBreakdown">
-            Based on ~17 after-hours calls/mo & recovering 10.2 jobs/mo with ZeroMiss
-          </div>
+          <div style="font-size:0.85rem; font-weight:800; color:#15803d; text-transform:uppercase;">Projected Recouped Annual Revenue</div>
+          <div class="roi-big-gain" id="roiAnnualGain">+$109,368 / yr</div>
+          <div style="font-size:0.85rem; color:var(--text-muted);" id="roiBreakdown">Based on recovering 7.6 missed after-hours jobs/month</div>
         </div>
-
-        <button class="btn-modal-submit" onclick="closeRoiModal()">Apply & Close</button>
+        <button class="btn-modal-submit" onclick="closeRoiModal()">Close Calculator</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: Twilio Setup Wizard -->
+  <!-- MODAL: Twilio Setup -->
   <div class="modal-overlay" id="twilioModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>📞 Connect Real Phone Number (Twilio Setup)</h3>
+        <h3>📞 Connect Live Twilio Phone Number</h3>
         <button class="modal-close" onclick="closeTwilioModal()">&times;</button>
       </div>
-      <div class="modal-body" style="font-size:0.82rem; color:var(--text-secondary); line-height:1.5;">
-        <p style="margin-bottom:12px;">
-          You can test Sarah directly by dialing a real phone number from your mobile device!
-        </p>
-        <ol style="margin-left:18px; margin-bottom:14px; display:flex; flex-direction:column; gap:6px;">
-          <li>Log in to your <strong>Twilio Console</strong>.</li>
-          <li>Navigate to <strong>Phone Numbers &gt; Manage &gt; Active Numbers</strong>.</li>
-          <li>Under <strong>Voice & Fax &gt; A Call Comes In</strong>, select <strong>Webhook (HTTP POST)</strong>.</li>
-          <li>Paste the live webhook URL below and click Save.</li>
-        </ol>
-
+      <div style="font-size:0.92rem; color:var(--text-body);">
+        <p style="margin-bottom:12px;">Paste this webhook URL into your Twilio Console under <strong>A Call Comes In (HTTP POST)</strong>:</p>
         <div class="form-group">
-          <label>Your Live Twilio Voice Webhook URL:</label>
-          <div style="display:flex; gap:6px;">
-            <input type="text" id="twilioUrlInput" readonly style="font-family:monospace; font-size:0.78rem;">
-            <button class="btn-hdr-action" onclick="copyTwilioWebhook()">Copy</button>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="twilioUrlInput" readonly style="flex:1; font-family:monospace;">
+            <button class="utility-btn" onclick="copyTwilioWebhook()">Copy</button>
           </div>
         </div>
-
         <button class="btn-modal-submit" onclick="closeTwilioModal()">Done</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: Add/Edit Technician -->
+  <!-- MODAL: Add/Edit Tech -->
   <div class="modal-overlay" id="techModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 id="techModalTitle">Add New Electrician</h3>
+        <h3 id="techModalTitle">Add Electrician</h3>
         <button class="modal-close" onclick="closeAddTechModal()">&times;</button>
       </div>
-      <div class="modal-body">
+      <div>
         <input type="hidden" id="techIdInput">
-        <div class="form-group">
-          <label>Full Name:</label>
-          <input type="text" id="techNameInput" placeholder="e.g. John Doe">
-        </div>
+        <div class="form-group"><label>Full Name:</label><input type="text" id="techNameInput"></div>
         <div class="form-group">
           <label>License Type:</label>
           <select id="techLicenseInput">
             <option value="Master Electrician">Master Electrician</option>
             <option value="Journeyman Electrician" selected>Journeyman Electrician</option>
-            <option value="EV & Commercial Specialist">EV & Commercial Specialist</option>
+            <option value="EV & Commercial Specialist">EV &amp; Commercial Specialist</option>
             <option value="Service Electrician">Service Electrician</option>
-            <option value="Apprentice / Helper">Apprentice / Helper</option>
           </select>
         </div>
+        <div class="form-group"><label>Phone:</label><input type="text" id="techPhoneInput" value="(555) 019-3321"></div>
         <div class="form-group">
-          <label>Contact Phone:</label>
-          <input type="text" id="techPhoneInput" placeholder="(555) 000-0000" value="(555) 019-3321">
-        </div>
-        <div class="form-group">
-          <label>On-Call Status (24/7 Priority Lead):</label>
+          <label>On-Call Status:</label>
           <select id="techOnCallInput">
-            <option value="false">Off-Duty (Standard Daytime Hours)</option>
-            <option value="true">On-Call 24/7 (Emergency Code Red Lead)</option>
+            <option value="false">Standard Hours</option>
+            <option value="true">On-Call 24/7 Lead</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Specialties (comma-separated):</label>
-          <input type="text" id="techSpecsInput" placeholder="emergency, panel_upgrade, ev_charger" value="residential_repair, lighting">
-        </div>
-        <button class="btn-modal-submit" onclick="submitTechForm()">Save Technician</button>
+        <div class="form-group"><label>Specialties:</label><input type="text" id="techSpecsInput" value="residential_repair, lighting"></div>
+        <button class="btn-modal-submit" onclick="submitTechForm()">Save Electrician</button>
       </div>
     </div>
   </div>
@@ -2213,59 +1445,61 @@ HTML_DASHBOARD = """<!DOCTYPE html>
         <h3>+ Manual Dispatch Booking</h3>
         <button class="modal-close" onclick="closeManualBookModal()">&times;</button>
       </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Select Calendar Window Slot:</label>
-          <select id="manualSlotSelect">
-            <!-- Dynamically populated -->
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Customer Full Name:</label>
-          <input type="text" id="manualCustomerName" placeholder="e.g. Robert Smith">
-        </div>
-        <div class="form-group">
-          <label>Phone Number:</label>
-          <input type="text" id="manualCustomerPhone" placeholder="(555) 000-0000">
-        </div>
-        <div class="form-group">
-          <label>Customer Email (for Google Calendar Invite):</label>
-          <input type="email" id="manualCustomerEmail" placeholder="customer@gmail.com">
-        </div>
-        <div class="form-group">
-          <label>Service Address:</label>
-          <input type="text" id="manualCustomerAddress" placeholder="123 Main St, Springfield">
-        </div>
-        <div class="form-group">
-          <label>Scope of Work / Issue Description:</label>
-          <textarea id="manualIssueDesc" rows="3" placeholder="e.g. Install 240V 50A outlet for Tesla charger"></textarea>
-        </div>
-        <button class="btn-modal-submit" onclick="submitManualBooking()">Confirm & Schedule Dispatch</button>
+      <div>
+        <div class="form-group"><label>Select Slot:</label><select id="manualSlotSelect"></select></div>
+        <div class="form-group"><label>Customer Name:</label><input type="text" id="manualCustomerName"></div>
+        <div class="form-group"><label>Phone:</label><input type="text" id="manualCustomerPhone"></div>
+        <div class="form-group"><label>Email:</label><input type="email" id="manualCustomerEmail"></div>
+        <div class="form-group"><label>Address:</label><input type="text" id="manualCustomerAddress"></div>
+        <div class="form-group"><label>Issue Description:</label><textarea id="manualIssueDesc" rows="2"></textarea></div>
+        <button class="btn-modal-submit" onclick="submitManualBooking()">Confirm Booking</button>
       </div>
     </div>
   </div>
 
   <footer>
-    ZeroMiss Voice Dispatch &copy; 2026 • Autonomous Fleet Command Center &bull; Designed for Commercial Electrical Contractors
+    ZeroMiss Voice Dispatch &bull; Interactive Product Demo Environment (Simulated Data)
   </footer>
 
   <script>
     let BOARD_DATA = { bookings: [], technicians: [], slots: [], roi_metrics: {} };
-    let CURRENT_TAB = 'console';
+    let DEFAULT_CONFIG_EMAIL = 'sean.glenn21@gmail.com';
 
     const chatStream = document.getElementById('chatStream');
     const userInput = document.getElementById('userInput');
-    const audioBar = document.getElementById('audioBar');
     const dispatchHero = document.getElementById('dispatchHero');
     const waitingPlaceholder = document.getElementById('waitingPlaceholder');
     const phoneMessages = document.getElementById('phoneMessages');
     const contractorInput = document.getElementById('contractorEmail');
 
-    // Tab Switching
+    // Update the 4-Step Visual Backbone & Guided Next Step Banner
+    function setJourneyProgress(stepNum, bannerHtml, highlightPhone = false) {
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById(`jStep${i}`);
+        if (!el) continue;
+        el.classList.remove('active-step', 'done-step');
+        if (i < stepNum) el.classList.add('done-step');
+        else if (i === stepNum) el.classList.add('active-step');
+      }
+      const banner = document.getElementById('guidedNextStepBanner');
+      if (banner && bannerHtml) banner.innerHTML = bannerHtml;
+
+      const chassis = document.getElementById('phoneChassis');
+      const callout = document.getElementById('phoneStepCallout');
+      if (chassis && callout) {
+        if (highlightPhone) {
+          chassis.classList.add('highlight-phone');
+          callout.classList.add('visible');
+        } else {
+          chassis.classList.remove('highlight-phone');
+          callout.classList.remove('visible');
+        }
+      }
+    }
+
     function switchPortalTab(tabKey) {
-      CURRENT_TAB = tabKey;
       document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
 
       if (tabKey === 'console') {
         document.getElementById('viewConsole').classList.add('active');
@@ -2281,17 +1515,11 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       }
     }
 
-    // TTS Voice Simulation
     function speakText(text) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
-        const clean = text.replace(/[*_#]/g, '');
-        const utter = new SpeechSynthesisUtterance(clean);
+        const utter = new SpeechSynthesisUtterance(text.replace(/[*_#]/g, ''));
         utter.rate = 1.05;
-        utter.pitch = 1.0;
-        utter.onstart = () => audioBar.classList.add('speaking');
-        utter.onend = () => audioBar.classList.remove('speaking');
-        utter.onerror = () => audioBar.classList.remove('speaking');
         window.speechSynthesis.speak(utter);
       }
     }
@@ -2299,10 +1527,7 @@ HTML_DASHBOARD = """<!DOCTYPE html>
     function appendMessage(speaker, text, isSarah = false) {
       const bubble = document.createElement('div');
       bubble.className = `bubble ${isSarah ? 'bubble-sarah' : 'bubble-user'}`;
-      bubble.innerHTML = `
-        <div class="speaker-name">${speaker}</div>
-        <div>${text.replace(/\n/g, '<br>')}</div>
-      `;
+      bubble.innerHTML = `<div class="speaker-name">${speaker}</div><div>${text.replace(/\n/g, '<br>')}</div>`;
       chatStream.appendChild(bubble);
       chatStream.scrollTop = chatStream.scrollHeight;
     }
@@ -2312,6 +1537,7 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       if (!msg) return;
       userInput.value = '';
       appendMessage('Caller (You)', msg, false);
+      setJourneyProgress(2, '🎙️ <strong>Step 2 of 4:</strong> Sarah AI is triaging your request and checking technician availability...');
 
       try {
         const res = await fetch('/api/chat', {
@@ -2320,12 +1546,13 @@ HTML_DASHBOARD = """<!DOCTYPE html>
           body: JSON.stringify({ message: msg })
         });
         const data = await res.json();
-        appendMessage('Sarah (ZeroMiss Dispatcher)', data.response, true);
+        appendMessage('Sarah (ZeroMiss AI)', data.response, true);
         speakText(data.response);
 
         if (data.booking) {
           showBookingInHero(data.booking);
           pushCustomerSmsBooking(data.booking);
+          setJourneyProgress(3, '👉 <strong>Next Step (Step 3 of 4):</strong> Job dispatched! Click <strong>"Authorize Deposit via Stripe"</strong> on the phone to complete the flow.', true);
         }
         await fetchBoardData();
       } catch (e) {
@@ -2342,14 +1569,14 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 
       const bBadge = document.getElementById('heroBadge');
       bBadge.className = `hero-badge ${isEmerg ? 'badge-emergency' : 'badge-standard'}`;
-      bBadge.innerText = isEmerg ? '🚨 Emergency Code Red (45m Dispatch)' : '✓ Confirmed Standard Service';
+      bBadge.innerText = isEmerg ? '🚨 Code Red Emergency (45m)' : '✓ Confirmed Service Dispatch';
 
       const payBadge = document.getElementById('heroPayBadge');
       if (booking.payment_status === 'PAID_VERIFIED') {
         payBadge.style.color = '#15803d';
         payBadge.style.background = '#dcfce7';
         payBadge.style.borderColor = '#86efac';
-        payBadge.innerText = '✓ Stripe Deposit Verified (PAID)';
+        payBadge.innerText = '✓ Stripe Deposit Paid';
       } else {
         payBadge.style.color = '#b45309';
         payBadge.style.background = '#fef3c7';
@@ -2357,9 +1584,8 @@ HTML_DASHBOARD = """<!DOCTYPE html>
         payBadge.innerText = `💳 Pending $${booking.dispatch_fee} Deposit`;
       }
 
-      document.getElementById('heroTitle').innerText = `${booking.service_type || 'Electrical Service'} - ${booking.customer_name}`;
-      document.getElementById('heroContractor').innerText = DEFAULT_CONFIG_EMAIL || 'sean.glenn21@gmail.com';
-
+      document.getElementById('heroTitle').innerText = `${booking.service_type || 'Electrical Service'} — ${booking.customer_name}`;
+      document.getElementById('heroContractor').innerText = DEFAULT_CONFIG_EMAIL;
       document.getElementById('tktConf').innerText = booking.confirmation_id;
       document.getElementById('tktCustomer').innerText = booking.customer_name;
       document.getElementById('tktPhone').innerText = booking.phone_number;
@@ -2379,30 +1605,26 @@ HTML_DASHBOARD = """<!DOCTYPE html>
     }
 
     function pushCustomerSmsBooking(booking) {
-      const isEmerg = (booking.urgency_level || '').includes('EMERG');
       const smsHtml = `
         <div class="sms-bubble">
-          <div class="sms-tag">${isEmerg ? '🚨 Priority Code Red' : 'ZeroMiss Confirmed'}</div>
-          Hi ${booking.customer_name}, your electrician <strong>${booking.assigned_technician.split('(')[0].trim()}</strong> is locked for <strong>${booking.slot_date} (${booking.slot_time})</strong>.
-          <br><br>
-          Service Address: <em>${booking.service_address}</em>
+          <div class="sms-tag">Appointment Confirmed</div>
+          Hi ${booking.customer_name}, your technician <strong>${booking.assigned_technician.split('(')[0].trim()}</strong> is scheduled for <strong>${booking.slot_date} (${booking.slot_time})</strong>.
           <div class="sms-stripe-sheet">
-            <div class="stripe-sheet-header">
-              <span>💳 STRIPE DEPOSIT AUTHORIZATION</span>
+            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:0.8rem; color:#c7d2fe;">
+              <span>💳 STRIPE DEPOSIT</span>
               <span style="color:#4ade80;">$${booking.dispatch_fee.toFixed(2)}</span>
             </div>
-            <div class="stripe-sheet-desc">Lock in arrival window & eliminate contractor no-show fee.</div>
-            <button class="btn-stripe-pay ${booking.payment_status === 'PAID_VERIFIED' ? 'paid' : ''}" id="smsPayBtn_${booking.confirmation_id}" onclick="payStripeDeposit('${booking.confirmation_id}')">
-              ${booking.payment_status === 'PAID_VERIFIED' ? '✓ $89 Deposit Paid & Verified' : `💳 Authorize $${booking.dispatch_fee} via Stripe`}
+            <button class="btn-stripe-pay" onclick="payStripeDeposit('${booking.confirmation_id}')">
+              👉 Authorize $${booking.dispatch_fee} Deposit via Stripe
             </button>
           </div>
         </div>
       `;
-      phoneMessages.innerHTML += smsHtml;
+      phoneMessages.innerHTML = smsHtml;
       phoneMessages.scrollTop = phoneMessages.scrollHeight;
     }
 
-    // Step 1: Simulate Dropped Call -> Logs to Cockpit, Shows $1,200 At Risk, Dispatches 3s SMS Recovery
+    // STEP 1 -> STEP 2: Simulate Dropped Call
     async function simulateMissedCallLead() {
       try {
         const res = await fetch('/api/simulate-missed-call', { method: 'POST' });
@@ -2411,31 +1633,34 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 
         const smsHtml = `
           <div class="sms-bubble sms-recoup-card" id="smsCard_${mc.missed_call_id}">
-            <div class="sms-card-header">
-              <span class="sms-badge-risk">⚠️ MISSED CALL INTERCEPTED</span>
-              <span style="font-size:0.65rem; color:#94a3b8;">${mc.timestamp || 'Just now'}</span>
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <span style="background:rgba(245,158,11,0.25); color:#fbbf24; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:4px;">⚠️ MISSED CALL RECOVERY</span>
+              <span style="font-size:0.72rem; color:#94a3b8;">3s ago</span>
             </div>
-            <div style="font-size:0.75rem; color:#f8fafc; line-height:1.4; margin-bottom:8px;">
-              Hi! This is Sarah from ZeroMiss Electrical Dispatch. We noticed your call dropped! To lock in the earliest certified electrician in your area without waiting on hold, tap below:
+            <div>
+              Hi! This is Sarah from ZeroMiss Electrical. We noticed your call dropped! Tap below to lock in tomorrow's 8:00 AM slot right now:
             </div>
             <div class="sms-action-card" onclick="convertMissedCallLead('${mc.missed_call_id}')">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <span class="action-card-tag">⚡ 1-TAP SELF-SCHEDULE</span>
-                <span class="action-card-val">+$1,200 Job Saved</span>
-              </div>
-              <div class="action-card-title">Reserve Earliest Open Slot</div>
-              <div class="action-card-desc">Tomorrow 8:00 AM • Tech: Sarah Chen</div>
+              <div style="font-size:0.75rem; font-weight:800; color:#4ade80;">⚡ 1-TAP SELF-SCHEDULE (+$1,200 SAVED)</div>
+              <div style="font-size:0.92rem; font-weight:800; color:#ffffff; margin:4px 0;">Tomorrow 8:00 AM &bull; Tech: Sarah Chen</div>
               <button class="btn-action-claim" id="btnClaim_${mc.missed_call_id}">
-                👉 Tap to Confirm & Book ($1,200)
+                👉 Tap to Confirm &amp; Book ($1,200)
               </button>
             </div>
           </div>
         `;
-        phoneMessages.innerHTML += smsHtml;
+        phoneMessages.innerHTML = smsHtml;
         phoneMessages.scrollTop = phoneMessages.scrollHeight;
 
-        appendMessage('Sarah (SMS Lead Recovery)', `⚠️ [LOST CALL DETECTED]: Caller from ${mc.caller_phone || '(555) 329-8471'} hung up without booking. Estimated $1,200 revenue at risk.
-⚡ [3s TEXT-BACK FIRED]: Dispatched dynamic self-scheduling link to customer's smartphone. Tap on phone to claim!`, true);
+        chatStream.innerHTML = '';
+        appendMessage('System Alert', `📵 Caller from ${mc.caller_phone || '(555) 329-8471'} hung up after hours. $1,200 EV Charger job at risk of calling a competitor.`, false);
+        appendMessage('Sarah (3s SMS Recovery)', `⚡ Sent instant self-scheduling SMS link to customer's phone. Look at the phone on the right and click "Tap to Confirm & Book"!`, true);
+
+        setJourneyProgress(
+          2,
+          '👉 <strong>Next Step (Step 2 of 4):</strong> Look at the <strong>Customer Phone</strong> on the right and click <strong>"👉 Tap to Confirm &amp; Book ($1,200)"</strong>!',
+          true
+        );
 
         await fetchBoardData();
       } catch (e) {
@@ -2443,12 +1668,8 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       }
     }
 
-    // Step 2: Customer Taps Self-Schedule Link on Phone -> Flips to Won, Adds $1,200 to Pipeline, Confirms Booking
+    // STEP 2 -> STEP 3: Customer Taps Self-Schedule Link
     async function convertMissedCallLead(mcId) {
-      const claimBtn = document.getElementById(`btnClaim_${mcId}`);
-      if (claimBtn) {
-        claimBtn.innerText = '⏳ Booking slot...';
-      }
       try {
         const res = await fetch('/api/missed-calls/convert', {
           method: 'POST',
@@ -2457,47 +1678,46 @@ HTML_DASHBOARD = """<!DOCTYPE html>
         });
         const data = await res.json();
         if (data.status === 'SUCCESS') {
-          const card = document.getElementById(`smsCard_${mcId}`);
-          if (card) {
-            card.innerHTML = `
-              <div class="recoup-won-badge">
-                🎉 RECOUPED WON! +$1,200 CAPTURED
-              </div>
-              <div style="font-size:0.75rem; color:#e2e8f0; margin:8px 0; line-height:1.4;">
-                ✓ Appointment Confirmed: Tomorrow 8:00 AM - 12:00 PM with Sarah Chen (EV Specialist).
+          const cid = data.booking ? data.booking.confirmation_id : '';
+          phoneMessages.innerHTML = `
+            <div class="sms-bubble">
+              <div class="recoup-won-badge">🎉 JOB RECOUPED! +$1,200 WON</div>
+              <div style="margin:10px 0; font-size:0.85rem;">
+                ✓ Confirmed for <strong>Tomorrow 8:00 AM - 12:00 PM</strong> with <strong>Sarah Chen</strong>.
               </div>
               <div class="sms-stripe-sheet">
-                <div class="stripe-sheet-header">
-                  <span>💳 UPFRONT STRIPE DEPOSIT</span>
+                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:0.8rem; color:#c7d2fe;">
+                  <span>💳 STEP 4: UPFRONT DEPOSIT</span>
                   <span style="color:#4ade80;">$89.00</span>
                 </div>
-                <div class="stripe-sheet-desc">Locks in technician arrival window & prevents competitor jump.</div>
-                <button class="btn-stripe-pay" id="btnPayRecoup_${data.booking ? data.booking.confirmation_id : ''}" onclick="payStripeDeposit('${data.booking ? data.booking.confirmation_id : ''}')">
-                  💳 Authorize $89 Deposit via Stripe
+                <button class="btn-stripe-pay" onclick="payStripeDeposit('${cid}')">
+                  👉 Authorize $89 Deposit via Stripe
                 </button>
               </div>
-            `;
-          }
+            </div>
+          `;
 
-          if (data.booking) {
-            showBookingInHero(data.booking);
-          }
+          if (data.booking) showBookingInHero(data.booking);
 
-          appendMessage('Sarah (ZeroMiss Dispatcher)', `🎉 [REVENUE RECOUPED]: Customer tapped self-schedule link! Booked $1,200 service call for tomorrow 8:00 AM. Contractor Sean Glenn dispatched!`, true);
+          appendMessage('Sarah (ZeroMiss AI)', `🎉 Customer tapped the SMS link! $1,200 job recouped and dispatched to Sarah Chen. Now click "Authorize $89 Deposit" on the phone!`, true);
+
+          setJourneyProgress(
+            3,
+            '👉 <strong>Next Step (Step 3 of 4):</strong> Ticket dispatched! Now click <strong>"👉 Authorize $89 Deposit via Stripe"</strong> on the phone to finish.',
+            true
+          );
 
           await fetchBoardData();
         }
       } catch (e) {
-        alert('Error converting missed call lead.');
+        alert('Error converting missed call.');
       }
     }
 
-    // Step 3: Upfront Stripe Deposit Authorization
+    // STEP 3 -> STEP 4: Authorize Stripe Deposit
     async function payStripeDeposit(confirmationId) {
-      if (!confirmationId) {
-        if (BOARD_DATA && BOARD_DATA.bookings && BOARD_DATA.bookings.length) {
-          confirmationId = BOARD_DATA.bookings[BOARD_DATA.bookings.length - 1].confirmation_id;
-        }
+      if (!confirmationId && BOARD_DATA.bookings && BOARD_DATA.bookings.length) {
+        confirmationId = BOARD_DATA.bookings[BOARD_DATA.bookings.length - 1].confirmation_id;
       }
       try {
         const res = await fetch('/api/bookings/pay', {
@@ -2507,7 +1727,7 @@ HTML_DASHBOARD = """<!DOCTYPE html>
         });
         const data = await res.json();
         if (data.status === 'SUCCESS') {
-          document.querySelectorAll('.btn-stripe-pay, .btn-sms-pay').forEach(btn => {
+          document.querySelectorAll('.btn-stripe-pay').forEach(btn => {
             btn.classList.add('paid');
             btn.innerHTML = '✓ $89 Deposit Paid & Verified';
             btn.disabled = true;
@@ -2519,45 +1739,42 @@ HTML_DASHBOARD = """<!DOCTYPE html>
             heroPay.style.borderColor = '#86efac';
             heroPay.innerHTML = '✓ Stripe Deposit Verified (PAID)';
           }
-          appendMessage('ZeroMiss Billing', `💳 [PAYMENT VERIFIED]: $89.00 diagnostic fee confirmed via Stripe for ${confirmationId}. No-show risk eliminated!`, true);
+          appendMessage('ZeroMiss Billing', `💳 $89.00 diagnostic fee verified via Stripe. No-show risk eliminated!`, true);
+
+          setJourneyProgress(
+            4,
+            '🎉 <strong>Journey Complete!</strong> You turned a dropped call into <strong>$1,200 pipeline revenue + $89 paid deposit</strong>. Check the metrics below!',
+            false
+          );
+          document.getElementById('jStep4').classList.remove('active-step');
+          document.getElementById('jStep4').classList.add('done-step');
+
           await fetchBoardData();
         }
       } catch (e) {
-        alert('Payment authorization failed.');
+        alert('Payment error.');
       }
     }
 
-    // Toggle 30-Day Benchmark Mode vs Live Demo Session ($0 Baseline)
     async function toggleBenchmarkMode() {
-      try {
-        const res = await fetch('/api/benchmark/toggle', { method: 'POST' });
-        const data = await res.json();
-        await fetchBoardData();
-      } catch (e) {
-        alert('Error toggling benchmark mode.');
-      }
+      await fetch('/api/benchmark/toggle', { method: 'POST' });
+      await fetchBoardData();
     }
 
     async function saveContractorEmail() {
       const email = contractorInput.value.trim();
       if (!email) return;
-      try {
-        await fetch('/api/set-contractor', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email })
-        });
-        DEFAULT_CONFIG_EMAIL = email;
-        alert(`Contractor destination updated to: ${email}`);
-      } catch (e) {
-        alert('Failed to update contractor email');
-      }
+      await fetch('/api/set-contractor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      DEFAULT_CONFIG_EMAIL = email;
+      alert(`Contractor alert email updated to: ${email}`);
     }
 
     async function runScenario(scenarioKey) {
-      waitingPlaceholder.style.display = 'none';
       chatStream.innerHTML = '';
-
       const res = await fetch('/api/run-scenario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2568,14 +1785,17 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       for (let i = 0; i < data.dialogue.length; i++) {
         const item = data.dialogue[i];
         appendMessage(item.speaker, item.text, item.isSarah);
-        if (i === data.dialogue.length - 1 && item.isSarah) {
-          speakText(item.text);
-        }
+        if (i === data.dialogue.length - 1 && item.isSarah) speakText(item.text);
       }
 
       if (data.booking) {
         showBookingInHero(data.booking);
         pushCustomerSmsBooking(data.booking);
+        setJourneyProgress(
+          3,
+          '👉 <strong>Next Step (Step 3 of 4):</strong> Emergency/Routine call dispatched! Click <strong>"👉 Authorize Deposit via Stripe"</strong> on the phone.',
+          true
+        );
       }
       await fetchBoardData();
     }
@@ -2584,24 +1804,26 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       await fetch('/api/reset', { method: 'POST' });
       chatStream.innerHTML = `
         <div class="bubble bubble-sarah">
-          <div class="speaker-name">Sarah (ZeroMiss Dispatcher)</div>
-          Thank you for calling ZeroMiss Electrical 24/7 Dispatch. My name is Sarah. Are you reporting an electrical emergency, or calling to schedule service?
+          <div class="speaker-name">Sarah (ZeroMiss AI Dispatcher)</div>
+          Thank you for calling ZeroMiss Electrical 24/7 Dispatch. Click <strong>"▶ Start Demo"</strong> above, or type/speak any electrical issue below to test me live!
         </div>
       `;
       dispatchHero.classList.remove('active');
-      waitingPlaceholder.style.display = 'block';
+      waitingPlaceholder.style.display = 'flex';
       phoneMessages.innerHTML = `
         <div class="sms-bubble">
-          <div class="sms-tag">ZeroMiss 24/7 Dispatch</div>
-          Welcome! When Sarah books your electrical appointment, your instant SMS confirmation & Stripe fee checkout link will land right here.
+          <div class="sms-tag">Customer Phone Preview</div>
+          When Sarah sends a 3-second missed-call recovery link or Stripe deposit request, it appears right here for the homeowner to tap.
         </div>
       `;
+      setJourneyProgress(
+        1,
+        '👉 <strong>What to do first:</strong> Click <strong>"▶ Start Demo: Simulate Dropped Call"</strong> below to see ZeroMiss save a $1,200 job.',
+        false
+      );
       fetchBoardData();
     }
 
-    let DEFAULT_CONFIG_EMAIL = 'sean.glenn21@gmail.com';
-
-    // Fetch Board Data
     async function fetchBoardData() {
       try {
         const res = await fetch('/api/board');
@@ -2614,87 +1836,65 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 
         const bookingsCount = (data.bookings || []).length;
         const techsCount = (data.technicians || []).length;
-        document.getElementById('calCountPill').innerText = `${bookingsCount} Booking${bookingsCount === 1 ? '' : 's'}`;
-        document.getElementById('techCountPill').innerText = `${techsCount} Active`;
-
-        document.getElementById('kpiFleetCount').innerText = `${techsCount} Electricians`;
-        const onCallTech = (data.technicians || []).find(t => t.is_on_call);
-        document.getElementById('kpiOnCallLead').innerText = onCallTech ? `${onCallTech.name} (On-Call)` : 'None Assigned';
+        document.getElementById('calCountPill').innerText = bookingsCount;
+        document.getElementById('techCountPill').innerText = techsCount;
 
         const roi = data.roi_metrics || {};
         const isBench = roi.is_benchmark || false;
 
-        // Mode Toggle Button & Indicator
         const btnBench = document.getElementById('btnBenchmarkToggle');
         const indBench = document.getElementById('benchmarkIndicator');
         if (btnBench && indBench) {
           if (isBench) {
-            btnBench.innerText = '🎯 Switch to Live Session ($0 Baseline)';
-            indBench.innerText = '● 30-Day Benchmark ($18,450)';
-            indBench.style.color = '#2563eb';
-            indBench.style.background = '#eff6ff';
-            indBench.style.borderColor = '#bfdbfe';
-          } else {
-            btnBench.innerText = '📈 Load 30-Day Benchmark ($18,450)';
-            indBench.innerText = '● Live Demo Session ($0.00 Baseline)';
-            indBench.style.color = '#15803d';
+            btnBench.innerText = '🎯 Return to Live Demo Session ($0 Baseline)';
+            indBench.innerText = '📈 30-Day Contractor Benchmark (Projected Data)';
             indBench.style.background = '#dcfce7';
-            indBench.style.borderColor = '#86efac';
+            indBench.style.color = '#15803d';
+          } else {
+            btnBench.innerText = '📈 Preview 30-Day Contractor Benchmark ($18,450)';
+            indBench.innerText = '🧪 Simulated Demo Session Data';
+            indBench.style.background = '#e0e7ff';
+            indBench.style.color = '#3730a3';
           }
         }
 
-        // 1. Pipeline Revenue (Tabular, 100% real math)
         const pipeline = roi.total_pipeline_revenue || 0;
         const elPipe = document.getElementById('kpiPipelineRev');
-        elPipe.innerText = `$${pipeline.toLocaleString(undefined, { minimumFractionDigits: pipeline % 1 === 0 ? 0 : 2 })}`;
-        if (pipeline > 0) {
-          elPipe.style.color = '#15803d';
-        } else {
-          elPipe.style.color = '#0f172a';
-        }
-        document.getElementById('kpiPipelineSub').innerText = isBench ? '⚡ 18 Monthly Dispatches' : `⚡ ${bookingsCount} Scheduled Dispatch${bookingsCount === 1 ? '' : 'es'}`;
+        elPipe.innerText = `$${pipeline.toLocaleString()}`;
+        elPipe.style.color = pipeline > 0 ? '#15803d' : '#0f172a';
+        document.getElementById('kpiPipelineSub').innerText = isBench
+          ? '18 Monthly Dispatches (Simulated Benchmark)'
+          : `${bookingsCount} Dispatch${bookingsCount === 1 ? '' : 'es'} Booked in Session`;
 
-        // 2. Diagnostic Fees
         const fees = roi.fees_collected || 0;
         const elFees = document.getElementById('kpiFeesCol');
-        elFees.innerText = `$${fees.toLocaleString(undefined, { minimumFractionDigits: fees % 1 === 0 ? 0 : 2 })}`;
-        if (fees > 0) {
-          elFees.style.color = '#15803d';
-        } else {
-          elFees.style.color = '#0f172a';
-        }
-        const feeSub = document.getElementById('kpiFeesSubtext');
-        if (feeSub) {
-          feeSub.innerText = isBench ? '✓ 16 Verified Deposits' : (fees > 0 ? `✓ $${fees} Deposits Paid` : '💳 0 Deposits Collected');
-        }
+        elFees.innerText = `$${fees.toLocaleString()}`;
+        elFees.style.color = fees > 0 ? '#15803d' : '#0f172a';
+        document.getElementById('kpiFeesSubtext').innerText = isBench
+          ? '16 Verified Deposits (Simulated Benchmark)'
+          : (fees > 0 ? `✓ $${fees} Verified via Stripe` : '0 Stripe Deposits Paid');
 
-        // 3. Missed Calls
         const missedRec = roi.missed_recovered || 0;
         const atRisk = roi.missed_at_risk_value || 0;
         const elMissed = document.getElementById('kpiMissedRec');
         const elMissedSub = document.getElementById('kpiMissedSub');
-        const badgeMissed = document.getElementById('badgeMissed');
 
         if (isBench) {
-          elMissed.innerText = '7 Recovered';
+          elMissed.innerText = '7 Saved';
           elMissed.style.color = '#2563eb';
-          elMissedSub.innerText = '+$8,400 Recouped Revenue';
-          if (badgeMissed) badgeMissed.innerText = '+$8,400 Won';
+          elMissedSub.innerText = '+$8,400 Recouped (Simulated Benchmark)';
         } else if (missedRec > 0) {
-          elMissed.innerText = `${missedRec} Recovered`;
+          elMissed.innerText = `${missedRec} Saved`;
           elMissed.style.color = '#2563eb';
-          elMissedSub.innerText = `+$${roi.recouped_revenue.toLocaleString()} Recouped Won`;
-          if (badgeMissed) badgeMissed.innerText = `+$${roi.recouped_revenue.toLocaleString()} Won`;
+          elMissedSub.innerText = `+$${roi.recouped_revenue.toLocaleString()} Recouped in Demo`;
         } else if (atRisk > 0) {
-          elMissed.innerText = '0 Recovered';
+          elMissed.innerText = '0 Saved';
           elMissed.style.color = '#d97706';
-          elMissedSub.innerText = `⚠️ $${atRisk.toLocaleString()} at Risk!`;
-          if (badgeMissed) badgeMissed.innerText = 'At Risk';
+          elMissedSub.innerText = `⚠️ $${atRisk.toLocaleString()} Currently at Risk!`;
         } else {
-          elMissed.innerText = '0 Recovered';
+          elMissed.innerText = '0 Saved';
           elMissed.style.color = '#0f172a';
-          elMissedSub.innerText = '📵 0 Dropped Calls';
-          if (badgeMissed) badgeMissed.innerText = '3s Recovery';
+          elMissedSub.innerText = '0 Dropped Calls Tested';
         }
 
         updateTechFilterOptions(data.technicians || []);
@@ -2707,8 +1907,9 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 
     function updateTechFilterOptions(techs) {
       const select = document.getElementById('calTechFilter');
+      if (!select) return;
       const currentVal = select.value;
-      let html = '<option value="ALL">⚡ All Electricians (Full Fleet)</option>';
+      let html = '<option value="ALL">⚡ All Electricians (Full Demo Fleet)</option>';
       techs.forEach(t => {
         html += `<option value="${t.technician_id}">${t.name} (${t.license_type})</option>`;
       });
@@ -2716,7 +1917,6 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       select.value = currentVal || 'ALL';
     }
 
-    // RENDER FULL CALENDAR
     function renderCalendar() {
       const grid = document.getElementById('fullCalendarGrid');
       if (!grid) return;
@@ -2724,21 +1924,9 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       const techFilter = document.getElementById('calTechFilter').value;
       const slots = BOARD_DATA.slots || [];
       const bookings = BOARD_DATA.bookings || [];
-
-      const filteredSlots = techFilter === 'ALL'
-        ? slots
-        : slots.filter(s => s.technician_id === techFilter);
+      const filteredSlots = techFilter === 'ALL' ? slots : slots.filter(s => s.technician_id === techFilter);
 
       const dates = [...new Set(slots.map(s => s.date))].slice(0, 5);
-      if (!dates.length) {
-        const today = new Date();
-        for (let i = 1; i <= 5; i++) {
-          const d = new Date(today);
-          d.setDate(today.getDate() + i);
-          dates.push(d.toISOString().split('T')[0]);
-        }
-      }
-
       grid.innerHTML = dates.map(dt => {
         const dObj = new Date(dt + 'T12:00:00');
         const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
@@ -2751,93 +1939,38 @@ HTML_DASHBOARD = """<!DOCTYPE html>
         ];
 
         const slotsHtml = windows.map(w => {
-          const isEmergBooking = bookings.find(bk => {
-            const isEmerg = (bk.urgency_level || '').includes('EMERG');
-            const dateMatch = bk.slot_date === dt || (bk.slot_date === 'today' && dt === dates[0]);
-            return isEmerg && dateMatch;
-          });
-
-          if (isEmergBooking && w.label === 'Morning') {
-            const safeObj = JSON.stringify(isEmergBooking).replace(/'/g, "&#39;");
-            return `
-              <div class="slot-box is-booked-emergency" onclick='selectCalendarBooking(${safeObj})'>
-                <div class="slot-time-header">
-                  <span class="slot-time-title">🚨 EMERGENCY CODE RED</span>
-                  <span style="font-size:0.7rem; color:#b91c1c; font-weight:700;">Within 45-60 Min</span>
-                </div>
-                <div class="booked-cust-name">${isEmergBooking.customer_name}</div>
-                <div class="booked-emerg-meta">
-                  📍 ${isEmergBooking.service_address}<br>
-                  ⚡ ${isEmergBooking.assigned_technician.split('(')[0].trim()}<br>
-                  Ref: ${isEmergBooking.confirmation_id}
-                </div>
-              </div>
-            `;
-          }
-
-          const b = bookings.find(bk => {
-            const dateMatch = bk.slot_date === dt;
-            const timeMatch = (bk.slot_time || '').includes(w.key) || (w.key.includes(bk.slot_time || '---'));
-            return dateMatch && timeMatch;
-          });
-
+          const b = bookings.find(bk => bk.slot_date === dt && ((bk.slot_time || '').includes(w.key) || w.key.includes(bk.slot_time || '---')));
           if (b) {
             const safeObj = JSON.stringify(b).replace(/'/g, "&#39;");
             return `
-              <div class="slot-box is-booked-routine" onclick='selectCalendarBooking(${safeObj})'>
+              <div class="slot-box is-booked-routine" style="cursor:pointer;" onclick='selectCalendarBooking(${safeObj})'>
                 <div class="slot-time-header">
-                  <span class="slot-time-title">⚡ ${w.label.toUpperCase()} (${w.shortTime})</span>
-                  <span style="font-size:0.68rem; color:#15803d; font-weight:700;">✓ BOOKED</span>
+                  <span style="color:#15803d;">⚡ ${w.label}</span>
+                  <span style="color:#15803d;">✓ BOOKED</span>
                 </div>
                 <div class="booked-cust-name">${b.customer_name}</div>
-                <div class="booked-cust-meta">
-                  🔧 ${b.service_type || 'Electrical Service'}<br>
-                  ⚡ ${b.assigned_technician.split('(')[0].trim()}<br>
-                  📍 ${b.service_address}
-                </div>
+                <div class="booked-cust-meta">${b.service_type}<br>${b.assigned_technician.split('(')[0]}</div>
               </div>
             `;
           }
 
           const matchingSlot = filteredSlots.find(s => s.date === dt && (s.time_window || '').includes(w.key));
-          if (!matchingSlot) {
+          if (!matchingSlot || matchingSlot.is_blocked) {
             return `
-              <div class="slot-box is-blocked">
-                <div class="slot-time-header">
-                  <span class="slot-time-title">${w.label} (${w.shortTime})</span>
-                  <span style="font-size:0.68rem; color:#64748b;">OFF-DUTY</span>
-                </div>
-                <div class="blocked-label">No Tech Scheduled</div>
-              </div>
-            `;
-          }
-
-          if (matchingSlot.is_blocked) {
-            return `
-              <div class="slot-box is-blocked">
-                <div class="slot-time-header">
-                  <span class="slot-time-title">${w.label} (${w.shortTime})</span>
-                  <span style="font-size:0.68rem; color:#64748b;">🚫 BLOCKED</span>
-                </div>
-                <div class="blocked-label">${matchingSlot.blocked_reason || 'Unavailable / Off-Duty'}</div>
-                <div style="font-size:0.7rem; color:#64748b; margin-top:4px;">Tech: ${matchingSlot.technician_name}</div>
-                <div class="slot-actions">
-                  <button class="btn-slot-act btn-slot-block" onclick="toggleBlockSlot('${matchingSlot.slot_id}')">Unblock</button>
-                </div>
+              <div class="slot-box">
+                <div class="slot-time-header"><span>${w.label}</span><span style="color:#64748b;">BLOCKED</span></div>
+                <div class="slot-tech-avail">Unavailable</div>
               </div>
             `;
           }
 
           return `
             <div class="slot-box">
-              <div class="slot-time-header">
-                <span class="slot-time-title">${w.label} (${w.shortTime})</span>
-                <span style="font-size:0.68rem; color:#15803d; font-weight:700;">● OPEN</span>
-              </div>
-              <div class="slot-tech-avail">⚡ Tech: ${matchingSlot.technician_name}</div>
+              <div class="slot-time-header"><span>${w.label} (${w.shortTime})</span><span style="color:#16a34a;">OPEN</span></div>
+              <div class="slot-tech-avail">Tech: ${matchingSlot.technician_name}</div>
               <div class="slot-actions">
                 <button class="btn-slot-act btn-slot-book" onclick="openManualBookModal('${matchingSlot.slot_id}')">+ Book</button>
-                <button class="btn-slot-act btn-slot-block" onclick="toggleBlockSlot('${matchingSlot.slot_id}')">🚫 Block</button>
+                <button class="btn-slot-act btn-slot-block" onclick="toggleBlockSlot('${matchingSlot.slot_id}')">Block</button>
               </div>
             </div>
           `;
@@ -2849,9 +1982,7 @@ HTML_DASHBOARD = """<!DOCTYPE html>
               <div class="cal-col-day">${dayName}</div>
               <div class="cal-col-sub">${dateStr}</div>
             </div>
-            <div class="cal-col-body">
-              ${slotsHtml}
-            </div>
+            <div class="cal-col-body">${slotsHtml}</div>
           </div>
         `;
       }).join('');
@@ -2862,7 +1993,6 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       switchPortalTab('console');
     }
 
-    // RENDER FLEET ROSTER MANAGEMENT VIEW
     function renderFleetView() {
       const grid = document.getElementById('fleetCardsGrid');
       if (!grid) return;
@@ -2873,119 +2003,75 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 
       document.getElementById('kpiFleetTotal').innerText = techs.length;
       const onCallTech = techs.find(t => t.is_on_call);
-      document.getElementById('kpiFleetOnCall').innerText = onCallTech ? onCallTech.name : 'None Assigned';
-
-      const openSlots = slots.filter(s => !s.is_booked && !s.is_blocked).length;
-      document.getElementById('kpiFleetOpenSlots').innerText = openSlots;
+      document.getElementById('kpiFleetOnCall').innerText = onCallTech ? onCallTech.name : 'None';
+      document.getElementById('kpiFleetOpenSlots').innerText = slots.filter(s => !s.is_booked && !s.is_blocked).length;
       document.getElementById('kpiFleetBookedJobs').innerText = bookings.length;
 
       grid.innerHTML = techs.map(t => {
-        const specHtml = (t.specialties || []).map(s => {
-          const isEmerg = s.includes('emergency') || s.includes('voltage');
-          return `<span class="spec-pill ${isEmerg ? 'spec-emerg' : ''}">${s.replace(/_/g, ' ')}</span>`;
-        }).join('');
-
+        const specHtml = (t.specialties || []).map(s => `<span class="spec-pill">${s.replace(/_/g, ' ')}</span>`).join('');
         const safeTech = JSON.stringify(t).replace(/'/g, "&#39;");
-
         return `
-          <div class="tech-card-pro ${t.is_on_call ? 'is-on-call-glow' : ''}">
+          <div class="tech-card-pro">
             <div class="tech-card-top">
               <div class="tech-avatar">👷</div>
-              <div class="tech-title-wrap">
+              <div style="flex:1;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                   <div class="tech-name">${t.name}</div>
-                  <span class="${t.is_on_call ? 'tech-badge-oncall' : 'tech-badge-offduty'}">
-                    ${t.is_on_call ? '● ON-CALL 24/7' : '○ REGULAR HOURS'}
-                  </span>
+                  <span class="${t.is_on_call ? 'tech-badge-oncall' : 'tech-badge-offduty'}">${t.is_on_call ? '● ON-CALL 24/7' : 'STANDARD'}</span>
                 </div>
-                <div class="tech-license">${t.license_type} &bull; Rating: ⭐ ${t.rating || 4.95}</div>
-                <div class="tech-phone">📞 ${t.phone} &bull; ID: ${t.technician_id}</div>
+                <div class="tech-license">${t.license_type} &bull; ⭐ ${t.rating || 4.95}</div>
+                <div class="tech-phone">${t.phone}</div>
               </div>
             </div>
-
-            <div class="tech-specialties-row">
-              ${specHtml}
-            </div>
-
+            <div class="tech-specialties-row">${specHtml}</div>
             <div class="tech-actions-row">
-              <button class="btn-tech-toggle-oncall ${t.is_on_call ? 'is-active-btn' : ''}" onclick="toggleTechOnCall('${t.technician_id}')">
-                ${t.is_on_call ? 'Remove from On-Call' : '⚡ Make On-Call Lead'}
+              <button class="btn-tech-toggle-oncall" onclick="toggleTechOnCall('${t.technician_id}')">
+                ${t.is_on_call ? 'Remove On-Call' : 'Make On-Call Lead'}
               </button>
-              <button class="btn-tech-edit" onclick='openEditTechModal(${safeTech})'>
-                Edit
-              </button>
-              <button class="btn-tech-del" onclick="deleteTech('${t.technician_id}', '${t.name}')" title="Delete Technician">
-                ✕
-              </button>
+              <button class="btn-tech-edit" onclick='openEditTechModal(${safeTech})'>Edit</button>
+              <button class="btn-tech-del" onclick="deleteTech('${t.technician_id}', '${t.name}')">✕</button>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    // Technician API actions
     async function toggleTechOnCall(techId) {
-      try {
-        const res = await fetch('/api/technicians/toggle-on-call', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ technician_id: techId })
-        });
-        const data = await res.json();
-        if (data.status === 'SUCCESS') {
-          await fetchBoardData();
-        }
-      } catch (e) {
-        alert('Failed to update on-call status');
-      }
+      await fetch('/api/technicians/toggle-on-call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ technician_id: techId })
+      });
+      await fetchBoardData();
     }
 
     async function toggleBlockSlot(slotId) {
-      try {
-        const res = await fetch('/api/slots/toggle-block', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ slot_id: slotId })
-        });
-        const data = await res.json();
-        if (data.status === 'SUCCESS') {
-          await fetchBoardData();
-        }
-      } catch (e) {
-        alert('Failed to update slot');
-      }
+      await fetch('/api/slots/toggle-block', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slot_id: slotId })
+      });
+      await fetchBoardData();
     }
 
     async function deleteTech(techId, name) {
-      if (!confirm(`Are you sure you want to remove ${name} from the active fleet roster?`)) return;
-      try {
-        const res = await fetch('/api/technicians/delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ technician_id: techId })
-        });
-        const data = await res.json();
-        if (data.status === 'SUCCESS') {
-          await fetchBoardData();
-        }
-      } catch (e) {
-        alert('Failed to delete technician');
-      }
+      if (!confirm(`Remove ${name} from demo roster?`)) return;
+      await fetch('/api/technicians/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ technician_id: techId })
+      });
+      await fetchBoardData();
     }
 
-    // Modal forms: Add/Edit Tech
     function openAddTechModal() {
-      document.getElementById('techModalTitle').innerText = 'Add New Electrician';
+      document.getElementById('techModalTitle').innerText = 'Add Electrician';
       document.getElementById('techIdInput').value = '';
       document.getElementById('techNameInput').value = '';
-      document.getElementById('techPhoneInput').value = '(555) 019-5512';
-      document.getElementById('techOnCallInput').value = 'false';
-      document.getElementById('techSpecsInput').value = 'residential_repair, lighting';
       document.getElementById('techModal').classList.add('active');
     }
-
     function openEditTechModal(tech) {
-      document.getElementById('techModalTitle').innerText = `Edit: ${tech.name}`;
+      document.getElementById('techModalTitle').innerText = `Edit ${tech.name}`;
       document.getElementById('techIdInput').value = tech.technician_id;
       document.getElementById('techNameInput').value = tech.name;
       document.getElementById('techLicenseInput').value = tech.license_type;
@@ -2994,230 +2080,110 @@ HTML_DASHBOARD = """<!DOCTYPE html>
       document.getElementById('techSpecsInput').value = (tech.specialties || []).join(', ');
       document.getElementById('techModal').classList.add('active');
     }
-
-    function closeAddTechModal() {
-      document.getElementById('techModal').classList.remove('active');
-    }
+    function closeAddTechModal() { document.getElementById('techModal').classList.remove('active'); }
 
     async function submitTechForm() {
       const tid = document.getElementById('techIdInput').value.trim();
       const name = document.getElementById('techNameInput').value.trim();
-      const license = document.getElementById('techLicenseInput').value;
-      const phone = document.getElementById('techPhoneInput').value.trim();
-      const onCall = document.getElementById('techOnCallInput').value === 'true';
-      const specsRaw = document.getElementById('techSpecsInput').value;
-      const specs = specsRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-
-      if (!name) {
-        alert('Please enter technician full name.');
-        return;
-      }
-
-      const endpoint = tid ? '/api/technicians/update' : '/api/technicians';
+      if (!name) return alert('Enter a name');
       const payload = {
-        name: name,
-        license_type: license,
-        phone: phone,
-        is_on_call: onCall,
-        specialties: specs
+        technician_id: tid,
+        name,
+        license_type: document.getElementById('techLicenseInput').value,
+        phone: document.getElementById('techPhoneInput').value.trim(),
+        is_on_call: document.getElementById('techOnCallInput').value === 'true',
+        specialties: document.getElementById('techSpecsInput').value.split(',').map(s => s.trim()).filter(Boolean)
       };
-      if (tid) payload.technician_id = tid;
-
-      try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.status === 'SUCCESS') {
-          closeAddTechModal();
-          await fetchBoardData();
-        } else {
-          alert('Error saving technician: ' + (data.message || 'Unknown'));
-        }
-      } catch (e) {
-        alert('Network error saving technician.');
-      }
+      await fetch(tid ? '/api/technicians/update' : '/api/technicians', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      closeAddTechModal();
+      await fetchBoardData();
     }
 
-    // Manual Booking Modal
     function openManualBookModal(preselectedSlotId = '') {
       const select = document.getElementById('manualSlotSelect');
       const slots = (BOARD_DATA.slots || []).filter(s => !s.is_booked && !s.is_blocked);
-      if (!slots.length) {
-        alert('No open slots available to book.');
-        return;
-      }
-      select.innerHTML = slots.map(s => {
-        return `<option value="${s.slot_id}">${s.date} - ${s.time_window} (${s.technician_name})</option>`;
-      }).join('');
-
+      select.innerHTML = slots.map(s => `<option value="${s.slot_id}">${s.date} - ${s.time_window} (${s.technician_name})</option>`).join('');
       if (preselectedSlotId) select.value = preselectedSlotId;
       document.getElementById('manualBookModal').classList.add('active');
     }
-
-    function closeManualBookModal() {
-      document.getElementById('manualBookModal').classList.remove('active');
-    }
+    function closeManualBookModal() { document.getElementById('manualBookModal').classList.remove('active'); }
 
     async function submitManualBooking() {
-      const slot_id = document.getElementById('manualSlotSelect').value;
-      const customer_name = document.getElementById('manualCustomerName').value.trim();
-      const phone_number = document.getElementById('manualCustomerPhone').value.trim();
-      const customer_email = document.getElementById('manualCustomerEmail').value.trim();
-      const service_address = document.getElementById('manualCustomerAddress').value.trim();
-      const issue_description = document.getElementById('manualIssueDesc').value.trim();
-
-      if (!customer_name || !service_address || !issue_description) {
-        alert('Please fill out customer name, service address, and issue description.');
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/slots/manual-book', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            slot_id,
-            customer_name,
-            phone_number,
-            service_address,
-            issue_description,
-            customer_email
-          })
-        });
-        const data = await res.json();
-        if (data.status === 'SUCCESS') {
-          closeManualBookModal();
-          await fetchBoardData();
-          alert(`⚡ Confirmed! Appointment booked under confirmation ${data.booking.confirmation_id}. Added to Google Calendar.`);
-        } else {
-          alert('Booking failed: ' + (data.message || 'Slot unavailable'));
-        }
-      } catch (e) {
-        alert('Network error.');
-      }
+      const payload = {
+        slot_id: document.getElementById('manualSlotSelect').value,
+        customer_name: document.getElementById('manualCustomerName').value.trim(),
+        phone_number: document.getElementById('manualCustomerPhone').value.trim(),
+        customer_email: document.getElementById('manualCustomerEmail').value.trim(),
+        service_address: document.getElementById('manualCustomerAddress').value.trim(),
+        issue_description: document.getElementById('manualIssueDesc').value.trim()
+      };
+      if (!payload.customer_name || !payload.service_address) return alert('Fill in customer name and address.');
+      await fetch('/api/slots/manual-book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      closeManualBookModal();
+      await fetchBoardData();
     }
 
-    // Copy iCal Feed URL
     function copyIcalFeedUrl() {
       const url = `${window.location.origin}/api/calendar.ics`;
-      navigator.clipboard.writeText(url).then(() => {
-        alert(`📋 Copied live calendar feed URL to clipboard:\n\n${url}\n\nYou can paste this into Google Calendar ("From URL") or Apple Calendar to sync dispatches automatically.`);
-      }).catch(() => {
-        prompt('Copy calendar subscription URL:', url);
-      });
+      navigator.clipboard.writeText(url).then(() => alert(`Copied iCal URL:\n${url}`));
     }
 
-    // ROI Calculator Modal
-    function openRoiModal() {
-      document.getElementById('roiModal').classList.add('active');
-      updateRoiCalculation();
-    }
-    function closeRoiModal() {
-      document.getElementById('roiModal').classList.remove('active');
-    }
-
+    function openRoiModal() { document.getElementById('roiModal').classList.add('active'); updateRoiCalculation(); }
+    function closeRoiModal() { document.getElementById('roiModal').classList.remove('active'); }
     function updateRoiCalculation() {
       const calls = parseInt(document.getElementById('sliderCalls').value);
       const ticket = parseInt(document.getElementById('sliderTicket').value);
-
       document.getElementById('valSliderCalls').innerText = `${calls} Calls / Mo`;
       document.getElementById('valSliderTicket').innerText = `$${ticket.toLocaleString()}`;
-
-      // Industry benchmark: 35% after hours, 62% abandoned without AI, 70% booking close rate with ZeroMiss
       const afterHoursCalls = calls * 0.35;
       const recoveredJobsMonthly = afterHoursCalls * 0.62 * 0.70;
       const annualGain = Math.round(recoveredJobsMonthly * ticket * 12);
-
       document.getElementById('roiAnnualGain').innerText = `+$${annualGain.toLocaleString()} / yr`;
-      document.getElementById('roiBreakdown').innerText = `Based on ~${Math.round(afterHoursCalls)} after-hours calls/mo & recovering ${recoveredJobsMonthly.toFixed(1)} high-ticket jobs/mo`;
+      document.getElementById('roiBreakdown').innerText = `Based on recovering ${recoveredJobsMonthly.toFixed(1)} missed after-hours jobs/month`;
     }
 
-    // Twilio Setup Modal
     function openTwilioModal() {
       document.getElementById('twilioModal').classList.add('active');
       document.getElementById('twilioUrlInput').value = `${window.location.origin}/api/twilio/voice`;
     }
-    function closeTwilioModal() {
-      document.getElementById('twilioModal').classList.remove('active');
-    }
+    function closeTwilioModal() { document.getElementById('twilioModal').classList.remove('active'); }
     function copyTwilioWebhook() {
-      const url = document.getElementById('twilioUrlInput').value;
-      navigator.clipboard.writeText(url).then(() => alert('📋 Webhook URL copied to clipboard! Paste into Twilio Voice Webhook URL.'));
+      navigator.clipboard.writeText(document.getElementById('twilioUrlInput').value).then(() => alert('Copied Webhook URL!'));
     }
 
-    // Sales Pitch & Demo Walkthrough Modal
-    function openPitchModal() {
-      document.getElementById('pitchModal').classList.add('active');
-    }
-    function closePitchModal() {
-      document.getElementById('pitchModal').classList.remove('active');
-    }
+    function openPitchModal() { document.getElementById('pitchModal').classList.add('active'); }
+    function closePitchModal() { document.getElementById('pitchModal').classList.remove('active'); }
 
-    // Toggle 3-Step Walkthrough Banner
-    function toggleWalkthrough() {
-      const banner = document.getElementById('walkthroughBanner');
-      if (!banner) return;
-      const steps = banner.querySelector('.walkthrough-steps');
-      const btn = document.getElementById('btnToggleGuide');
-      if (steps.style.display === 'none') {
-        steps.style.display = 'grid';
-        btn.innerText = 'Hide Guide ✕';
-      } else {
-        steps.style.display = 'none';
-        btn.innerText = 'Show Guide ▾';
-      }
-    }
-
-    // Focus on Customer Phone Simulator
-    function focusPhoneSimulator() {
-      const phone = document.querySelector('.phone-chassis');
-      if (phone) {
-        phone.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        phone.style.boxShadow = '0 0 25px rgba(2, 132, 199, 0.6)';
-        setTimeout(() => {
-          phone.style.boxShadow = '0 20px 40px -10px rgba(15, 23, 42, 0.28), inset 0 1px 2px rgba(255, 255, 255, 0.9)';
-        }, 2200);
-      }
-    }
-
-    // Microphone speech recognition
     let recognition;
     let isListening = false;
-    const micBtn = document.getElementById('micBtn');
-
     function toggleMic() {
       const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRec) {
-        alert('Microphone speech recognition requires Google Chrome or MS Edge.');
-        return;
-      }
-
+      if (!SpeechRec) return alert('Speech recognition requires Chrome or Edge.');
       if (!recognition) {
         recognition = new SpeechRec();
-        recognition.continuous = false;
-        recognition.interimResults = false;
         recognition.onresult = (e) => {
-          const transcript = e.results[0][0].transcript;
-          userInput.value = transcript;
+          userInput.value = e.results[0][0].transcript;
           sendUserMessage();
         };
         recognition.onend = () => {
           isListening = false;
-          micBtn.classList.remove('listening');
+          document.getElementById('micBtn').classList.remove('listening');
         };
       }
-
       if (!isListening) {
         recognition.start();
         isListening = true;
-        micBtn.classList.add('listening');
+        document.getElementById('micBtn').classList.add('listening');
       } else {
         recognition.stop();
-        isListening = false;
-        micBtn.classList.remove('listening');
       }
     }
 
@@ -3290,7 +2256,6 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
         post_body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else ""
         content_type = self.headers.get("Content-Type", "")
 
-        # Parse form data (Twilio webhooks) or JSON
         if "application/x-www-form-urlencoded" in content_type:
             parsed_form = urllib.parse.parse_qs(post_body)
             req_data = {k: v[0] if len(v) == 1 else v for k, v in parsed_form.items()}
@@ -3302,7 +2267,6 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
 
         parsed = urllib.parse.urlparse(self.path)
 
-        # 1. TWILIO PRODUCTION VOICE WEBHOOKS
         if parsed.path == "/api/twilio/voice":
             twiml = (
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -3320,10 +2284,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             return
 
         elif parsed.path == "/api/twilio/gather":
-            speech_result = req_data.get("SpeechResult", "").strip()
-            if not speech_result:
-                speech_result = "Hello, I need an electrician."
-
+            speech_result = req_data.get("SpeechResult", "").strip() or "Hello, I need an electrician."
             sarah_reply = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, speech_result)
             clean_reply = sarah_reply.replace("&", "and").replace("<", "").replace(">", "")
 
@@ -3349,7 +2310,6 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             self._send_twiml(twiml)
             return
 
-        # 2. STRIPE UPFRONT FEE AUTHORIZATION
         elif parsed.path == "/api/bookings/pay":
             cid = req_data.get("confirmation_id", "").strip()
             booking = DB.mark_booking_paid(cid)
@@ -3359,7 +2319,6 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             else:
                 self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
 
-        # 3. SIMULATE MISSED AFTER-HOURS CALL LEAD RECOVERY
         elif parsed.path == "/api/simulate-missed-call":
             mc = DB.record_missed_call(
                 caller_phone="(555) 329-8471",
@@ -3374,7 +2333,6 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 "roi_metrics": roi,
             })
 
-        # 3b. CONVERT MISSED CALL (CUSTOMER TAPS SELF-SCHEDULE LINK)
         elif parsed.path == "/api/missed-calls/convert":
             mc_id = req_data.get("missed_call_id")
             mc = DB.convert_missed_call(mc_id)
@@ -3393,7 +2351,6 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 "slots": [s.__dict__ for s in DB.calendar_slots.values()],
             })
 
-        # 3c. BENCHMARK MODE TOGGLE (LIVE SESSION VS 30-DAY BENCHMARK)
         elif parsed.path == "/api/benchmark/toggle":
             is_bench = DB.toggle_benchmark_mode()
             roi = DB.calculate_contractor_roi_metrics()
@@ -3403,29 +2360,23 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 "roi_metrics": roi,
             })
 
-        # 4. CONTRACTOR DESTINATION EMAIL
         elif parsed.path == "/api/set-contractor":
             new_email = req_data.get("email", "").strip()
             if new_email:
                 DEFAULT_CONFIG.contractor_email = new_email
             self._send_json({"status": "SUCCESS", "contractor_email": DEFAULT_CONFIG.contractor_email})
 
-        # 5. TECHNICIAN FLEET MANAGEMENT
         elif parsed.path == "/api/technicians":
             name = req_data.get("name", "").strip()
             if not name:
                 self._send_json({"status": "ERROR", "message": "Technician name required"}, 400)
                 return
-            license_type = req_data.get("license_type", "Journeyman Electrician").strip()
-            phone = req_data.get("phone", "(555) 019-0000").strip()
-            is_on_call = bool(req_data.get("is_on_call", False))
-            specialties = req_data.get("specialties", ["residential_repair", "lighting"])
             new_tech = DB.add_technician(
                 name=name,
-                license_type=license_type,
-                phone=phone,
-                is_on_call=is_on_call,
-                specialties=specialties,
+                license_type=req_data.get("license_type", "Journeyman Electrician").strip(),
+                phone=req_data.get("phone", "(555) 019-0000").strip(),
+                is_on_call=bool(req_data.get("is_on_call", False)),
+                specialties=req_data.get("specialties", ["residential_repair", "lighting"]),
             )
             self._send_json({
                 "status": "SUCCESS",
@@ -3436,12 +2387,14 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
 
         elif parsed.path == "/api/technicians/update":
             tid = req_data.get("technician_id", "").strip()
-            name = req_data.get("name", "").strip()
-            license_type = req_data.get("license_type", "Journeyman Electrician").strip()
-            phone = req_data.get("phone", "(555) 019-0000").strip()
-            is_on_call = bool(req_data.get("is_on_call", False))
-            specialties = req_data.get("specialties", ["residential_repair"])
-            tech = DB.update_technician(tid, name, license_type, phone, is_on_call, specialties)
+            tech = DB.update_technician(
+                tid,
+                req_data.get("name", "").strip(),
+                req_data.get("license_type", "Journeyman Electrician").strip(),
+                req_data.get("phone", "(555) 019-0000").strip(),
+                bool(req_data.get("is_on_call", False)),
+                req_data.get("specialties", ["residential_repair"]),
+            )
             if tech:
                 self._send_json({"status": "SUCCESS", "technician": tech.__dict__})
             else:
@@ -3460,37 +2413,28 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             ok = DB.delete_technician(tid)
             self._send_json({"status": "SUCCESS" if ok else "ERROR"})
 
-        # 6. CALENDAR SLOTS
         elif parsed.path == "/api/slots/toggle-block":
             slot_id = req_data.get("slot_id", "").strip()
-            reason = req_data.get("reason", "Unavailable / Off-Duty").strip()
-            slot = DB.toggle_block_slot(slot_id, reason)
+            slot = DB.toggle_block_slot(slot_id, req_data.get("reason", "Unavailable / Off-Duty").strip())
             if slot:
                 self._send_json({"status": "SUCCESS", "slot": slot.__dict__})
             else:
                 self._send_json({"status": "ERROR", "message": "Slot not found"}, 404)
 
         elif parsed.path == "/api/slots/manual-book":
-            slot_id = req_data.get("slot_id", "").strip()
-            customer_name = req_data.get("customer_name", "Valued Customer").strip()
-            phone_number = req_data.get("phone_number", "(555) 000-0000").strip()
-            service_address = req_data.get("service_address", "Customer Address").strip()
-            issue_description = req_data.get("issue_description", "Electrical service call").strip()
-            customer_email = req_data.get("customer_email", "").strip() or None
             booking = DB.manual_book_slot(
-                slot_id=slot_id,
-                customer_name=customer_name,
-                phone_number=phone_number,
-                service_address=service_address,
-                issue_description=issue_description,
-                customer_email=customer_email,
+                slot_id=req_data.get("slot_id", "").strip(),
+                customer_name=req_data.get("customer_name", "Valued Customer").strip(),
+                phone_number=req_data.get("phone_number", "(555) 000-0000").strip(),
+                service_address=req_data.get("service_address", "Customer Address").strip(),
+                issue_description=req_data.get("issue_description", "Electrical service call").strip(),
+                customer_email=req_data.get("customer_email", "").strip() or None,
             )
             if booking:
                 self._send_json({"status": "SUCCESS", "booking": booking.__dict__})
             else:
-                self._send_json({"status": "ERROR", "message": "Failed to book slot or slot already booked"}, 400)
+                self._send_json({"status": "ERROR", "message": "Failed to book slot"}, 400)
 
-        # 7. LIVE CONVERSATION CHAT
         elif parsed.path == "/api/chat":
             msg = req_data.get("message", "").strip()
             sarah_response = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, msg)
@@ -3499,14 +2443,12 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 booking_dict = ACTIVE_SESSION.active_booking.__dict__
             elif DB.bookings:
                 booking_dict = list(DB.bookings.values())[-1].__dict__
-
             self._send_json({
                 "status": "SUCCESS",
                 "response": sarah_response,
                 "booking": booking_dict,
             })
 
-        # 8. SCENARIOS & RESET
         elif parsed.path == "/api/run-scenario":
             DB.reset()
             ACTIVE_SESSION = ACTIVE_AGENT.create_session()
@@ -3523,8 +2465,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 dialogue.append({"speaker": "Customer", "text": t2_user, "isSarah": False})
                 t2_sarah = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, t2_user)
                 dialogue.append({"speaker": "Sarah", "text": t2_sarah, "isSarah": True})
-
-            else:  # ev_charger routine
+            else:
                 t1_user = "Hi Sarah, I just bought an EV and need a 50-amp Level 2 charger installed in my garage next Wednesday."
                 dialogue.append({"speaker": "Customer", "text": t1_user, "isSarah": False})
                 t1_sarah = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, t1_user)
@@ -3557,7 +2498,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
 def run_demo_server(port: int = 8080):
     server = HTTPServer(("0.0.0.0", port), DemoRequestHandler)
     print("\n" + "=" * 80)
-    print("  ZeroMiss Voice Dispatch - Maximum-ROI Contractor Command Center Server")
+    print("  ZeroMiss Voice Dispatch - Story-Driven Interactive Demo Server")
     print(f"  Live Demo Web Dashboard: http://localhost:{port}")
     print(f"  Contractor Destination:   {DEFAULT_CONFIG.contractor_name} ({DEFAULT_CONFIG.contractor_email})")
     print(f"  Live Twilio Voice Webhook: http://localhost:{port}/api/twilio/voice")
