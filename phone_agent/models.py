@@ -88,6 +88,9 @@ class ServiceBooking:
     stripe_payment_link: Optional[str] = None
     sms_lead_recovery_sent: bool = False
     estimated_job_value: float = 850.0
+    booked_by: str = "Booked by Sarah AI"
+    tech_match_reason: str = "Certified • Nearest Available"
+    is_demo_seed: bool = False
 
 
 @dataclass

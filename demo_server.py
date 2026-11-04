@@ -67,21 +67,32 @@ def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -
             clean_title = "Electrical Emergency: Priority Hazard Dispatch"
             symptom = raw_issue.replace("EMERGENCY:", "").replace("_", " ").strip() or "Acute electrical thermal/arcing hazard reported"
         hazard_level = "NFPA 70E Code Red — Active Thermal / Fire Risk"
+        hazard_short = "🚨 Hazard: NFPA 70E Code Red (Thermal)"
         safety_given = (
             "Stay clear of the appliance and wall outlet; do not touch the cord. "
             "Shut off the main breaker only if the path is dry and safe. Evacuate and call 911 if smoke appears."
         )
     else:
         if "ev" in raw_service.lower() or "ev" in issue_lower or "charger" in issue_lower:
-            clean_title = f"EV Charger Installation — {clean_customer}"
+            clean_title = "EV Charger 50A Installation"
             symptom = "50A NEMA 14-50 / Level 2 EV charger installation in residential garage"
+            hazard_level = "Routine Service — Non-Hazardous (200A Panel Verified)"
+            hazard_short = "🛡️ Triage: 200A Panel Capacity Verified"
+        elif "panel" in raw_service.lower() or "panel" in issue_lower or "breaker" in issue_lower:
+            clean_title = "200A Main Panel Upgrade"
+            symptom = raw_issue or "Flickering lights under load & warm 100A main breaker lug"
+            hazard_level = "Priority Load Check — Thermal Lug Inspection"
+            hazard_short = "⚠️ Hazard: Warm 100A Breaker Lug"
         elif raw_service:
-            clean_title = f"{raw_service.replace('_', ' ').title()} — {clean_customer}"
+            clean_title = f"{raw_service.replace('_', ' ').title()}"
             symptom = raw_issue or f"Scheduled {raw_service.replace('_', ' ')} service call"
+            hazard_level = "Routine Service — Non-Hazardous"
+            hazard_short = "🛡️ Triage: Standard Diagnostic"
         else:
-            clean_title = f"Residential Electrical Service — {clean_customer}"
+            clean_title = "Residential Electrical Service"
             symptom = raw_issue or "Standard diagnostic and electrical repair"
-        hazard_level = "Routine Service — Non-Hazardous (200A Panel Verified)"
+            hazard_level = "Routine Service — Non-Hazardous"
+            hazard_short = "🛡️ Triage: Standard Diagnostic"
         safety_given = "No active thermal or shock hazard detected. Pre-arrival preparation checklist texted to homeowner."
 
     # Check if DB has an emergency triage report to pull exact details
@@ -110,10 +121,25 @@ def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -
         clean_time_part = re.sub(r"\s*\([^)]*\)", "", raw_time).strip().replace("08:00 AM", "8:00 AM").replace("04:00 PM", "4:00 PM").replace("07:00 PM", "7:00 PM")
         clean_window = f"{day_label}, {clean_time_part}"
 
+    tech_str = str(b.get("assigned_technician", "")).lower()
+    if not b.get("tech_match_reason"):
+        if is_emerg or "marcus" in tech_str:
+            b["tech_match_reason"] = "Master Electrician • On-Call Lead • Nearest (14m)"
+        elif "sarah" in tech_str:
+            b["tech_match_reason"] = "EV & Commercial Certified • 240V Load Specialist"
+        elif "luis" in tech_str:
+            b["tech_match_reason"] = "Service Electrician • On-Call Shift"
+        else:
+            b["tech_match_reason"] = "Licensed Journeyman • Panel & Load Balancing"
+
+    if not b.get("booked_by"):
+        b["booked_by"] = "Booked by Sarah AI"
+
     b["display_title"] = clean_title
     b["display_window"] = clean_window
     b["triage_symptom"] = symptom
     b["triage_hazard_level"] = hazard_level
+    b["triage_hazard_short"] = hazard_short
     b["triage_safety_instruction"] = safety_given
     return b
 
@@ -1244,12 +1270,41 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     }
     .btn-cal-primary { background: var(--primary); color: white; border-color: var(--primary); }
 
+    .cal-day-tabs-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .cal-day-tab {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      color: var(--text-body);
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .cal-day-tab.active {
+      background: var(--navy);
+      color: #ffffff;
+      border-color: var(--navy);
+    }
+
     .full-calendar-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 16px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
     }
-    @media (max-width: 1100px) { .full-calendar-grid { grid-template-columns: repeat(2, 1fr); } }
+    .full-calendar-grid.single-day-mode {
+      grid-template-columns: 1fr;
+      max-width: 720px;
+    }
+    @media (max-width: 1180px) { .full-calendar-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 720px) { .full-calendar-grid { grid-template-columns: 1fr; } }
+
     .cal-col {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -1257,6 +1312,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      min-width: 0;
     }
     .cal-col.has-emergency-col {
       border: 2px solid #dc2626;
@@ -1273,44 +1329,221 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       border-bottom-color: #fecaca;
     }
     .cal-col-day { font-size: 1.05rem; font-weight: 800; }
-    .cal-col-sub { font-size: 0.88rem; color: var(--text-muted); font-weight: 600; }
+    .cal-col-sub { font-size: 0.86rem; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
     .cal-col-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+
     .slot-box {
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 12px;
       background: var(--surface-muted);
     }
-    .slot-time-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; margin-bottom: 6px; font-weight: 800; }
-    .slot-tech-avail { font-size: 0.86rem; color: var(--text-body); margin-bottom: 8px; line-height: 1.4; }
-    .slot-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-    .btn-slot-act { padding: 6px 11px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; border: none; }
+    .slot-box.is-elapsed-slot {
+      background: #f1f5f9;
+      border: 1px dashed #cbd5e1;
+      color: #64748b;
+    }
+    .slot-time-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 0.88rem;
+      margin-bottom: 8px;
+      font-weight: 800;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .pill-open {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+    }
+    .pill-elapsed {
+      background: #e2e8f0;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+    .pill-blocked {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+
+    .slot-tech-avail { font-size: 0.85rem; color: var(--text-body); margin-bottom: 8px; line-height: 1.4; }
+    .slot-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .btn-slot-act { padding: 6px 11px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; cursor: pointer; border: none; }
     .btn-slot-book { background: var(--primary); color: white; }
+    .btn-slot-book:hover { background: var(--primary-hover); }
     .btn-slot-block { background: #e2e8f0; color: var(--text-body); }
-    .slot-box.is-booked-routine { background: #f0fdf4; border: 2px solid #22c55e; }
-    .slot-box.is-booked-emergency { background: #fff1f2; border: 2px solid #dc2626; }
-    .slot-box.is-gcal-busy { background: #eff6ff; border: 1.5px dashed #3b82f6; }
-    .booked-cust-name { font-size: 0.98rem; font-weight: 800; margin-bottom: 4px; color: var(--text-main); }
-    .booked-cust-meta { font-size: 0.86rem; line-height: 1.4; color: var(--text-body); }
-    .tech-avail-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
-    .tech-mini-pill {
-      font-size: 0.78rem;
-      font-weight: 700;
+    .btn-slot-block:hover { background: #cbd5e1; }
+
+    /* DESIGNED BOOKED CARDS (SARAH AI VALUE PROP) */
+    .slot-box.is-booked-routine {
+      background: #f0fdf4;
+      border: 2px solid #16a34a;
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.08);
+    }
+    .slot-box.is-booked-emergency {
+      background: #fff1f2;
+      border: 2px solid #dc2626;
+      box-shadow: 0 3px 10px rgba(220, 38, 38, 0.14);
+    }
+    .slot-box.is-gcal-busy {
+      background: #eff6ff;
+      border: 1.5px dashed #3b82f6;
+    }
+    .booked-top-tags {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 7px;
+    }
+    .booked-ai-tag {
+      background: #4f46e5;
+      color: #ffffff;
+      font-size: 0.74rem;
+      font-weight: 800;
       padding: 3px 8px;
       border-radius: 6px;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      color: #1e293b;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
-    .tech-mini-pill.busy-pill {
-      background: #fee2e2;
-      border-color: #fca5a5;
+    .booked-ai-tag.emerg-ai-tag {
+      background: #dc2626;
+      color: #ffffff;
+    }
+    .booked-manual-tag {
+      background: #334155;
+      color: #ffffff;
+      font-size: 0.74rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .dep-pill {
+      font-size: 0.73rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+    .dep-paid {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+    }
+    .dep-pending {
+      background: #fef3c7;
+      color: #b45309;
+      border: 1px solid #fde68a;
+    }
+    .booked-job-title {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+    .booked-hazard-line {
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .slot-box.is-booked-emergency .booked-hazard-line {
+      background: #ffe4e6;
+      border-color: #fda4af;
       color: #991b1b;
     }
-    .tech-mini-pill.gcal-pill {
-      background: #dbeafe;
-      border-color: #93c5fd;
+    .booked-cust-name { font-size: 0.88rem; font-weight: 800; margin-bottom: 3px; color: var(--text-main); }
+    .booked-cust-meta { font-size: 0.82rem; line-height: 1.4; color: var(--text-body); }
+    .match-logic-badge {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #cbd5e1;
+      padding: 2px 6px;
+      border-radius: 5px;
+      color: #1e293b;
+    }
+
+    /* AVATAR CHIPS & MATCHING LOGIC PER WINDOW */
+    .tech-chip-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .tech-chip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      padding: 4px 7px;
+      font-size: 0.78rem;
+    }
+    .tech-chip.busy-chip {
+      background: #fff1f2;
+      border-color: #fecdd3;
+      color: #991b1b;
+    }
+    .tech-chip.gcal-chip {
+      background: #eff6ff;
+      border-color: #bfdbfe;
       color: #1e40af;
+    }
+    .chip-left {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 800;
+      color: #0f172a;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .chip-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #dbeafe;
+      color: #1e3a8a;
+      font-size: 0.66rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .tech-chip.busy-chip .chip-avatar {
+      background: #dc2626;
+      color: #ffffff;
+    }
+    .chip-role {
+      font-size: 0.68rem;
+      color: #475569;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     /* FLEET ROSTER */
@@ -1740,6 +1973,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         </div>
       </div>
 
+      <!-- DAY SWITCHER TABS FOR SINGLE-DAY OR 5-DAY VIEW -->
+      <div class="cal-day-tabs-bar" id="calDayTabsBar"></div>
+
       <div class="full-calendar-grid" id="fullCalendarGrid"></div>
     </div>
 
@@ -1894,17 +2130,26 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
   <div class="modal-overlay" id="manualBookModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>+ Manual Dispatch Booking</h3>
+        <h3>+ Dispatch &amp; Schedule Electrician</h3>
         <button class="modal-close" onclick="closeManualBookModal()">&times;</button>
       </div>
       <div>
-        <div class="form-group"><label>Select Slot:</label><select id="manualSlotSelect"></select></div>
-        <div class="form-group"><label>Customer Name:</label><input type="text" id="manualCustomerName"></div>
-        <div class="form-group"><label>Phone:</label><input type="text" id="manualCustomerPhone"></div>
-        <div class="form-group"><label>Email:</label><input type="email" id="manualCustomerEmail"></div>
-        <div class="form-group"><label>Address:</label><input type="text" id="manualCustomerAddress"></div>
-        <div class="form-group"><label>Issue Description:</label><textarea id="manualIssueDesc" rows="2"></textarea></div>
-        <button class="btn-modal-submit" onclick="submitManualBooking()">Confirm Booking</button>
+        <div class="form-group"><label>Available Window &amp; Matched Electrician:</label><select id="manualSlotSelect"></select></div>
+        <div class="form-group">
+          <label>Service / Job Type:</label>
+          <select id="manualServiceType" onchange="updateManualJobPreset()">
+            <option value="200A Main Panel Upgrade">200A Main Panel Upgrade ($3,200 Est. Job)</option>
+            <option value="EV Charger Installation">EV Charger 50A Installation ($1,450 Est. Job)</option>
+            <option value="Commercial Electrical Repair">Commercial Switchgear &amp; Lighting ($2,100 Est. Job)</option>
+            <option value="Residential Circuit Repair">Residential Breaker / Outlet Diagnostic ($650 Est. Job)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Customer Name:</label><input type="text" id="manualCustomerName" value="Elena Rostova"></div>
+        <div class="form-group"><label>Phone:</label><input type="text" id="manualCustomerPhone" value="(555) 614-8920"></div>
+        <div class="form-group"><label>Email (Syncs Google Calendar Invite):</label><input type="email" id="manualCustomerEmail" value="elena.rostova@example.com"></div>
+        <div class="form-group"><label>Service Address:</label><input type="text" id="manualCustomerAddress" value="88 Beacon Hill Rd, Boston"></div>
+        <div class="form-group"><label>Triage &amp; Scope Notes:</label><textarea id="manualIssueDesc" rows="2">200A Main Breaker Panel Upgrade — flickering lights when dryer runs; thermal check requested</textarea></div>
+        <button class="btn-modal-submit" onclick="submitManualBooking()">✓ Confirm Dispatch &amp; Sync Google Calendar</button>
       </div>
     </div>
   </div>
@@ -2516,9 +2761,10 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         animateMetricCountUp(elPipe, cardPipe, animate ? PREV_METRICS.pipeline : revenueWon, revenueWon, v => `$${v.toLocaleString()}`);
         PREV_METRICS.pipeline = revenueWon;
       } else if (pipelineBooked > 0) {
+        const liveBookingsCount = (data.bookings || []).filter(b => !b.is_demo_seed).length;
         elPipeLabel.innerText = 'Pipeline Booked (Pending Deposit)';
         elPipe.style.color = '#2563eb';
-        elPipeSub.innerText = `${bookingsCount} Booked • Moves to "Won" after deposit`;
+        elPipeSub.innerText = `${liveBookingsCount} Booked • Moves to "Won" after deposit`;
         animateMetricCountUp(elPipe, cardPipe, animate ? PREV_METRICS.pipeline : pipelineBooked, pipelineBooked, v => `$${v.toLocaleString()}`);
         PREV_METRICS.pipeline = pipelineBooked;
       } else {
@@ -2567,8 +2813,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       renderCalendar();
       renderFleetView();
 
-      if (!dispatchHero.classList.contains('active') && data.bookings && data.bookings.length > 0) {
-        const latestBooking = data.bookings[data.bookings.length - 1];
+      const sessionBookings = (data.bookings || []).filter(b => !b.is_demo_seed);
+      if (!dispatchHero.classList.contains('active') && sessionBookings.length > 0) {
+        const latestBooking = sessionBookings[sessionBookings.length - 1];
         const mode = data.last_scenario_mode || ((latestBooking.urgency_level || '').includes('EMERG') ? 'emergency' : 'routine');
         applyScenarioJourneyLabels(mode);
         if (data.last_dialogue && data.last_dialogue.length > 0 && chatStream.children.length <= 1) {
@@ -2618,6 +2865,73 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       select.value = currentVal || 'ALL';
     }
 
+    let SELECTED_CAL_DATE = 'ALL';
+
+    function selectCalendarDayTab(dateVal) {
+      SELECTED_CAL_DATE = dateVal;
+      renderCalendar();
+    }
+
+    function isSlotWindowElapsed(slotDate, winKey, todayStr) {
+      if (slotDate !== todayStr) return false;
+      const curHour = new Date().getHours();
+      if (winKey === 'morning' && curHour >= 12) return true;
+      if (winKey === 'afternoon' && curHour >= 16) return true;
+      if (winKey === 'evening' && curHour >= 19) return true;
+      return false;
+    }
+
+    function getTechAvatarAndRole(techName, techs) {
+      const clean = (techName || '').split('(')[0].trim();
+      const parts = clean.split(/\s+/);
+      const initials = ((parts[0] || 'T').charAt(0) + (parts[1] || 'E').charAt(0)).toUpperCase();
+      const shortName = parts[0] + (parts[1] ? ' ' + parts[1].charAt(0) + '.' : '');
+      const tObj = (techs || []).find(t => t.name.toLowerCase() === clean.toLowerCase());
+      let roleLabel = 'Journeyman • Panel';
+      if (clean.toLowerCase().includes('marcus')) {
+        roleLabel = 'Master • On-Call Lead';
+      } else if (clean.toLowerCase().includes('sarah')) {
+        roleLabel = 'EV & Comm. Cert.';
+      } else if (clean.toLowerCase().includes('luis')) {
+        roleLabel = 'Service • On-Call';
+      } else if (tObj && tObj.is_on_call) {
+        roleLabel = 'On-Call Tech';
+      }
+      return { initials, shortName, roleLabel, fullName: clean };
+    }
+
+    function renderBookedSlotCard(b, windowShortLabel = '') {
+      const isEmerg = (b.urgency_level || '').includes('EMERG') || (b.service_type || '').toLowerCase() === 'emergency';
+      const isPaid = b.payment_status === 'PAID_VERIFIED';
+      const isManual = (b.booked_by || '').toLowerCase().includes('manual');
+      const safeObj = JSON.stringify(b).replace(/'/g, "&#39;");
+      const techShort = (b.assigned_technician || 'Marcus Vance').split('(')[0].trim();
+
+      const sourceBadge = isManual
+        ? `<span class="booked-manual-tag">🛠️ Manual Dispatch</span>`
+        : `<span class="booked-ai-tag ${isEmerg ? 'emerg-ai-tag' : ''}">🤖 ${isEmerg ? 'Booked by Sarah AI • Code Red' : 'Booked by Sarah AI'}</span>`;
+
+      const depBadge = isPaid
+        ? `<span class="dep-pill dep-paid">✓ $${b.dispatch_fee} Paid</span>`
+        : `<span class="dep-pill dep-pending">⏳ $${b.dispatch_fee} Pending</span>`;
+
+      return `
+        <div class="slot-box ${isEmerg ? 'is-booked-emergency' : 'is-booked-routine'}" style="cursor:pointer;" onclick='selectCalendarBooking(${safeObj})'>
+          <div class="booked-top-tags">
+            ${sourceBadge}
+            ${depBadge}
+          </div>
+          <div class="booked-job-title">${b.display_title || b.service_type}</div>
+          <div class="booked-hazard-line">${b.triage_hazard_short || (isEmerg ? '🚨 Hazard: NFPA 70E Code Red (Thermal)' : '🛡️ Triage: 200A Panel Verified')}</div>
+          <div class="booked-cust-name">👤 ${b.customer_name} ${windowShortLabel ? `<span style="font-weight:600; color:#475569;">(${windowShortLabel})</span>` : ''}</div>
+          <div class="booked-cust-meta">
+            📍 ${b.service_address}<br>
+            <span class="match-logic-badge">👷 ${techShort} • ${b.tech_match_reason || 'Certified Tech'}</span>
+          </div>
+        </div>
+      `;
+    }
+
     function renderCalendar() {
       const grid = document.getElementById('fullCalendarGrid');
       if (!grid) return;
@@ -2628,19 +2942,36 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       const techs = BOARD_DATA.technicians || [];
       const filteredSlots = techFilter === 'ALL' ? slots : slots.filter(s => s.technician_id === techFilter);
 
+      const allDates = [...new Set(slots.map(s => s.date))].slice(0, 5);
+      const todayStr = allDates[0] || new Date().toISOString().slice(0, 10);
+
+      // Update Day Switcher Tabs (for Single-Day / Mobile vs 5-Day View)
+      const dayTabsEl = document.getElementById('calDayTabsBar');
+      if (dayTabsEl) {
+        let tabsHtml = `<button class="cal-day-tab ${SELECTED_CAL_DATE === 'ALL' ? 'active' : ''}" onclick="selectCalendarDayTab('ALL')">📅 All 5 Days</button>`;
+        allDates.forEach((dt, idx) => {
+          const dObj = new Date(dt + 'T12:00:00');
+          const dayShort = dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          const dayBookings = bookings.filter(b => b.slot_date === dt).length;
+          const badge = dayBookings > 0 ? ` (${dayBookings} Booked)` : '';
+          tabsHtml += `<button class="cal-day-tab ${SELECTED_CAL_DATE === dt ? 'active' : ''}" onclick="selectCalendarDayTab('${dt}')">${idx === 0 ? 'Today · ' : ''}${dayShort}${badge}</button>`;
+        });
+        dayTabsEl.innerHTML = tabsHtml;
+      }
+
       // Update Google Calendar Two-Way Sync Banner
       const gcalTitle = document.getElementById('gcalSyncStatusTitle');
       const gcalSub = document.getElementById('gcalSyncStatusSub');
       const gcalBlockedCount = slots.filter(s => s.is_blocked && (s.blocked_reason || '').includes('Google Calendar')).length;
       if (gcalTitle && gcalSub) {
         gcalTitle.innerText = `Connected: Master Dispatch + ${techs.length} Technician Google Calendars (${BOARD_DATA.gcal_last_sync || 'Two-Way Active'})`;
-        gcalSub.innerText = `${bookings.length} Outbound Dispatch${bookings.length === 1 ? '' : 'es'} Pushed to Google Calendar • ${gcalBlockedCount} External Google Calendar Busy Block${gcalBlockedCount === 1 ? '' : 's'} Imported`;
+        gcalSub.innerText = `${bookings.length} AI & Manual Dispatch${bookings.length === 1 ? '' : 'es'} Synced to Google Calendar • ${gcalBlockedCount} External Google Calendar Busy Block${gcalBlockedCount === 1 ? '' : 's'} Imported`;
       }
 
       const occEl = document.getElementById('calOccupancySummary');
       if (occEl) {
-        const openCount = filteredSlots.filter(s => s.time_window_key !== 'emergency_asap' && !s.is_booked && !s.is_blocked).length;
-        occEl.innerText = `${bookings.length} Active Dispatch${bookings.length === 1 ? '' : 'es'} • ${gcalBlockedCount} GCal Busy Block${gcalBlockedCount === 1 ? '' : 's'} • ${openCount} Open Tech Windows`;
+        const openFutureCount = filteredSlots.filter(s => s.time_window_key !== 'emergency_asap' && !s.is_booked && !s.is_blocked && !isSlotWindowElapsed(s.date, s.time_window_key, todayStr)).length;
+        occEl.innerText = `${bookings.length} Booked on Schedule • ${gcalBlockedCount} GCal Busy Block${gcalBlockedCount === 1 ? '' : 's'} • ${openFutureCount} Open Future Tech Slots`;
       }
 
       // Render Active Dispatches Live Strip at Top of Calendar
@@ -2649,7 +2980,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         if (bookings.length === 0) {
           stripEl.innerHTML = '';
         } else {
-          stripEl.innerHTML = bookings.map(b => {
+          // Put emergencies and newest session bookings first
+          const sortedBookings = [...bookings].reverse();
+          stripEl.innerHTML = sortedBookings.map(b => {
             const isEmerg = (b.urgency_level || '').includes('EMERG') || (b.service_type || '').toLowerCase() === 'emergency';
             const safeObj = JSON.stringify(b).replace(/'/g, "&#39;");
             const assignedShort = (b.assigned_technician || '').split('(')[0].trim();
@@ -2665,14 +2998,14 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
               <div class="dispatch-queue-card ${isEmerg ? 'is-emerg-queue' : ''}">
                 <div>
                   <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
-                    <span class="dq-badge">${isEmerg ? '🚨 CODE RED EMERGENCY DISPATCH' : '⚡ CONFIRMED SERVICE DISPATCH'}</span>
-                    <span style="font-weight:800; font-size:0.88rem; color:#475569;">#${b.confirmation_id}</span>
+                    <span class="dq-badge">${isEmerg ? '🚨 CODE RED EMERGENCY DISPATCH' : '🤖 BOOKED BY SARAH AI'}</span>
+                    <span style="font-weight:800; font-size:0.86rem; color:#475569;">#${b.confirmation_id}</span>
                     ${payPill}
-                    <span style="background:#dbeafe; color:#1e40af; padding:4px 10px; border-radius:6px; font-size:0.78rem; font-weight:800;">📅 Synced to Google Calendar ✓</span>
+                    <span style="background:#dbeafe; color:#1e40af; padding:4px 10px; border-radius:6px; font-size:0.78rem; font-weight:800;">📅 Google Calendar Synced ✓</span>
                   </div>
                   <div class="dq-title">${b.display_title || b.service_type} — ${b.customer_name} (${b.phone_number})</div>
                   <div class="dq-meta">
-                    📍 <strong>${b.service_address}</strong> &bull; 🕒 <strong>${b.display_window || b.slot_time}</strong> &bull; 💰 Est. Job: <strong>$${Number(b.estimated_job_value || 850).toLocaleString()}</strong>
+                    📍 <strong>${b.service_address}</strong> &bull; 🕒 <strong>${b.display_window || b.slot_time}</strong> &bull; 🛡️ <strong>${b.triage_hazard_short || 'Triage Verified'}</strong>
                   </div>
                 </div>
                 <div class="dq-actions">
@@ -2691,8 +3024,14 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         }
       }
 
-      const dates = [...new Set(slots.map(s => s.date))].slice(0, 5);
-      grid.innerHTML = dates.map((dt, dayIdx) => {
+      const visibleDates = SELECTED_CAL_DATE === 'ALL' ? allDates : allDates.filter(d => d === SELECTED_CAL_DATE);
+      grid.className = `full-calendar-grid ${visibleDates.length === 1 ? 'single-day-mode' : ''}`;
+
+      const curHour = new Date().getHours();
+      const activeEmergWinKey = curHour < 12 ? 'morning' : (curHour < 16 ? 'afternoon' : 'evening');
+
+      grid.innerHTML = visibleDates.map(dt => {
+        const dayIdx = allDates.indexOf(dt);
         const dObj = new Date(dt + 'T12:00:00');
         const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
         const dateStr = dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -2707,33 +3046,17 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           return tObj && (bk.assigned_technician || '').toLowerCase().includes(tObj.name.toLowerCase());
         });
 
-        const emergCardsHtml = dayEmergencies.map(eb => {
-          const safeObj = JSON.stringify(eb).replace(/'/g, "&#39;");
-          const techShort = (eb.assigned_technician || 'Marcus Vance').split('(')[0].trim();
-          return `
-            <div class="slot-box is-booked-emergency" style="cursor:pointer;" onclick='selectCalendarBooking(${safeObj})'>
-              <div class="slot-time-header">
-                <span style="color:#dc2626;">🚨 CODE RED (45–60m)</span>
-                <span style="background:#dc2626; color:#fff; padding:2px 7px; border-radius:4px; font-size:0.74rem;">DISPATCHED</span>
-              </div>
-              <div class="booked-cust-name">${eb.customer_name}</div>
-              <div class="booked-cust-meta">
-                <strong>${eb.display_title || 'Electrical Emergency'}</strong><br>
-                📍 ${eb.service_address}<br>
-                👷 Tech: <strong>${techShort}</strong><br>
-                <span style="color:#1e40af; font-weight:800; font-size:0.78rem;">📅 Synced to Google Calendar ✓</span>
-              </div>
-            </div>
-          `;
-        }).join('');
+        const emergCardsHtml = dayEmergencies.map(eb => renderBookedSlotCard(eb, '45–60m ETA')).join('');
 
         const windows = [
-          { label: 'Morning', wKey: 'morning', key: '08:00 AM - 12:00 PM', shortTime: '8 AM - 12 PM' },
-          { label: 'Afternoon', wKey: 'afternoon', key: '12:00 PM - 04:00 PM', shortTime: '12 PM - 4 PM' },
-          { label: 'Evening', wKey: 'evening', key: '04:00 PM - 07:00 PM', shortTime: '4 PM - 7 PM' }
+          { label: 'Morning · 8–12', wKey: 'morning', key: '08:00 AM - 12:00 PM', fullRange: '8:00 AM – 12:00 PM' },
+          { label: 'Afternoon · 12–4', wKey: 'afternoon', key: '12:00 PM - 04:00 PM', fullRange: '12:00 PM – 4:00 PM' },
+          { label: 'Evening · 4–7', wKey: 'evening', key: '04:00 PM - 07:00 PM', fullRange: '4:00 PM – 7:00 PM' }
         ];
 
         const slotsHtml = windows.map(w => {
+          const isElapsed = isSlotWindowElapsed(dt, w.wKey, todayStr);
+
           // Find routine bookings in this window
           const winBookings = bookings.filter(bk => {
             const isEm = (bk.urgency_level || '').includes('EMERG') || (bk.slot_time || '').toLowerCase().includes('45-60') || (bk.service_type || '').toLowerCase() === 'emergency';
@@ -2748,29 +3071,25 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           const windowSlots = filteredSlots.filter(s => s.date === dt && s.time_window_key === w.wKey);
           const gcalBusySlots = windowSlots.filter(s => s.is_blocked && (s.blocked_reason || '').includes('Google Calendar'));
           const manualBlockedSlots = windowSlots.filter(s => s.is_blocked && !(s.blocked_reason || '').includes('Google Calendar'));
-          const openWindowSlots = windowSlots.filter(s => !s.is_booked && !s.is_blocked);
+
+          // Check which techs are occupied by an emergency during this active window
+          const emergTechNamesInWin = (w.wKey === activeEmergWinKey)
+            ? dayEmergencies.map(eb => (eb.assigned_technician || '').split('(')[0].trim().toLowerCase())
+            : [];
+          const routineTechNamesInWin = winBookings.map(rb => (rb.assigned_technician || '').split('(')[0].trim().toLowerCase());
+
+          const openWindowSlots = windowSlots.filter(s => {
+            const sTechLower = s.technician_name.split('(')[0].trim().toLowerCase();
+            if (s.is_booked || s.is_blocked) return false;
+            if (emergTechNamesInWin.includes(sTechLower) || routineTechNamesInWin.includes(sTechLower)) return false;
+            return true;
+          });
 
           let cards = [];
 
-          // Render routine booked cards in this window
+          // Render routine booked cards in this window using the rich Booked by Sarah AI card design
           winBookings.forEach(b => {
-            const safeObj = JSON.stringify(b).replace(/'/g, "&#39;");
-            const techShort = (b.assigned_technician || '').split('(')[0].trim();
-            cards.push(`
-              <div class="slot-box is-booked-routine" style="cursor:pointer;" onclick='selectCalendarBooking(${safeObj})'>
-                <div class="slot-time-header">
-                  <span style="color:#15803d;">⚡ ${w.label} (${w.shortTime})</span>
-                  <span style="background:#16a34a; color:#fff; padding:2px 7px; border-radius:4px; font-size:0.74rem;">BOOKED</span>
-                </div>
-                <div class="booked-cust-name">${b.customer_name}</div>
-                <div class="booked-cust-meta">
-                  <strong>${b.display_title || b.service_type}</strong><br>
-                  📍 ${b.service_address}<br>
-                  👷 Tech: <strong>${techShort}</strong><br>
-                  <span style="color:#1e40af; font-weight:800; font-size:0.78rem;">📅 Synced to Google Calendar ✓</span>
-                </div>
-              </div>
-            `);
+            cards.push(renderBookedSlotCard(b, w.label));
           });
 
           // Render Google Calendar Busy blocks imported via Two-Way Sync
@@ -2778,42 +3097,82 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             cards.push(`
               <div class="slot-box is-gcal-busy">
                 <div class="slot-time-header">
-                  <span style="color:#1e40af;">📅 ${w.label} (${w.shortTime})</span>
-                  <span style="background:#2563eb; color:#fff; padding:2px 7px; border-radius:4px; font-size:0.72rem;">GCAL BUSY</span>
+                  <span style="color:#1e40af;">${w.label}</span>
+                  <span class="status-pill" style="background:#dbeafe; color:#1e40af; border:1px solid #93c5fd;">📅 GCal Busy</span>
                 </div>
-                <div class="booked-cust-name" style="font-size:0.9rem; color:#1e3a8a;">${(gs.blocked_reason || 'Google Calendar Event').replace('📅 Google Calendar Busy: ', '')}</div>
+                <div class="booked-job-title" style="color:#1e3a8a;">${(gs.blocked_reason || 'Google Calendar Event').replace('📅 Google Calendar Busy: ', '')}</div>
                 <div class="booked-cust-meta">
-                  👷 Tech: <strong>${gs.technician_name}</strong> (Blocked via GCal)<br>
-                  <button class="btn-slot-act btn-slot-block" style="margin-top:6px;" onclick="toggleBlockSlot('${gs.slot_id}')">Clear Busy Block</button>
+                  👷 Tech: <strong>${gs.technician_name}</strong> (Synced via GCal)<br>
+                  <button class="btn-slot-act btn-slot-block" style="margin-top:6px;" onclick="toggleBlockSlot('${gs.slot_id}')">Restore availability</button>
                 </div>
               </div>
             `);
           });
 
-          // Render Open / Multi-Tech Availability box for remaining slots in this window
-          if (openWindowSlots.length > 0) {
+          // 1. ELAPSED WINDOW ON TODAY: Gray out and remove + Book button!
+          if (isElapsed && cards.length === 0) {
+            return `
+              <div class="slot-box is-elapsed-slot">
+                <div class="slot-time-header">
+                  <span>${w.label}</span>
+                  <span class="status-pill pill-elapsed">⏳ Elapsed</span>
+                </div>
+                <div style="font-size:0.8rem; color:#64748b; font-weight:600; line-height:1.35;">
+                  ${w.fullRange} window has passed for today. Booking closed.
+                </div>
+              </div>
+            `;
+          }
+
+          // 2. FUTURE / ACTIVE WINDOW CAPACITY CARD ("3 of 4 Techs Open" with Avatar Chips & Matching Logic)
+          if (openWindowSlots.length > 0 && !isElapsed) {
             const primarySlot = openWindowSlots[0];
-            const techPills = windowSlots.map(ws => {
-              const shortName = ws.technician_name.split(' ')[0] + ' ' + (ws.technician_name.split(' ')[1] || '').charAt(0) + '.';
+            const totalTechsInWin = windowSlots.length;
+            const techRowsHtml = windowSlots.map(ws => {
+              const info = getTechAvatarAndRole(ws.technician_name, techs);
+              const sTechLower = info.fullName.toLowerCase();
               if (ws.is_blocked && (ws.blocked_reason || '').includes('Google Calendar')) {
-                return `<span class="tech-mini-pill gcal-pill" title="${ws.blocked_reason}">📅 ${shortName} (GCal)</span>`;
+                return `
+                  <div class="tech-chip gcal-chip" title="${ws.blocked_reason}">
+                    <span class="chip-left"><span class="chip-avatar">${info.initials}</span><span>${info.shortName}</span></span>
+                    <span class="chip-role" style="color:#1e40af;">📅 GCal Busy</span>
+                  </div>
+                `;
               }
-              if (ws.is_booked || ws.is_blocked) {
-                return `<span class="tech-mini-pill busy-pill">🔴 ${shortName} ( Dispatched )</span>`;
+              if (emergTechNamesInWin.includes(sTechLower)) {
+                return `
+                  <div class="tech-chip busy-chip">
+                    <span class="chip-left"><span class="chip-avatar">${info.initials}</span><span>${info.shortName}</span></span>
+                    <span class="chip-role" style="color:#b91c1c;">🚨 Dispatched (45m)</span>
+                  </div>
+                `;
               }
-              return `<span class="tech-mini-pill">🟢 ${shortName}</span>`;
+              if (ws.is_booked || ws.is_blocked || routineTechNamesInWin.includes(sTechLower)) {
+                return `
+                  <div class="tech-chip busy-chip">
+                    <span class="chip-left"><span class="chip-avatar">${info.initials}</span><span>${info.shortName}</span></span>
+                    <span class="chip-role" style="color:#b91c1c;">🔴 Booked</span>
+                  </div>
+                `;
+              }
+              return `
+                <div class="tech-chip">
+                  <span class="chip-left"><span class="chip-avatar">${info.initials}</span><span>${info.shortName}</span></span>
+                  <span class="chip-role">${info.roleLabel}</span>
+                </div>
+              `;
             }).join('');
 
             cards.push(`
               <div class="slot-box">
                 <div class="slot-time-header">
-                  <span>${w.label} (${w.shortTime})</span>
-                  <span style="color:#16a34a;">${openWindowSlots.length} TECH${openWindowSlots.length === 1 ? '' : 'S'} OPEN</span>
+                  <span>${w.label}</span>
+                  <span class="status-pill pill-open">● ${openWindowSlots.length} of ${totalTechsInWin} Techs Open</span>
                 </div>
-                <div class="tech-avail-pills">${techPills}</div>
+                <div class="tech-chip-list">${techRowsHtml}</div>
                 <div class="slot-actions">
-                  <button class="btn-slot-act btn-slot-book" onclick="openManualBookModal('${primarySlot.slot_id}')">+ Book Tech</button>
-                  <button class="btn-slot-act btn-slot-block" onclick="toggleBlockSlot('${primarySlot.slot_id}')">Block</button>
+                  <button class="btn-slot-act btn-slot-book" onclick="openManualBookModal('${primarySlot.slot_id}')">+ Book</button>
+                  <button class="btn-slot-act btn-slot-block" onclick="toggleBlockSlot('${primarySlot.slot_id}')">Mark unavailable</button>
                 </div>
               </div>
             `);
@@ -2821,9 +3180,12 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             const bs = manualBlockedSlots[0];
             cards.push(`
               <div class="slot-box">
-                <div class="slot-time-header"><span>${w.label}</span><span style="color:#64748b;">BLOCKED</span></div>
-                <div class="slot-tech-avail">${bs.blocked_reason || 'Unavailable / Off-Duty'}</div>
-                <button class="btn-slot-act btn-slot-block" onclick="toggleBlockSlot('${bs.slot_id}')">Unblock</button>
+                <div class="slot-time-header">
+                  <span>${w.label}</span>
+                  <span class="status-pill pill-blocked">⛔ Unavailable</span>
+                </div>
+                <div class="slot-tech-avail">${bs.blocked_reason || 'Marked Unavailable / Off-Duty'}</div>
+                <button class="btn-slot-act btn-slot-block" onclick="toggleBlockSlot('${bs.slot_id}')">Restore availability</button>
               </div>
             `);
           }
@@ -2835,7 +3197,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           <div class="cal-col ${dayEmergencies.length > 0 ? 'has-emergency-col' : ''}">
             <div class="cal-col-header">
               <div class="cal-col-day">${dayLabel}</div>
-              <div class="cal-col-sub">${dateStr} ${dayEmergencies.length > 0 ? '• 🚨 CODE RED' : ''}</div>
+              <div class="cal-col-sub">${dateStr} ${dayEmergencies.length > 0 ? '• 🚨 CODE RED ACTIVE' : ''}</div>
             </div>
             <div class="cal-col-body">
               ${emergCardsHtml}
@@ -2858,11 +3220,13 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       const techs = BOARD_DATA.technicians || [];
       const slots = BOARD_DATA.slots || [];
       const bookings = BOARD_DATA.bookings || [];
+      const allDates = [...new Set(slots.map(s => s.date))];
+      const todayStr = allDates[0] || new Date().toISOString().slice(0, 10);
 
       document.getElementById('kpiFleetTotal').innerText = techs.length;
       const onCallTech = techs.find(t => t.is_on_call);
       document.getElementById('kpiFleetOnCall').innerText = onCallTech ? onCallTech.name : 'None';
-      document.getElementById('kpiFleetOpenSlots').innerText = slots.filter(s => s.time_window_key !== 'emergency_asap' && !s.is_booked && !s.is_blocked).length;
+      document.getElementById('kpiFleetOpenSlots').innerText = slots.filter(s => s.time_window_key !== 'emergency_asap' && !s.is_booked && !s.is_blocked && !isSlotWindowElapsed(s.date, s.time_window_key, todayStr)).length;
       document.getElementById('kpiFleetBookedJobs').innerText = bookings.length;
 
       grid.innerHTML = techs.map(t => {
@@ -2886,7 +3250,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           return `
             <div class="tech-active-job-box ${isEm ? '' : 'routine-job'}">
               <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; margin-bottom:3px;">
-                <span>${isEm ? '🚨 CODE RED DISPATCH' : '⚡ SCHEDULED DISPATCH'} (#${tb.confirmation_id})</span>
+                <span>${isEm ? '🚨 CODE RED DISPATCH' : '🤖 BOOKED BY SARAH AI'} (#${tb.confirmation_id})</span>
                 <span style="font-size:0.78rem;">${tb.display_window || tb.slot_time}</span>
               </div>
               <div><strong>${tb.display_title || tb.service_type}</strong> — ${tb.customer_name}</div>
@@ -3043,11 +3407,37 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       await fetchBoardData();
     }
 
+    function updateManualJobPreset() {
+      const st = document.getElementById('manualServiceType').value;
+      const descEl = document.getElementById('manualIssueDesc');
+      if (st.includes('Panel')) {
+        descEl.value = '200A Main Breaker Panel Upgrade — flickering lights when dryer runs; thermal check requested';
+      } else if (st.includes('EV')) {
+        descEl.value = '50A NEMA 14-50 / Level 2 EV Charger installation in attached garage (200A service)';
+      } else if (st.includes('Commercial')) {
+        descEl.value = 'Commercial 3-phase subpanel & warehouse high-bay LED circuit troubleshooting';
+      } else {
+        descEl.value = 'Kitchen GFCI circuit tripping intermittently; diagnostic and receptacle replacement';
+      }
+    }
+
     function openManualBookModal(preselectedSlotId = '') {
       const select = document.getElementById('manualSlotSelect');
-      const slots = (BOARD_DATA.slots || []).filter(s => !s.is_booked && !s.is_blocked);
-      select.innerHTML = slots.map(s => `<option value="${s.slot_id}">${s.date} - ${s.time_window} (${s.technician_name})</option>`).join('');
+      const allSlots = BOARD_DATA.slots || [];
+      const allDates = [...new Set(allSlots.map(s => s.date))];
+      const todayStr = allDates[0] || new Date().toISOString().slice(0, 10);
+
+      const slots = allSlots.filter(s => s.time_window_key !== 'emergency_asap' && !s.is_booked && !s.is_blocked && !isSlotWindowElapsed(s.date, s.time_window_key, todayStr));
+      select.innerHTML = slots.map(s => `<option value="${s.slot_id}">${s.date} • ${s.time_window} — 👷 ${s.technician_name}</option>`).join('');
       if (preselectedSlotId) select.value = preselectedSlotId;
+
+      if (!document.getElementById('manualCustomerName').value.trim()) {
+        document.getElementById('manualCustomerName').value = 'Elena Rostova';
+        document.getElementById('manualCustomerPhone').value = '(555) 614-8920';
+        document.getElementById('manualCustomerEmail').value = 'elena.rostova@example.com';
+        document.getElementById('manualCustomerAddress').value = '88 Beacon Hill Rd, Boston';
+        updateManualJobPreset();
+      }
       document.getElementById('manualBookModal').classList.add('active');
     }
     function closeManualBookModal() { document.getElementById('manualBookModal').classList.remove('active'); }
@@ -3055,6 +3445,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     async function submitManualBooking() {
       const payload = {
         slot_id: document.getElementById('manualSlotSelect').value,
+        service_type: document.getElementById('manualServiceType').value,
         customer_name: document.getElementById('manualCustomerName').value.trim(),
         phone_number: document.getElementById('manualCustomerPhone').value.trim(),
         customer_email: document.getElementById('manualCustomerEmail').value.trim(),
@@ -3409,6 +3800,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 service_address=req_data.get("service_address", "Customer Address").strip(),
                 issue_description=req_data.get("issue_description", "Electrical service call").strip(),
                 customer_email=req_data.get("customer_email", "").strip() or None,
+                service_type=req_data.get("service_type", "200A Main Panel Upgrade").strip(),
             )
             if booking:
                 self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
@@ -3421,8 +3813,10 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             booking_dict = None
             if ACTIVE_SESSION.active_booking:
                 booking_dict = enrich_booking_dict(ACTIVE_SESSION.active_booking)
-            elif DB.bookings:
-                booking_dict = enrich_booking_dict(list(DB.bookings.values())[-1])
+            else:
+                live_bookings = [b for b in DB.bookings.values() if not getattr(b, "is_demo_seed", False)]
+                if live_bookings:
+                    booking_dict = enrich_booking_dict(live_bookings[-1])
             self._send_json({
                 "status": "SUCCESS",
                 "response": sarah_response,
@@ -3458,7 +3852,8 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 dialogue.append({"speaker": "Sarah (ZeroMiss AI)", "text": t2_sarah, "isSarah": True})
 
             LAST_DIALOGUE = dialogue
-            booking_dict = enrich_booking_dict(list(DB.bookings.values())[-1], scenario_hint=scenario) if DB.bookings else None
+            live_bookings = [b for b in DB.bookings.values() if not getattr(b, "is_demo_seed", False)]
+            booking_dict = enrich_booking_dict(live_bookings[-1], scenario_hint=scenario) if live_bookings else None
             self._send_json({
                 "status": "SUCCESS",
                 "scenario": scenario,

@@ -210,6 +210,47 @@ class DispatchDatabase:
                         )
                         self.calendar_slots[s_id] = slot
 
+            # Seed 2 baseline "Booked by Sarah AI" cards on Tomorrow so the calendar never looks empty
+            # (Flagged with is_demo_seed=True so Tab 1 session KPIs still start at $0.00 until user tests a call)
+            d_tom = (today + timedelta(days=1)).strftime("%Y-%m-%d")
+            d_day2 = (today + timedelta(days=2)).strftime("%Y-%m-%d")
+            b1 = self.book_slot(
+                customer_name="Rachel Green",
+                phone_number="(555) 741-3902",
+                service_address="114 Commonwealth Ave, Boston",
+                slot_date=d_tom,
+                slot_time="08:00 AM - 12:00 PM",
+                issue_description="Tesla Wall Connector 50A Dedicated Circuit (200A Panel Verified)",
+                service_type="EV Charger Installation",
+                urgency_level=UrgencyLevel.STANDARD,
+                assigned_technician="Sarah Chen (EV & Commercial Specialist)",
+                dispatch_fee=89.0,
+                notes="Autonomous 3-second missed-call SMS recovery booking.",
+                customer_email="rachel.green@example.com",
+                booked_by="Booked by Sarah AI • 3s SMS Recovery",
+                tech_match_reason="EV Certified • 240V Load Specialist",
+                is_demo_seed=True,
+            )
+            b1.payment_status = "PAID_VERIFIED"
+
+            self.book_slot(
+                customer_name="Tom Haverford",
+                phone_number="(555) 892-4410",
+                service_address="28 Newbury St, Suite 2B, Boston",
+                slot_date=d_day2,
+                slot_time="12:00 PM - 04:00 PM",
+                issue_description="200A Main Breaker Panel Upgrade — flickering lights under load",
+                service_type="200A Main Panel Upgrade",
+                urgency_level=UrgencyLevel.URGENT,
+                assigned_technician="Dave Miller (Journeyman Electrician)",
+                dispatch_fee=89.0,
+                notes="Inbound voice triage & panel capacity verification by Sarah AI.",
+                customer_email="tom.haverford@example.com",
+                booked_by="Booked by Sarah AI • Voice Triage",
+                tech_match_reason="Journeyman • Panel & Load Balancing",
+                is_demo_seed=True,
+            )
+
     def add_technician(
         self,
         name: str,
@@ -319,6 +360,20 @@ class DispatchDatabase:
             slot.is_booked = slot.is_blocked
             return slot
 
+    def _is_window_elapsed(self, slot_date: str, window_key: str) -> bool:
+        """Returns True if the slot date is today and the time window has already passed."""
+        today_str = datetime.now().date().strftime("%Y-%m-%d")
+        if slot_date != today_str:
+            return False
+        cur_hour = datetime.now().hour
+        if window_key == "morning" and cur_hour >= 12:
+            return True
+        if window_key == "afternoon" and cur_hour >= 16:
+            return True
+        if window_key == "evening" and cur_hour >= 19:
+            return True
+        return False
+
     def manual_book_slot(
         self,
         slot_id: str,
@@ -326,7 +381,7 @@ class DispatchDatabase:
         phone_number: str,
         service_address: str,
         issue_description: str,
-        service_type: str = "repair",
+        service_type: str = "200A Panel / Circuit Service",
         customer_email: Optional[str] = None,
     ) -> Optional[ServiceBooking]:
         """Manually books an available slot directly from the visual calendar interface."""
@@ -335,6 +390,8 @@ class DispatchDatabase:
                 return None
             slot = self.calendar_slots[slot_id]
             if slot.is_booked and not getattr(slot, "is_blocked", False):
+                return None
+            if self._is_window_elapsed(slot.date, slot.time_window_key):
                 return None
 
             booking = self.book_slot(
@@ -350,6 +407,7 @@ class DispatchDatabase:
                 dispatch_fee=89.0,
                 notes=f"Manual booking via Dispatch Board for {slot.date}",
                 customer_email=customer_email,
+                booked_by="Manual Dispatcher Entry",
             )
             slot.is_booked = True
             slot.is_blocked = False
@@ -414,7 +472,7 @@ class DispatchDatabase:
         service_category: Optional[str] = None,
         limit: int = 5,
     ) -> List[CalendarSlot]:
-        """Queries available slots with flexible matching."""
+        """Queries available slots with flexible matching, automatically skipping elapsed windows."""
         with self._lock:
             matches = []
             for slot in self.calendar_slots.values():
@@ -427,15 +485,16 @@ class DispatchDatabase:
                     if slot.time_window_key != "emergency_asap":
                         continue
                 else:
-                    # Routine and standard requests should NEVER return emergency slots
+                    # Routine and standard requests should NEVER return emergency or elapsed slots
                     if slot.time_window_key == "emergency_asap":
+                        continue
+                    if self._is_window_elapsed(slot.date, slot.time_window_key):
                         continue
                     if time_window_key and time_window_key != "any" and slot.time_window_key != time_window_key:
                         continue
 
                 if service_category:
                     cat_clean = service_category.lower().strip()
-                    # Allow general match if technician covers it or category is generic
                     if (
                         cat_clean not in ["general", "electrical", "repair"]
                         and cat_clean not in slot.service_categories
@@ -460,6 +519,9 @@ class DispatchDatabase:
         dispatch_fee: float = 89.0,
         notes: Optional[str] = None,
         customer_email: Optional[str] = None,
+        booked_by: str = "Booked by Sarah AI",
+        tech_match_reason: Optional[str] = None,
+        is_demo_seed: bool = False,
     ) -> ServiceBooking:
         """Creates and records a confirmed service booking."""
         with self._lock:
@@ -484,6 +546,20 @@ class DispatchDatabase:
 
             tech_short = tech_name.split("(")[0].strip().lower()
 
+            if not tech_match_reason:
+                if urgency_level == UrgencyLevel.EMERGENCY_CRITICAL or "marcus" in tech_short:
+                    tech_match_reason = "Master Electrician • 24/7 On-Call Lead • Nearest (14m)"
+                elif "sarah" in tech_short:
+                    tech_match_reason = "EV & Commercial Certified • 240V Load Specialist"
+                elif "luis" in tech_short:
+                    tech_match_reason = "Service Electrician • On-Call Shift"
+                else:
+                    tech_match_reason = "Licensed Journeyman • Residential Diagnostics"
+
+            # Determine active current window for immediate emergency dispatch
+            cur_hour = datetime.now().hour
+            active_emerg_win = "morning" if cur_hour < 12 else ("afternoon" if cur_hour < 16 else "evening")
+
             # Mark matching slot as booked for the assigned technician
             for slot in self.calendar_slots.values():
                 if slot.date == slot_date:
@@ -492,7 +568,7 @@ class DispatchDatabase:
                         if slot.time_window_key == "emergency_asap":
                             slot.is_booked = True
                             slot.booking_id = confirmation_id
-                        elif slot_tech_short == tech_short and slot.time_window_key == "morning":
+                        elif slot_tech_short == tech_short and slot.time_window_key == active_emerg_win:
                             slot.is_booked = True
                             slot.booking_id = confirmation_id
                     else:
@@ -541,6 +617,9 @@ class DispatchDatabase:
                 payment_status="PENDING_AUTHORIZATION",
                 stripe_payment_link=stripe_url,
                 estimated_job_value=est_val,
+                booked_by=booked_by,
+                tech_match_reason=tech_match_reason,
+                is_demo_seed=is_demo_seed,
             )
 
             # 1. ALWAYS synchronize dispatch to Electrical Contractor (Sean Glenn: sean.glenn21@gmail.com)
@@ -834,20 +913,21 @@ class DispatchDatabase:
                     "avg_answer_time_sec": 0.8,
                 }
 
-            # Live Session: 100% Mathematically Real (Starts strictly at $0.00)
-            active_pipeline = sum(getattr(b, "estimated_job_value", 0.0) for b in self.bookings.values())
+            # Live Session: 100% Mathematically Real (Starts strictly at $0.00 for new session calls)
+            session_bookings = [b for b in self.bookings.values() if not getattr(b, "is_demo_seed", False)]
+            active_pipeline = sum(getattr(b, "estimated_job_value", 0.0) for b in session_bookings)
             revenue_won = sum(
                 getattr(b, "estimated_job_value", 0.0)
-                for b in self.bookings.values()
+                for b in session_bookings
                 if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "PAID_VERIFIED"
             )
             fees_collected = sum(
-                b.dispatch_fee for b in self.bookings.values()
+                b.dispatch_fee for b in session_bookings
                 if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "PAID_VERIFIED"
             )
-            emergency_count = sum(1 for b in self.bookings.values() if b.urgency_level == UrgencyLevel.EMERGENCY_CRITICAL)
-            routine_count = len(self.bookings) - emergency_count
-            paid_count = sum(1 for b in self.bookings.values() if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "PAID_VERIFIED")
+            emergency_count = sum(1 for b in session_bookings if b.urgency_level == UrgencyLevel.EMERGENCY_CRITICAL)
+            routine_count = len(session_bookings) - emergency_count
+            paid_count = sum(1 for b in session_bookings if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "PAID_VERIFIED")
 
             converted_mc = [mc for mc in self.missed_calls.values() if mc.get("status") == "RECOUPED_WON"]
             unconverted_mc = [mc for mc in self.missed_calls.values() if mc.get("status") != "RECOUPED_WON"]
@@ -861,7 +941,7 @@ class DispatchDatabase:
             )
             total_pipeline = active_pipeline + orphan_recouped_rev
 
-            no_show_pct = (paid_count / len(self.bookings) * 100.0) if len(self.bookings) > 0 else 100.0
+            no_show_pct = (paid_count / len(session_bookings) * 100.0) if len(session_bookings) > 0 else 100.0
 
             return {
                 "is_benchmark": False,
@@ -869,7 +949,8 @@ class DispatchDatabase:
                 "total_pipeline_revenue": total_pipeline,
                 "revenue_won": revenue_won,
                 "fees_collected": fees_collected,
-                "total_bookings": len(self.bookings),
+                "total_bookings": len(session_bookings),
+                "calendar_bookings_count": len(self.bookings),
                 "emergency_count": emergency_count,
                 "routine_count": routine_count,
                 "paid_count": paid_count,
