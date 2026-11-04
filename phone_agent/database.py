@@ -127,6 +127,7 @@ class DispatchDatabase:
                     is_on_call=True,
                     specialties=["emergency", "panel_upgrade", "commercial_repair", "high_voltage"],
                     rating=4.98,
+                    truck_id="TRUCK-01 (Master Emergency Van)",
                 ),
                 Technician(
                     technician_id="TECH-02",
@@ -136,6 +137,7 @@ class DispatchDatabase:
                     is_on_call=False,
                     specialties=["residential_repair", "lighting", "remodeling", "fans"],
                     rating=4.92,
+                    truck_id="TRUCK-02 (200A Panel & Service Rig)",
                 ),
                 Technician(
                     technician_id="TECH-03",
@@ -145,6 +147,7 @@ class DispatchDatabase:
                     is_on_call=False,
                     specialties=["ev_charger", "commercial_repair", "generator", "panel_upgrade"],
                     rating=4.96,
+                    truck_id="TRUCK-03 (EV & Commercial Van)",
                 ),
                 Technician(
                     technician_id="TECH-04",
@@ -154,6 +157,7 @@ class DispatchDatabase:
                     is_on_call=True,
                     specialties=["residential_repair", "emergency", "inspection", "lighting"],
                     rating=4.89,
+                    truck_id="TRUCK-04 (Rapid Response Van)",
                 ),
             ]
             for t in tech_roster:
@@ -259,10 +263,13 @@ class DispatchDatabase:
         is_on_call: bool = False,
         specialties: Optional[List[str]] = None,
         rating: float = 4.95,
+        truck_id: Optional[str] = None,
     ) -> Technician:
         """Adds a new technician to the fleet and seeds their upcoming calendar slots."""
         with self._lock:
-            tid = f"TECH-{len(self.technicians) + 1:02d}"
+            num = len(self.technicians) + 1
+            tid = f"TECH-{num:02d}"
+            default_truck = f"TRUCK-{num:02d} (Service Van)"
             tech = Technician(
                 technician_id=tid,
                 name=name,
@@ -271,6 +278,7 @@ class DispatchDatabase:
                 is_on_call=is_on_call,
                 specialties=specialties or ["residential_repair", "lighting", "remodeling"],
                 rating=rating,
+                truck_id=(truck_id or "").strip() or default_truck,
             )
             self.technicians[tid] = tech
 
@@ -305,6 +313,7 @@ class DispatchDatabase:
         is_on_call: bool,
         specialties: Optional[List[str]] = None,
         rating: float = 4.95,
+        truck_id: Optional[str] = None,
     ) -> Optional[Technician]:
         """Updates technician details and propagates changes to their unbooked calendar slots."""
         with self._lock:
@@ -318,6 +327,8 @@ class DispatchDatabase:
             if specialties is not None:
                 tech.specialties = specialties
             tech.rating = rating
+            if truck_id is not None and truck_id.strip():
+                tech.truck_id = truck_id.strip()
 
             for slot in self.calendar_slots.values():
                 if slot.technician_id == technician_id and not slot.is_booked:
@@ -598,6 +609,13 @@ class DispatchDatabase:
 
             stripe_url = f"https://pay.zeromissdispatch.com/{confirmation_id.lower()}"
 
+            # Resolve assigned truck_id from the matched technician in the roster
+            matched_truck = "TRUCK-01 (Master Emergency Van)"
+            for t_obj in self.technicians.values():
+                if t_obj.name.lower() == tech_short:
+                    matched_truck = getattr(t_obj, "truck_id", matched_truck)
+                    break
+
             booking = ServiceBooking(
                 confirmation_id=confirmation_id,
                 customer_name=customer_name,
@@ -620,6 +638,7 @@ class DispatchDatabase:
                 booked_by=booked_by,
                 tech_match_reason=tech_match_reason,
                 is_demo_seed=is_demo_seed,
+                truck_id=matched_truck,
             )
 
             # 1. ALWAYS synchronize dispatch to Electrical Contractor (Sean Glenn: sean.glenn21@gmail.com)
@@ -719,7 +738,7 @@ class DispatchDatabase:
             return booking
 
     def reassign_booking_technician(self, confirmation_id: str, technician_id: str) -> Optional[ServiceBooking]:
-        """Reassigns an active booking to another electrician and updates calendar slots & Google Calendar link."""
+        """Reassigns an active booking to another electrician and updates calendar slots, truck_id & Google Calendar link."""
         with self._lock:
             if confirmation_id not in self.bookings or technician_id not in self.technicians:
                 return None
@@ -728,6 +747,7 @@ class DispatchDatabase:
             old_tech_short = (booking.assigned_technician or "").split("(")[0].strip().lower()
             new_tech_label = f"{new_tech.name} ({new_tech.license_type})"
             booking.assigned_technician = new_tech_label
+            booking.truck_id = getattr(new_tech, "truck_id", "TRUCK-01 (Master Emergency Van)")
 
             # Update slot occupancy for this booking
             for slot in self.calendar_slots.values():
@@ -741,17 +761,20 @@ class DispatchDatabase:
                         slot.is_booked = False
                         slot.booking_id = None
 
+            cur_hour = datetime.now().hour
+            active_emerg_win = "morning" if cur_hour < 12 else ("afternoon" if cur_hour < 16 else "evening")
+
             for slot in self.calendar_slots.values():
                 if slot.date == booking.slot_date and slot.technician_id == technician_id:
                     if booking.urgency_level == UrgencyLevel.EMERGENCY_CRITICAL:
-                        if slot.time_window_key == "morning":
+                        if slot.time_window_key == active_emerg_win:
                             slot.is_booked = True
                             slot.booking_id = confirmation_id
                     elif booking.slot_time in slot.time_window or slot.time_window_key in (booking.slot_time or "").lower():
                         slot.is_booked = True
                         slot.booking_id = confirmation_id
 
-            # Regenerate Google Calendar invite link with new technician
+            # Regenerate Google Calendar invite link with new technician & truck
             try:
                 from phone_agent.integrations.calendar_sync import CALENDAR_SYNC
                 c_info = CALENDAR_SYNC.sync_contractor_dispatch(booking)
@@ -760,7 +783,25 @@ class DispatchDatabase:
             except Exception:
                 pass
 
-            self.gcal_last_sync = f"Synced Reassignment -> {new_tech.name} ({datetime.now().strftime('%I:%M %p')})"
+            self.gcal_last_sync = f"Synced Reassignment -> {new_tech.name} • {booking.truck_id} ({datetime.now().strftime('%I:%M %p')})"
+            return booking
+
+    def update_booking_truck(self, confirmation_id: str, truck_id: str) -> Optional[ServiceBooking]:
+        """Overrides the assigned Fleet Truck / Van on an active booking and refreshes its Google Calendar link."""
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            if truck_id and truck_id.strip():
+                booking.truck_id = truck_id.strip()
+            try:
+                from phone_agent.integrations.calendar_sync import CALENDAR_SYNC
+                c_info = CALENDAR_SYNC.sync_contractor_dispatch(booking)
+                booking.contractor_calendar_link = c_info.get("contractor_calendar_link")
+                booking.google_calendar_link = booking.contractor_calendar_link
+            except Exception:
+                pass
+            self.gcal_last_sync = f"Synced Truck Update -> {booking.truck_id} ({datetime.now().strftime('%I:%M %p')})"
             return booking
 
     def sync_google_calendar_busy_blocks(self, external_ics_url: Optional[str] = None) -> Dict[str, Any]:

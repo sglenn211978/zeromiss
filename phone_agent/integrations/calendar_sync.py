@@ -365,6 +365,7 @@ class CalendarSyncService:
         dispatch_fee: float,
         urgency_level: str = "STANDARD",
         notes: Optional[str] = None,
+        truck_id: str = "TRUCK-01 (Master Emergency Van)",
     ) -> str:
         """Generates 1-click Google Calendar render link addressed directly to the contractor (Sean Glenn)."""
         start_dt, end_dt = self.parse_time_window(slot_date, slot_time)
@@ -373,7 +374,8 @@ class CalendarSyncService:
 
         is_emerg = "EMERG" in str(urgency_level).upper() or "CRITICAL" in str(urgency_level).upper()
         prefix = "🚨 EMERGENCY CODE RED" if is_emerg else "⚡ ZeroMiss Dispatch"
-        title = f"{prefix}: {customer_name} @ {service_address}"
+        truck_short = (truck_id or "TRUCK-01").split("(")[0].strip()
+        title = f"{prefix} [{truck_short}]: {customer_name} @ {service_address}"
 
         fee_info = "Free Estimate" if dispatch_fee == 0 else f"${dispatch_fee:.0f} Diagnostic Fee"
         email_str = customer_email or "Not provided by caller"
@@ -390,6 +392,7 @@ class CalendarSyncService:
             f"• Service Address: {service_address}\n\n"
             f"DISPATCH DETAILS:\n"
             f"• Electrician: {assigned_technician}\n"
+            f"• Assigned Fleet Vehicle: {truck_id}\n"
             f"• Arrival Window: {slot_date} ({slot_time})\n"
             f"• Fee Structure: {fee_info}\n"
             f"• Scope of Work: {issue_description}\n"
@@ -421,6 +424,7 @@ class CalendarSyncService:
         dispatch_fee: float,
         urgency_level: str = "STANDARD",
         notes: Optional[str] = None,
+        truck_id: str = "TRUCK-01 (Master Emergency Van)",
     ) -> Tuple[str, str]:
         """Generates RFC 5545 .ics calendar event file for the contractor."""
         start_dt, end_dt = self.parse_time_window(slot_date, slot_time)
@@ -434,6 +438,7 @@ class CalendarSyncService:
             f"Ticket: {confirmation_id}\\n"
             f"Customer: {customer_name} ({phone_number})\\n"
             f"Technician: {assigned_technician}\\n"
+            f"Fleet Truck/Van: {truck_id}\\n"
             f"Window: {slot_time}\\n"
             f"Fee: {fee_info}\\n"
             f"Scope: {issue_description}\\n"
@@ -442,7 +447,8 @@ class CalendarSyncService:
         )
 
         is_emerg = "EMERG" in str(urgency_level).upper() or "CRITICAL" in str(urgency_level).upper()
-        summary = f"{'🚨 EMERGENCY: ' if is_emerg else '⚡ ZeroMiss: '}{customer_name} - {issue_description[:25]}"
+        truck_short = (truck_id or "TRUCK-01").split("(")[0].strip()
+        summary = f"{'🚨 EMERGENCY' if is_emerg else '⚡ ZeroMiss'} [{truck_short}]: {customer_name} - {issue_description[:25]}"
 
         ics_content = (
             "BEGIN:VCALENDAR\r\n"
@@ -477,6 +483,48 @@ class CalendarSyncService:
             f.write(ics_content)
 
         return filepath, ics_content
+
+    def generate_master_feed_ics(self, bookings: list) -> str:
+        """Generates a master multi-event RFC 5545 .ics calendar feed for all active dispatches (including Truck IDs)."""
+        now_str = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M00Z")
+        lines = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//ZeroMiss Electrical//Master Fleet Dispatch Feed//EN",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "X-WR-CALNAME:ZeroMiss Fleet Dispatch Calendar",
+        ]
+        for b in bookings:
+            start_dt, end_dt = self.parse_time_window(b.slot_date, b.slot_time)
+            start_str = start_dt.strftime("%Y%m%dT%H%M00")
+            end_str = end_dt.strftime("%Y%m%dT%H%M00")
+            truck_id = getattr(b, "truck_id", "TRUCK-01 (Master Emergency Van)")
+            truck_short = (truck_id or "TRUCK-01").split("(")[0].strip()
+            urgency_val = b.urgency_level.value if hasattr(b.urgency_level, "value") else str(b.urgency_level)
+            is_emerg = "EMERG" in urgency_val.upper()
+            summary = f"{'🚨 CODE RED' if is_emerg else '⚡ Dispatch'} [{truck_short}]: {b.customer_name} ({b.assigned_technician.split('(')[0].strip()})"
+            desc = (
+                f"Work Order: #{b.confirmation_id}\\n"
+                f"Customer: {b.customer_name} ({b.phone_number})\\n"
+                f"Electrician: {b.assigned_technician}\\n"
+                f"Fleet Truck/Van: {truck_id}\\n"
+                f"Scope: {b.issue_description}"
+            )
+            lines.extend([
+                "BEGIN:VEVENT",
+                f"UID:master-{b.confirmation_id}@zeromiss.com",
+                f"DTSTAMP:{now_str}",
+                f"DTSTART:{start_str}",
+                f"DTEND:{end_str}",
+                f"SUMMARY:{summary}",
+                f"DESCRIPTION:{desc}",
+                f"LOCATION:{b.service_address}",
+                "STATUS:CONFIRMED",
+                "END:VEVENT",
+            ])
+        lines.append("END:VCALENDAR")
+        return "\r\n".join(lines) + "\r\n"
 
     def send_contractor_dispatch_alert(
         self,
@@ -681,6 +729,7 @@ class CalendarSyncService:
     def sync_contractor_dispatch(self, booking: Any) -> Dict[str, Any]:
         """Synchronizes booking details directly to the electrical contractor (Sean Glenn)."""
         urgency_val = booking.urgency_level.value if hasattr(booking.urgency_level, "value") else str(booking.urgency_level)
+        truck_id = getattr(booking, "truck_id", "TRUCK-01 (Master Emergency Van)")
 
         cal_link = self.generate_contractor_calendar_link(
             confirmation_id=booking.confirmation_id,
@@ -695,6 +744,7 @@ class CalendarSyncService:
             dispatch_fee=booking.dispatch_fee,
             urgency_level=urgency_val,
             notes=booking.notes,
+            truck_id=truck_id,
         )
 
         ics_path, _ = self.generate_contractor_ical_event(
@@ -710,6 +760,7 @@ class CalendarSyncService:
             dispatch_fee=booking.dispatch_fee,
             urgency_level=urgency_val,
             notes=booking.notes,
+            truck_id=truck_id,
         )
 
         alert_record = self.send_contractor_dispatch_alert(

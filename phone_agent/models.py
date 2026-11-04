@@ -39,6 +39,7 @@ class Technician:
     is_on_call: bool = False
     specialties: List[str] = field(default_factory=list)
     rating: float = 4.9
+    truck_id: str = "TRUCK-01 (Master Emergency Van)"
 
 
 @dataclass
@@ -91,6 +92,7 @@ class ServiceBooking:
     booked_by: str = "Booked by Sarah AI"
     tech_match_reason: str = "Certified • Nearest Available"
     is_demo_seed: bool = False
+    truck_id: str = "TRUCK-01 (Master Emergency Van)"
 
 
 @dataclass

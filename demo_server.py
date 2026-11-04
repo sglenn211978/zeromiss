@@ -135,6 +135,16 @@ def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -
     if not b.get("booked_by"):
         b["booked_by"] = "Booked by Sarah AI"
 
+    if not b.get("truck_id"):
+        if is_emerg or "marcus" in tech_str:
+            b["truck_id"] = "TRUCK-01 (Master Emergency Van)"
+        elif "sarah" in tech_str:
+            b["truck_id"] = "TRUCK-03 (EV & Commercial Van)"
+        elif "luis" in tech_str:
+            b["truck_id"] = "TRUCK-04 (Rapid Response Van)"
+        else:
+            b["truck_id"] = "TRUCK-02 (200A Panel & Service Rig)"
+
     b["display_title"] = clean_title
     b["display_window"] = clean_window
     b["triage_symptom"] = symptom
@@ -161,6 +171,7 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
 
     tech_name = b.get("assigned_technician", "Marcus Vance (Master Electrician)")
     tech_match = b.get("tech_match_reason", "Master Electrician • 24/7 On-Call Lead • Nearest (14m)")
+    truck_id = b.get("truck_id", "TRUCK-01 (Master Emergency Van)")
     arrival_win = b.get("display_window", "Today, within 45–60 min")
 
     created_raw = b.get("created_at", "")
@@ -593,7 +604,7 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
           <div class="kv"><span class="kv-k">Dispatch Match Logic:</span><span class="kv-v">{tech_match}</span></div>
           <div class="kv"><span class="kv-k">Scheduled Window:</span><span class="kv-v">{arrival_win}</span></div>
           <div class="kv"><span class="kv-k">Dispatch Status:</span><span class="kv-v">{"DISPATCHED CODE RED (45–60M ETA)" if is_emerg else "CONFIRMED ON FLEET SCHEDULE"}</span></div>
-          <div class="kv"><span class="kv-k">Truck / Route ID:</span><span class="kv-v">UNIT-01 &bull; GPS Telemetry Active</span></div>
+          <div class="kv"><span class="kv-k">Truck / Route ID:</span><span class="kv-v">🚐 {truck_id} &bull; GPS Active</span></div>
         </div>
       </div>
     </div>
@@ -2851,6 +2862,16 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         </div>
         <div class="form-group"><label>Phone:</label><input type="text" id="techPhoneInput" value="(555) 019-3321"></div>
         <div class="form-group">
+          <label>Assigned Service Truck / Van ID:</label>
+          <select id="techTruckInput">
+            <option value="TRUCK-01 (Master Emergency Van)">🚐 TRUCK-01 (Master Emergency Van)</option>
+            <option value="TRUCK-02 (200A Panel & Service Rig)">🚐 TRUCK-02 (200A Panel &amp; Service Rig)</option>
+            <option value="TRUCK-03 (EV & Commercial Van)">🚐 TRUCK-03 (EV &amp; Commercial Van)</option>
+            <option value="TRUCK-04 (Rapid Response Van)">🚐 TRUCK-04 (Rapid Response Van)</option>
+            <option value="BUCKET-05 (Aerial Boom Truck)">🚛 BUCKET-05 (Aerial Boom Truck)</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label>On-Call Status:</label>
           <select id="techOnCallInput">
             <option value="false">Standard Hours</option>
@@ -2858,7 +2879,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           </select>
         </div>
         <div class="form-group"><label>Specialties:</label><input type="text" id="techSpecsInput" value="residential_repair, lighting"></div>
-        <button class="btn-modal-submit" onclick="submitTechForm()">Save Electrician</button>
+        <button class="btn-modal-submit" onclick="submitTechForm()">Save Electrician &amp; Truck</button>
       </div>
     </div>
   </div>
@@ -2956,15 +2977,25 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
           <div class="dossier-box">
             <div class="dossier-box-title">
-              <span>👷 Fleet Dispatch &amp; Routing</span>
+              <span>👷 Fleet Dispatch, Truck &amp; Routing</span>
               <span style="color:#2563eb;">📅 GCal Synced</span>
             </div>
             <div class="dossier-kv-row"><span class="dossier-kv-label">Assigned Electrician:</span><span class="dossier-kv-val" id="dossierTechName">Marcus Vance (Master)</span></div>
             <div class="dossier-kv-row"><span class="dossier-kv-label">AI Dispatch Match:</span><span class="dossier-kv-val" id="dossierTechMatch" style="color:#4338ca;">Master • On-Call • Nearest (14m)</span></div>
             <div class="dossier-kv-row"><span class="dossier-kv-label">Arrival Window:</span><span class="dossier-kv-val" id="dossierArrivalWin">Today, within 45–60 min</span></div>
-            <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #cbd5e1; display:flex; align-items:center; justify-content:space-between; gap:8px;">
-              <span style="font-size:0.76rem; font-weight:800; color:#475569; text-transform:uppercase;">Reassign Tech:</span>
-              <select id="dossierReassignSelect" class="reassign-select" style="flex:1; padding:5px 8px; font-size:0.82rem;" onchange="reassignFromDossierModal(this.value)"></select>
+            <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #cbd5e1; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+              <span style="font-size:0.74rem; font-weight:800; color:#475569; text-transform:uppercase;">Reassign Tech:</span>
+              <select id="dossierReassignSelect" class="reassign-select" style="flex:1; padding:4px 8px; font-size:0.8rem;" onchange="reassignFromDossierModal(this.value)"></select>
+            </div>
+            <div style="margin-top:5px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+              <span style="font-size:0.74rem; font-weight:800; color:#475569; text-transform:uppercase;">Truck / Van ID:</span>
+              <select id="dossierTruckSelect" class="reassign-select" style="flex:1; padding:4px 8px; font-size:0.8rem;" onchange="updateTruckFromDossierModal(this.value)">
+                <option value="TRUCK-01 (Master Emergency Van)">🚐 TRUCK-01 (Master Emergency Van)</option>
+                <option value="TRUCK-02 (200A Panel & Service Rig)">🚐 TRUCK-02 (200A Panel &amp; Service Rig)</option>
+                <option value="TRUCK-03 (EV & Commercial Van)">🚐 TRUCK-03 (EV &amp; Commercial Van)</option>
+                <option value="TRUCK-04 (Rapid Response Van)">🚐 TRUCK-04 (Rapid Response Van)</option>
+                <option value="BUCKET-05 (Aerial Boom Truck)">🚛 BUCKET-05 (Aerial Boom Truck)</option>
+              </select>
             </div>
           </div>
         </div>
@@ -3764,6 +3795,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       const isManual = (b.booked_by || '').toLowerCase().includes('manual');
       const safeObj = JSON.stringify(b).replace(/'/g, "&#39;");
       const techShort = (b.assigned_technician || 'Marcus Vance').split('(')[0].trim();
+      const truckShort = (b.truck_id || 'TRUCK-01').split('(')[0].trim();
 
       const sourceBadge = isManual
         ? `<span class="booked-manual-tag">🛠️ Manual Dispatch</span>`
@@ -3784,7 +3816,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           <div class="booked-cust-name">👤 ${b.customer_name} ${windowShortLabel ? `<span style="font-weight:600; color:#475569;">(${windowShortLabel})</span>` : ''}</div>
           <div class="booked-cust-meta">
             📍 ${b.service_address}<br>
-            <span class="match-logic-badge">👷 ${techShort} • ${b.tech_match_reason || 'Certified Tech'}</span>
+            <span class="match-logic-badge">👷 ${techShort} • 🚐 ${truckShort}</span>
           </div>
         </div>
       `;
@@ -3844,9 +3876,11 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             const isEmerg = (b.urgency_level || '').includes('EMERG') || (b.service_type || '').toLowerCase() === 'emergency';
             const safeObj = JSON.stringify(b).replace(/'/g, "&#39;");
             const assignedShort = (b.assigned_technician || '').split('(')[0].trim();
+            const truckShort = (b.truck_id || 'TRUCK-01').split('(')[0].trim();
             const techOptions = techs.map(t => {
               const sel = assignedShort.toLowerCase() === t.name.toLowerCase() ? 'selected' : '';
-              return `<option value="${t.technician_id}" ${sel}>👷 ${t.name} (${t.license_type})</option>`;
+              const tTruckShort = (t.truck_id || 'TRUCK-01').split('(')[0].trim();
+              return `<option value="${t.technician_id}" ${sel}>👷 ${t.name} (${tTruckShort})</option>`;
             }).join('');
             const payPill = b.payment_status === 'PAID_VERIFIED'
               ? `<span style="background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:800;">✓ $${b.dispatch_fee} Deposit Paid</span>`
@@ -3858,6 +3892,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
                   <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
                     <span class="dq-badge">${isEmerg ? '🚨 CODE RED EMERGENCY DISPATCH' : '🤖 BOOKED BY SARAH AI'}</span>
                     <span style="font-weight:800; font-size:0.86rem; color:#475569;">#${b.confirmation_id}</span>
+                    <span style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; padding:4px 10px; border-radius:6px; font-size:0.78rem; font-weight:800;">🚐 ${truckShort}</span>
                     ${payPill}
                     <span style="background:#dbeafe; color:#1e40af; padding:4px 10px; border-radius:6px; font-size:0.78rem; font-weight:800;">📅 Google Calendar Synced ✓</span>
                   </div>
@@ -3868,7 +3903,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
                 </div>
                 <div class="dq-actions">
                   <div style="display:flex; flex-direction:column; gap:3px;">
-                    <span style="font-size:0.74rem; font-weight:800; color:#475569; text-transform:uppercase;">Assigned Electrician (Reassign):</span>
+                    <span style="font-size:0.74rem; font-weight:800; color:#475569; text-transform:uppercase;">Assigned Electrician &amp; Truck:</span>
                     <select class="reassign-select" onchange="reassignBookingTech('${b.confirmation_id}', this.value)">
                       ${techOptions}
                     </select>
@@ -4127,8 +4162,13 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       if (reassignSel) {
         reassignSel.innerHTML = techs.map(t => {
           const sel = t.name.toLowerCase() === assignedShort ? 'selected' : '';
-          return `<option value="${t.technician_id}" ${sel}>👷 ${t.name} (${t.license_type})</option>`;
+          const tTruckShort = (t.truck_id || 'TRUCK-01').split('(')[0].trim();
+          return `<option value="${t.technician_id}" ${sel}>👷 ${t.name} (${tTruckShort})</option>`;
         }).join('');
+      }
+      const truckSel = document.getElementById('dossierTruckSelect');
+      if (truckSel) {
+        truckSel.value = booking.truck_id || 'TRUCK-01 (Master Emergency Van)';
       }
 
       // Triage & Safety Log
@@ -4228,6 +4268,22 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       if (updated) openTicketDossierModal(updated);
     }
 
+    async function updateTruckFromDossierModal(newTruckId) {
+      if (!ACTIVE_DOSSIER_BOOKING) return;
+      const res = await fetch('/api/bookings/update-truck', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: ACTIVE_DOSSIER_BOOKING.confirmation_id, truck_id: newTruckId })
+      });
+      const data = await res.json();
+      if (data.booking) {
+        showBookingInHero(data.booking);
+      }
+      await fetchBoardData();
+      const updated = (BOARD_DATA.bookings || []).find(b => b.confirmation_id === ACTIVE_DOSSIER_BOOKING.confirmation_id);
+      if (updated) openTicketDossierModal(updated);
+    }
+
     async function authorizeDepositFromDossier() {
       if (!ACTIVE_DOSSIER_BOOKING) return;
       await payStripeDeposit(ACTIVE_DOSSIER_BOOKING.confirmation_id);
@@ -4280,10 +4336,11 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         const activeJobsHtml = techBookings.map(tb => {
           const isEm = (tb.urgency_level || '').includes('EMERG') || (tb.service_type || '').toLowerCase() === 'emergency';
           const safeBooking = JSON.stringify(tb).replace(/'/g, "&#39;");
+          const tbTruckShort = (tb.truck_id || t.truck_id || 'TRUCK-01').split('(')[0].trim();
           return `
             <div class="tech-active-job-box ${isEm ? '' : 'routine-job'}">
               <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; margin-bottom:3px;">
-                <span>${isEm ? '🚨 CODE RED DISPATCH' : '🤖 BOOKED BY SARAH AI'} (#${tb.confirmation_id})</span>
+                <span>${isEm ? '🚨 CODE RED DISPATCH' : '🤖 BOOKED BY SARAH AI'} (#${tb.confirmation_id} • 🚐 ${tbTruckShort})</span>
                 <span style="font-size:0.78rem;">${tb.display_window || tb.slot_time}</span>
               </div>
               <div><strong>${tb.display_title || tb.service_type}</strong> — ${tb.customer_name}</div>
@@ -4312,7 +4369,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
                   ${statusBadge}
                 </div>
                 <div class="tech-license">${t.license_type} &bull; ⭐ ${t.rating || 4.95}</div>
-                <div class="tech-phone">${t.phone}</div>
+                <div class="tech-phone">${t.phone} &bull; <strong style="color:#0f172a;">🚐 ${t.truck_id || 'TRUCK-01 (Master Emergency Van)'}</strong></div>
               </div>
             </div>
 
@@ -4405,6 +4462,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       document.getElementById('techModalTitle').innerText = 'Add Electrician';
       document.getElementById('techIdInput').value = '';
       document.getElementById('techNameInput').value = '';
+      document.getElementById('techTruckInput').value = 'TRUCK-05 (Spare Fleet Van)';
       document.getElementById('techModal').classList.add('active');
     }
     function openEditTechModal(tech) {
@@ -4413,6 +4471,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       document.getElementById('techNameInput').value = tech.name;
       document.getElementById('techLicenseInput').value = tech.license_type;
       document.getElementById('techPhoneInput').value = tech.phone;
+      document.getElementById('techTruckInput').value = tech.truck_id || 'TRUCK-01 (Master Emergency Van)';
       document.getElementById('techOnCallInput').value = tech.is_on_call ? 'true' : 'false';
       document.getElementById('techSpecsInput').value = (tech.specialties || []).join(', ');
       document.getElementById('techModal').classList.add('active');
@@ -4428,6 +4487,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         name,
         license_type: document.getElementById('techLicenseInput').value,
         phone: document.getElementById('techPhoneInput').value.trim(),
+        truck_id: document.getElementById('techTruckInput').value,
         is_on_call: document.getElementById('techOnCallInput').value === 'true',
         specialties: document.getElementById('techSpecsInput').value.split(',').map(s => s.trim()).filter(Boolean)
       };
@@ -4457,11 +4517,16 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     function openManualBookModal(preselectedSlotId = '') {
       const select = document.getElementById('manualSlotSelect');
       const allSlots = BOARD_DATA.slots || [];
+      const techs = BOARD_DATA.technicians || [];
       const allDates = [...new Set(allSlots.map(s => s.date))];
       const todayStr = allDates[0] || new Date().toISOString().slice(0, 10);
 
       const slots = allSlots.filter(s => s.time_window_key !== 'emergency_asap' && !s.is_booked && !s.is_blocked && !isSlotWindowElapsed(s.date, s.time_window_key, todayStr));
-      select.innerHTML = slots.map(s => `<option value="${s.slot_id}">${s.date} • ${s.time_window} — 👷 ${s.technician_name}</option>`).join('');
+      select.innerHTML = slots.map(s => {
+        const tObj = techs.find(t => t.technician_id === s.technician_id);
+        const tTruckShort = tObj && tObj.truck_id ? tObj.truck_id.split('(')[0].trim() : 'TRUCK-01';
+        return `<option value="${s.slot_id}">${s.date} • ${s.time_window} — 👷 ${s.technician_name} (🚐 ${tTruckShort})</option>`;
+      }).join('');
       if (preselectedSlotId) select.value = preselectedSlotId;
 
       if (!document.getElementById('manualCustomerName').value.trim()) {
@@ -4738,6 +4803,15 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             else:
                 self._send_json({"status": "ERROR", "message": "Booking or technician not found"}, 404)
 
+        elif parsed.path == "/api/bookings/update-truck":
+            cid = req_data.get("confirmation_id", "").strip()
+            truck_id = req_data.get("truck_id", "").strip()
+            booking = DB.update_booking_truck(cid, truck_id)
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
         elif parsed.path == "/api/calendar/gcal-sync":
             ext_url = req_data.get("external_ics_url", "").strip() or None
             sync_info = DB.sync_google_calendar_busy_blocks(ext_url)
@@ -4804,6 +4878,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 phone=req_data.get("phone", "(555) 019-0000").strip(),
                 is_on_call=bool(req_data.get("is_on_call", False)),
                 specialties=req_data.get("specialties", ["residential_repair", "lighting"]),
+                truck_id=req_data.get("truck_id", "").strip(),
             )
             self._send_json({
                 "status": "SUCCESS",
@@ -4821,6 +4896,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 req_data.get("phone", "(555) 019-0000").strip(),
                 bool(req_data.get("is_on_call", False)),
                 req_data.get("specialties", ["residential_repair"]),
+                truck_id=req_data.get("truck_id", "").strip(),
             )
             if tech:
                 self._send_json({"status": "SUCCESS", "technician": tech.__dict__})
