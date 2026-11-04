@@ -21,7 +21,7 @@ ACTIVE_AGENT = VoiceDispatchAgent()
 ACTIVE_SESSION = ACTIVE_AGENT.create_session()
 
 
-HTML_DASHBOARD = """<!DOCTYPE html>
+HTML_DASHBOARD = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
