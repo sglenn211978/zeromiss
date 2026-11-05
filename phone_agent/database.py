@@ -905,6 +905,41 @@ class DispatchDatabase:
             booking = self.bookings[confirmation_id]
             booking.payment_status = "PAID_VERIFIED"
             booking.final_balance_paid = True
+            booking.tech_workflow_stage = "COMPLETED"
+            return booking
+
+    def update_tech_workflow_stage(self, confirmation_id: str, stage: str) -> Optional[ServiceBooking]:
+        """Updates the technician's in-truck workflow stage (e.g. EN_ROUTE, ON_SITE_DIAGNOSTIC, COMPLETED)."""
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            clean_stage = (stage or "DISPATCHED").strip().upper()
+            booking.tech_workflow_stage = clean_stage
+            if clean_stage == "EN_ROUTE":
+                booking.en_route_sent = True
+            return booking
+
+    def save_diagnostic_readings(self, confirmation_id: str, readings: Dict[str, Any]) -> Optional[ServiceBooking]:
+        """Saves on-site electrical diagnostic and commissioning readings recorded by the field technician."""
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            booking.diagnostic_readings = readings or {}
+            if booking.tech_workflow_stage in ("DISPATCHED", "EN_ROUTE"):
+                booking.tech_workflow_stage = "ON_SITE_DIAGNOSTIC"
+            return booking
+
+    def sign_customer_work_authorization(self, confirmation_id: str, signer_name: str) -> Optional[ServiceBooking]:
+        """Records the customer's digital signature sign-off authorizing electrical repairs."""
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            booking.customer_signature_name = (signer_name or booking.customer_name).strip()
+            booking.customer_signature_timestamp = f"Digitally Signed by {booking.customer_signature_name} • {datetime.now().strftime('%b %d, %Y at %I:%M %p')}"
+            booking.tech_workflow_stage = "PROPOSAL_APPROVED"
             return booking
 
 

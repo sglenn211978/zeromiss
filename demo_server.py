@@ -259,6 +259,31 @@ def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -
     b["base_job_value"] = base_est_val
     b["quote_options"] = quote_options
     b["final_balance_paid"] = bool(b.get("final_balance_paid", False))
+
+    # Tech In-Truck Tablet Workflow & Diagnostics
+    stage = b.get("tech_workflow_stage") or "DISPATCHED"
+    if bool(b.get("final_balance_paid", False)):
+        stage = "COMPLETED"
+    elif b.get("customer_signature_timestamp"):
+        stage = "PROPOSAL_APPROVED"
+    elif b.get("diagnostic_readings"):
+        stage = "ON_SITE_DIAGNOSTIC"
+    elif bool(b.get("en_route_sent", False)):
+        stage = "EN_ROUTE"
+
+    default_diags = {
+        "voltage_l1_l2": "121V / 122V",
+        "panel_amps": "150 Amps" if is_emerg else "200 Amps",
+        "thermal_hotspot": "138°F (Breaker Lug Scanned)" if is_emerg else "74°F (Normal Ambient)",
+        "ground_bond_pass": True,
+        "lug_torque": "45 In-Lbs (Torque Spec Verified)",
+        "recorded_at": "1:32 PM (On-Site)",
+    }
+    diags = b.get("diagnostic_readings") or default_diags
+    b["tech_workflow_stage"] = stage
+    b["diagnostic_readings"] = diags
+    b["customer_signature_name"] = b.get("customer_signature_name") or b.get("customer_name", "David Miller")
+    b["customer_signature_timestamp"] = b.get("customer_signature_timestamp")
     return b
 
 
@@ -307,6 +332,14 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
     fee = float(b.get("dispatch_fee", 199.0 if is_emerg else 89.0))
     est_val = float(b.get("estimated_job_value", 1850.0 if is_emerg else 1450.0))
     balance_est = 0.0 if is_final_paid else max(0.0, est_val - (fee if is_paid else 0.0))
+
+    diags = b.get("diagnostic_readings") or {}
+    v_l1_l2 = diags.get("voltage_l1_l2", "121V / 122V" if is_emerg else "______ / ______ V")
+    p_amps = diags.get("panel_amps", "150 Amps" if is_emerg else "200 Amps")
+    t_hotspot = diags.get("thermal_hotspot", "138°F (Breaker Lug)" if is_emerg else "74°F Ambient")
+    g_bond = "✓ Pass (0.2Ω Verified)" if diags.get("ground_bond_pass", True) else "Pass / Fail"
+    l_torque = diags.get("lug_torque", "45 In-Lbs (NEC 110.14D)" if is_emerg else "_______ In-Lbs")
+    sig_ts = b.get("customer_signature_timestamp")
 
     title_lower = title.lower()
     if is_emerg:
@@ -776,23 +809,23 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
     <div class="diag-grid">
       <div class="diag-cell">
         <div class="diag-label">Supply Voltage (L1/L2)</div>
-        <div class="diag-blank">______ / ______ V</div>
+        <div class="diag-blank" style="color:#0f172a; font-weight:700;">{v_l1_l2}</div>
       </div>
       <div class="diag-cell">
         <div class="diag-label">Main Panel Rating</div>
-        <div class="diag-blank">__________ Amps</div>
+        <div class="diag-blank" style="color:#0f172a; font-weight:700;">{p_amps}</div>
       </div>
       <div class="diag-cell">
         <div class="diag-label">IR Thermal Hotspot</div>
-        <div class="diag-blank">__________ &deg;F</div>
+        <div class="diag-blank" style="color:{"#b91c1c" if is_emerg else "#0f172a"}; font-weight:700;">{t_hotspot}</div>
       </div>
       <div class="diag-cell">
         <div class="diag-label">Ground / Neutral Bond</div>
-        <div class="diag-blank">&square; Pass &nbsp; &square; Fail</div>
+        <div class="diag-blank" style="color:#15803d; font-weight:700;">{g_bond}</div>
       </div>
       <div class="diag-cell">
         <div class="diag-label">Lug Torque Verified</div>
-        <div class="diag-blank">_______ In-Lbs</div>
+        <div class="diag-blank" style="color:#0f172a; font-weight:700;">{l_torque}</div>
       </div>
     </div>
 
@@ -838,10 +871,14 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
         <strong>WORK AUTHORIZATION &amp; SAFETY ACKNOWLEDGMENT:</strong> I hereby authorize Apex Electrical Services to perform the diagnostic inspection and electrical scope described above. All work is performed in strict accordance with the National Electrical Code (NFPA 70) and NFPA 70E workplace electrical safety standards. The upfront dispatch deposit is applied toward approved repairs.
       </div>
       <div class="sign-lines">
-        <div class="sign-line">Customer / Authorized Signature ({cust_name})</div>
-        <div class="sign-line">Date / Time</div>
+        <div class="sign-line" style="color:{"#15803d" if sig_ts else "#475569"}; font-weight:{"800" if sig_ts else "600"};">
+          {"✓ Digitally Signed by " + cust_name if sig_ts else f"Customer / Authorized Signature ({cust_name})"}
+        </div>
+        <div class="sign-line" style="color:#1e293b; font-weight:600;">
+          {sig_ts if sig_ts else "Date / Time"}
+        </div>
         <div class="sign-line">Lead Electrician Sign-Off ({tech_name.split('(')[0].strip()})</div>
-        <div class="sign-line">License / Badge #</div>
+        <div class="sign-line">License #EL-49201-MA</div>
       </div>
     </div>
   </div>
@@ -1555,6 +1592,108 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       background: #475569;
       border-radius: 999px;
       margin: 8px auto 10px;
+    }
+
+    /* DEVICE VIEW SWITCHER (CUSTOMER PHONE VS IN-TRUCK TABLET) */
+    .device-switch-bar {
+      display: flex;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      gap: 6px;
+    }
+    .device-tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .device-tab-btn.active {
+      background: #0f172a;
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+    .device-tab-btn:hover:not(.active) {
+      background: #cbd5e1;
+      color: #0f172a;
+    }
+
+    /* RUGGED IN-TRUCK TABLET STYLING */
+    .phone-chassis.tech-tablet-mode {
+      background: #020617;
+      border: 5px solid #334155;
+      border-radius: 26px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25), inset 0 0 0 2px #475569;
+    }
+    .tech-top-bar {
+      background: #1e293b;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1.5px solid #334155;
+    }
+    .tech-body-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tech-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 11px;
+    }
+    .tech-card-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+    }
+    .tech-btn {
+      border: none;
+      border-radius: 6px;
+      padding: 7px 10px;
+      color: #ffffff;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: filter 0.15s ease;
+    }
+    .tech-btn:hover { filter: brightness(1.1); }
+    .tech-field-input {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #475569;
+      border-radius: 5px;
+      color: #f8fafc;
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 4px 6px;
+      margin-top: 2px;
     }
 
     /* CONTRACTOR DISPATCH TICKET COLUMN */
@@ -2678,31 +2817,168 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           </div>
 
           <div class="outcomes-split">
-            <!-- Customer Smartphone Outcome -->
+            <!-- Device Switcher (Customer Phone vs In-Truck Rugged Tablet) -->
             <div class="phone-column-wrap">
+              <div class="device-switch-bar">
+                <button class="device-tab-btn active" id="btnDeviceCustomer" onclick="switchDeviceMode('customer')">
+                  👤 Customer Phone
+                </button>
+                <button class="device-tab-btn" id="btnDeviceTech" onclick="switchDeviceMode('tech')">
+                  👷 Electrician Tablet
+                </button>
+              </div>
+
               <div class="phone-chassis" id="phoneChassis">
-                <div class="phone-screen">
-                  <div class="phone-dynamic-island"></div>
-                  <div class="phone-status-bar">
-                    <span>9:41</span>
-                    <span>5G &bull; 92%</span>
-                  </div>
-                  <div class="phone-imessage-header">
-                    <div class="imessage-avatar">ZM</div>
-                    <div>
-                      <div class="imessage-name">ZeroMiss Dispatch ✓</div>
-                      <div class="imessage-sub">Customer SMS Feed</div>
+                <div class="phone-screen" id="phoneScreen">
+                  <!-- SUBVIEW 1: Customer Smartphone SMS -->
+                  <div id="customerPhoneView" style="display:flex; flex-direction:column; flex:1; height:100%;">
+                    <div class="phone-dynamic-island"></div>
+                    <div class="phone-status-bar">
+                      <span>9:41</span>
+                      <span>5G &bull; 92%</span>
                     </div>
+                    <div class="phone-imessage-header">
+                      <div class="imessage-avatar">ZM</div>
+                      <div>
+                        <div class="imessage-name">ZeroMiss Dispatch ✓</div>
+                        <div class="imessage-sub">Customer SMS Feed</div>
+                      </div>
+                    </div>
+
+                    <div class="phone-messages" id="phoneMessages">
+                      <div class="sms-bubble">
+                        <div class="sms-tag">Customer Phone Preview</div>
+                        When Sarah sends a 3-second missed-call recovery link or Stripe deposit prompt, it appears right here for the homeowner to tap.
+                      </div>
+                    </div>
+
+                    <div class="phone-home-bar"></div>
                   </div>
 
-                  <div class="phone-messages" id="phoneMessages">
-                    <div class="sms-bubble">
-                      <div class="sms-tag">Customer Phone Preview</div>
-                      When Sarah sends a 3-second missed-call recovery link or Stripe deposit prompt, it appears right here for the homeowner to tap.
+                  <!-- SUBVIEW 2: Electrician In-Truck Rugged Tablet (TRUCK-01) -->
+                  <div id="techTabletView" style="display:none; flex-direction:column; flex:1; height:100%; background:#0f172a; color:#f8fafc; overflow:hidden;">
+                    <!-- Tech Header Top Bar -->
+                    <div class="tech-top-bar">
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.15rem;">🚐</span>
+                        <div>
+                          <div style="font-size:0.86rem; font-weight:800; color:#ffffff;" id="techTabletTruckId">TRUCK-01 (Marcus Vance)</div>
+                          <div style="font-size:0.72rem; color:#94a3b8;" id="techTabletSubStatus">Master Tech &bull; GPS Active &bull; On-Call</div>
+                        </div>
+                      </div>
+                      <span id="techWorkflowBadge" style="background:#dc2626; color:#ffffff; font-size:0.72rem; font-weight:800; padding:3px 8px; border-radius:5px; text-transform:uppercase;">DISPATCHED</span>
+                    </div>
+
+                    <!-- Scrollable Tech Action Stages -->
+                    <div class="tech-body-scroll" id="techBodyScroll">
+                      <!-- Stage 1: En Route GPS & Customer Contact -->
+                      <div class="tech-card">
+                        <div class="tech-card-title">
+                          <span>📍 Job Site &amp; GPS Dispatch Routing</span>
+                          <span style="color:#38bdf8;" id="techGpsEtaLabel">14m ETA</span>
+                        </div>
+                        <div style="font-size:0.86rem; font-weight:800; color:#ffffff; margin-bottom:2px;" id="techCustNameAddress">David Miller • 742 Evergreen Terrace</div>
+                        <div style="font-size:0.78rem; color:#94a3b8; margin-bottom:8px;" id="techCustPhoneWindow">(555) 482-9104 &bull; Scheduled: Today, within 45–60 min</div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                          <a href="https://maps.google.com" target="_blank" id="techGpsNavBtn" class="tech-btn" style="background:#0369a1; text-decoration:none; text-align:center;">🗺️ GPS Nav</a>
+                          <button class="tech-btn" id="techEnRouteActionBtn" style="background:#2563eb;" onclick="techTriggerEnRoute()">🚐 Mark En Route</button>
+                        </div>
+                      </div>
+
+                      <!-- Stage 2: AI NFPA 70E Safety & Truck Stock Pre-Check -->
+                      <div class="tech-card" style="border-left:3px solid #ef4444; background:rgba(30,41,59,0.85);">
+                        <div class="tech-card-title">
+                          <span style="color:#fca5a5;">🚨 AI NFPA 70E Safety &amp; Truck Stock</span>
+                          <span style="color:#86efac; font-size:0.72rem;">✓ Pre-Verified</span>
+                        </div>
+                        <div style="font-size:0.8rem; color:#f8fafc; margin-bottom:4px;">
+                          <strong style="color:#fca5a5;">Hazard:</strong> <span id="techHazardText">NFPA 70E Code Red — Active Thermal / Fire Risk</span>
+                        </div>
+                        <div style="font-size:0.76rem; color:#cbd5e1; margin-bottom:6px;">
+                          <strong style="color:#e2e8f0;">Directive Issued:</strong> <span id="techSafetyText">Shut off circuit breaker immediately; do not touch scorched outlets.</span>
+                        </div>
+                        <div style="background:rgba(15,23,42,0.6); border:1px solid #334155; border-radius:6px; padding:6px 8px; font-size:0.76rem;">
+                          <strong style="color:#60a5fa;">📸 Panel / Breaker Loaded:</strong><br>
+                          <span id="techPanelStockText" style="color:#86efac; font-weight:700;">Square D QO 150A &bull; QO120DF AFCI/GFCI Loaded on TRUCK-01 ✓</span>
+                        </div>
+                      </div>
+
+                      <!-- Stage 3: On-Site Electrical Diagnostic Log -->
+                      <div class="tech-card">
+                        <div class="tech-card-title">
+                          <span>🔬 On-Site Diagnostics Log (NEC 110.14D)</span>
+                          <span style="color:#a855f7;" id="techDiagStatusBadge">Ready to Record</span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px; font-size:0.78rem;">
+                          <div>
+                            <span style="color:#94a3b8; font-size:0.7rem;">Voltage (L1/L2):</span>
+                            <input type="text" id="techInputVoltage" value="121V / 122V" class="tech-field-input">
+                          </div>
+                          <div>
+                            <span style="color:#94a3b8; font-size:0.7rem;">Panel Rating:</span>
+                            <input type="text" id="techInputAmps" value="150 Amps" class="tech-field-input">
+                          </div>
+                          <div>
+                            <span style="color:#94a3b8; font-size:0.7rem;">IR Hotspot:</span>
+                            <input type="text" id="techInputThermal" value="138°F (Lug)" class="tech-field-input" style="color:#f87171;">
+                          </div>
+                          <div>
+                            <span style="color:#94a3b8; font-size:0.7rem;">Lug Torque:</span>
+                            <input type="text" id="techInputTorque" value="45 In-Lbs ✓" class="tech-field-input" style="color:#4ade80;">
+                          </div>
+                        </div>
+                        <button class="tech-btn" id="techRecordDiagBtn" style="background:#4f46e5; width:100%;" onclick="techSaveDiagnosticsAction()">
+                          ✓ Record &amp; Seal Diagnostic Log
+                        </button>
+                      </div>
+
+                      <!-- Stage 4: Good / Better / Best Proposal & Digital Customer Signature Pad -->
+                      <div class="tech-card" style="border:1.5px solid #a855f7;">
+                        <div class="tech-card-title">
+                          <span style="color:#c084fc;">📑 Present Scope &amp; Customer Signature</span>
+                          <span style="color:#4ade80; font-weight:800;" id="techTierDisplayPill">BETTER TIER</span>
+                        </div>
+                        <div style="font-size:0.76rem; color:#cbd5e1; margin-bottom:6px;">
+                          Present flat-rate scope options to customer on tablet:
+                        </div>
+                        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; margin-bottom:8px;" id="techQuoteCardsGrid"></div>
+
+                        <!-- Digital Signature Pad -->
+                        <div style="background:#020617; border:1px solid #334155; border-radius:8px; padding:8px; margin-bottom:6px;">
+                          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-size:0.74rem; font-weight:800; color:#e2e8f0;">✍️ Customer Authorization Signature:</span>
+                            <button onclick="techClearSignature()" style="background:transparent; border:none; color:#94a3b8; font-size:0.7rem; cursor:pointer;">Clear</button>
+                          </div>
+                          <canvas id="techSigCanvas" width="280" height="55" style="background:#0f172a; border-radius:4px; width:100%; border:1px dashed #475569; cursor:crosshair;"></canvas>
+                          <div id="techSigTimestamp" style="font-size:0.7rem; color:#86efac; font-weight:700; margin-top:3px; display:none;"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                          <button class="tech-btn" style="background:#059669;" onclick="techAdoptSignature()">✍️ 1-Tap Adopt Sign</button>
+                          <button class="tech-btn" style="background:#16a34a;" onclick="techAuthorizeScopeAction()">✓ Confirm Scope</button>
+                        </div>
+                      </div>
+
+                      <!-- Stage 5: Final Stripe Balance & 5-Star Review Engine -->
+                      <div class="tech-card" style="background:rgba(22,163,74,0.15); border:1.5px solid #22c55e;">
+                        <div class="tech-card-title">
+                          <span style="color:#86efac;">💰 Final Balance &amp; 5-Star Google Review</span>
+                          <span id="techFinalPayStatusPill" style="color:#4ade80; font-weight:800;">PENDING</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                          <span style="font-size:0.8rem; color:#cbd5e1;">Remaining Balance:</span>
+                          <span style="font-size:1.1rem; font-weight:900; color:#4ade80;" id="techBalanceDueAmt">$2,136.00</span>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:6px;">
+                          <button class="tech-btn" id="techFinalCollectBtn" style="background:#16a34a; font-size:0.86rem;" onclick="techCollectFinalBalanceAction()">
+                            💳 Collect Final Balance via Stripe
+                          </button>
+                          <button class="tech-btn" id="techReviewActionBtn" style="background:#d97706;" onclick="techSendReviewSmsAction()">
+                            ⭐ Request 5-Star Google Review SMS
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  <div class="phone-home-bar"></div>
                 </div>
               </div>
             </div>
@@ -3607,6 +3883,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       } else {
         calBtn.style.display = 'none';
       }
+      if (typeof renderTechTabletView === 'function') {
+        renderTechTabletView(booking);
+      }
     }
 
     function pushCustomerSmsBooking(booking) {
@@ -3723,6 +4002,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       `;
       phoneMessages.innerHTML = smsHtml;
       phoneMessages.scrollTop = phoneMessages.scrollHeight;
+      if (typeof renderTechTabletView === 'function') {
+        renderTechTabletView(booking);
+      }
     }
 
     async function selectCustomerQuoteOption(confirmationId, tier) {
@@ -3744,6 +4026,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         );
         showBookingInHero(b);
         pushCustomerSmsBooking(b);
+        renderTechTabletView(b);
         await fetchBoardData();
         if (document.getElementById('ticketDossierModal').classList.contains('active')) {
           openTicketDossierModal(b);
@@ -3770,6 +4053,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         setJourneyStep(3);
         showBookingInHero(b);
         pushCustomerSmsBooking(b);
+        renderTechTabletView(b);
         await fetchBoardData();
         if (document.getElementById('ticketDossierModal').classList.contains('active')) {
           openTicketDossierModal(b);
@@ -3795,10 +4079,343 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         );
         showBookingInHero(data.booking);
         pushCustomerSmsBooking(data.booking);
+        renderTechTabletView(data.booking);
         await fetchBoardData();
         if (document.getElementById('ticketDossierModal').classList.contains('active')) {
           openTicketDossierModal(data.booking);
         }
+      }
+    }
+
+    /* ELECTRICIAN IN-TRUCK TABLET WORKFLOW & TWO-WAY SYNC */
+    let CURRENT_DEVICE_MODE = 'customer';
+    let TECH_SIG_CANVAS_INIT = false;
+
+    function switchDeviceMode(mode) {
+      CURRENT_DEVICE_MODE = mode;
+      const btnCust = document.getElementById('btnDeviceCustomer');
+      const btnTech = document.getElementById('btnDeviceTech');
+      const chassis = document.getElementById('phoneChassis');
+      const custView = document.getElementById('customerPhoneView');
+      const techView = document.getElementById('techTabletView');
+
+      if (mode === 'tech') {
+        if (btnCust) btnCust.classList.remove('active');
+        if (btnTech) btnTech.classList.add('active');
+        if (chassis) chassis.classList.add('tech-tablet-mode');
+        if (custView) custView.style.display = 'none';
+        if (techView) techView.style.display = 'flex';
+        initTechSignatureCanvas();
+        if (ACTIVE_HERO_BOOKING) renderTechTabletView(ACTIVE_HERO_BOOKING);
+      } else {
+        if (btnCust) btnCust.classList.add('active');
+        if (btnTech) btnTech.classList.remove('active');
+        if (chassis) chassis.classList.remove('tech-tablet-mode');
+        if (custView) custView.style.display = 'flex';
+        if (techView) techView.style.display = 'none';
+      }
+    }
+
+    function initTechSignatureCanvas() {
+      const canvas = document.getElementById('techSigCanvas');
+      if (!canvas || TECH_SIG_CANVAS_INIT) return;
+      TECH_SIG_CANVAS_INIT = true;
+      const ctx = canvas.getContext('2d');
+      let isDrawing = false;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - rect.left) * (canvas.width / rect.width),
+          y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+      }
+
+      function startDraw(e) {
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      }
+      function draw(e) {
+        if (!isDrawing) return;
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      }
+      function endDraw() {
+        isDrawing = false;
+      }
+
+      canvas.addEventListener('mousedown', startDraw);
+      canvas.addEventListener('mousemove', draw);
+      window.addEventListener('mouseup', endDraw);
+      canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e); }, { passive: false });
+      canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, { passive: false });
+      window.addEventListener('touchend', endDraw);
+    }
+
+    function techClearSignature() {
+      const canvas = document.getElementById('techSigCanvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      const tsEl = document.getElementById('techSigTimestamp');
+      if (tsEl) tsEl.style.display = 'none';
+    }
+
+    function techAdoptSignature() {
+      const canvas = document.getElementById('techSigCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.font = 'italic 24px "Brush Script MT", cursive, sans-serif';
+      const name = (ACTIVE_HERO_BOOKING && ACTIVE_HERO_BOOKING.customer_name) || 'David Miller';
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillText(name, 20, 36);
+      techAuthorizeScopeAction();
+    }
+
+    function renderTechTabletView(booking) {
+      if (!booking) return;
+      const techShort = (booking.assigned_technician || 'Marcus Vance').split('(')[0].trim();
+      const truckShort = (booking.truck_id || 'TRUCK-01').split('(')[0].trim();
+      const isFinalPaid = Boolean(booking.final_balance_paid);
+      const isPaid = booking.payment_status === 'PAID_VERIFIED' || isFinalPaid;
+      const isEnRoute = Boolean(booking.en_route_sent);
+      const fee = Number(booking.dispatch_fee || 89);
+      const totalVal = Number(booking.estimated_job_value || 1200);
+      const selTier = (booking.selected_option_tier || 'GOOD').toUpperCase();
+      const remBalance = isFinalPaid ? 0 : Math.max(0, totalVal - (isPaid ? fee : 0));
+
+      const truckEl = document.getElementById('techTabletTruckId');
+      if (truckEl) truckEl.innerText = `${truckShort} (${techShort})`;
+
+      const badge = document.getElementById('techWorkflowBadge');
+      if (badge) {
+        if (isFinalPaid) {
+          badge.style.background = '#16a34a';
+          badge.innerText = 'PAID IN FULL';
+        } else if (booking.customer_signature_timestamp) {
+          badge.style.background = '#059669';
+          badge.innerText = 'AUTHORIZED';
+        } else if (booking.diagnostic_readings && booking.diagnostic_readings.recorded_at) {
+          badge.style.background = '#7c3aed';
+          badge.innerText = 'DIAGNOSTIC SEALED';
+        } else if (isEnRoute) {
+          badge.style.background = '#0284c7';
+          badge.innerText = 'EN ROUTE';
+        } else {
+          badge.style.background = '#dc2626';
+          badge.innerText = 'DISPATCHED';
+        }
+      }
+
+      const nameAddr = document.getElementById('techCustNameAddress');
+      if (nameAddr) nameAddr.innerText = `${booking.customer_name || 'David Miller'} • ${booking.service_address || '742 Evergreen Terrace'}`;
+      const phoneWin = document.getElementById('techCustPhoneWindow');
+      if (phoneWin) phoneWin.innerText = `${booking.phone_number || '(555) 482-9104'} • Scheduled: ${booking.display_window || 'Today, within 45–60 min'}`;
+
+      const enRouteBtn = document.getElementById('techEnRouteActionBtn');
+      if (enRouteBtn) {
+        if (isEnRoute) {
+          enRouteBtn.innerText = '✓ En Route (GPS 14m ETA)';
+          enRouteBtn.style.background = '#16a34a';
+        } else {
+          enRouteBtn.innerText = '🚐 Mark En Route';
+          enRouteBtn.style.background = '#2563eb';
+        }
+      }
+
+      const hazText = document.getElementById('techHazardText');
+      if (hazText) hazText.innerText = booking.triage_hazard_level || 'NFPA 70E Code Red — Active Thermal / Fire Risk';
+      const safeText = document.getElementById('techSafetyText');
+      if (safeText) safeText.innerText = booking.triage_safety_instruction || 'Shut off circuit breaker immediately; do not touch scorched outlets.';
+
+      const photo = booking.panel_photo_analysis || {};
+      const panelStock = document.getElementById('techPanelStockText');
+      if (panelStock) {
+        panelStock.innerText = `${photo.equipment_detected || 'Square D QO 150A Main Panel'} • ${photo.breaker_spec || 'Square D QO120DF AFCI/GFCI'} Loaded on ${truckShort} ✓`;
+      }
+
+      const diags = booking.diagnostic_readings || {};
+      const vEl = document.getElementById('techInputVoltage');
+      if (vEl && diags.voltage_l1_l2) vEl.value = diags.voltage_l1_l2;
+      const aEl = document.getElementById('techInputAmps');
+      if (aEl && diags.panel_amps) aEl.value = diags.panel_amps;
+      const tEl = document.getElementById('techInputThermal');
+      if (tEl && diags.thermal_hotspot) tEl.value = diags.thermal_hotspot;
+      const trqEl = document.getElementById('techInputTorque');
+      if (trqEl && diags.lug_torque) trqEl.value = diags.lug_torque;
+
+      const diagBadge = document.getElementById('techDiagStatusBadge');
+      if (diagBadge) {
+        if (diags.recorded_at) {
+          diagBadge.style.color = '#4ade80';
+          diagBadge.innerText = `✓ Recorded (${diags.recorded_at})`;
+        } else {
+          diagBadge.style.color = '#a855f7';
+          diagBadge.innerText = 'Ready to Record';
+        }
+      }
+
+      const tierPill = document.getElementById('techTierDisplayPill');
+      if (tierPill) tierPill.innerText = `${selTier} TIER APPROVED`;
+
+      const grid = document.getElementById('techQuoteCardsGrid');
+      if (grid && booking.quote_options) {
+        grid.innerHTML = booking.quote_options.map(opt => {
+          const isSel = opt.tier === selTier;
+          const bgCol = isSel ? 'rgba(22,163,74,0.35)' : 'rgba(15,23,42,0.7)';
+          const bdrCol = isSel ? '#4ade80' : '#475569';
+          return `
+            <button onclick="selectCustomerQuoteOption('${booking.confirmation_id}', '${opt.tier}')"
+                    style="background:${bgCol}; border:1.5px solid ${bdrCol}; border-radius:6px; padding:5px 6px; text-align:left; color:#f8fafc; cursor:pointer;">
+              <div style="font-size:0.68rem; font-weight:800; color:${isSel ? '#4ade80' : '#e2e8f0'};">${isSel ? '✓ ' : ''}${opt.tier}</div>
+              <div style="font-size:0.76rem; font-weight:900; color:#38bdf8;">$${Number(opt.total).toLocaleString()}</div>
+            </button>
+          `;
+        }).join('');
+      }
+
+      const sigTsEl = document.getElementById('techSigTimestamp');
+      if (sigTsEl) {
+        if (booking.customer_signature_timestamp) {
+          sigTsEl.style.display = 'block';
+          sigTsEl.innerText = `✓ ${booking.customer_signature_timestamp}`;
+        } else {
+          sigTsEl.style.display = 'none';
+        }
+      }
+
+      const balAmt = document.getElementById('techBalanceDueAmt');
+      if (balAmt) balAmt.innerText = `$${remBalance.toLocaleString()}.00`;
+
+      const finBadge = document.getElementById('techFinalPayStatusPill');
+      const finBtn = document.getElementById('techFinalCollectBtn');
+      if (isFinalPaid) {
+        if (finBadge) {
+          finBadge.style.color = '#4ade80';
+          finBadge.innerText = '✓ PAID IN FULL';
+        }
+        if (finBtn) {
+          finBtn.innerText = '✓ Final Balance Paid in Full via Stripe';
+          finBtn.style.background = '#16a34a';
+          finBtn.disabled = true;
+        }
+      } else {
+        if (finBadge) {
+          finBadge.style.color = '#fbbf24';
+          finBadge.innerText = 'PENDING';
+        }
+        if (finBtn) {
+          finBtn.innerText = `💳 Collect $${remBalance.toLocaleString()} Final Balance via Stripe`;
+          finBtn.style.background = '#16a34a';
+          finBtn.disabled = false;
+        }
+      }
+
+      const revBtn = document.getElementById('techReviewActionBtn');
+      if (revBtn) {
+        if (booking.review_requested) {
+          revBtn.innerText = '✓ 5-Star Review Request Sent to Phone';
+          revBtn.style.background = '#16a34a';
+        } else {
+          revBtn.innerText = '⭐ Request 5-Star Google Review SMS';
+          revBtn.style.background = '#d97706';
+        }
+      }
+    }
+
+    async function techTriggerEnRoute() {
+      if (!ACTIVE_HERO_BOOKING) return;
+      const res = await fetch('/api/bookings/en-route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: ACTIVE_HERO_BOOKING.confirmation_id })
+      });
+      const data = await res.json();
+      if (data.status === 'SUCCESS' && data.booking) {
+        const techShort = (data.booking.assigned_technician || 'Marcus Vance').split('(')[0].trim();
+        const truckShort = (data.booking.truck_id || 'TRUCK-01').split('(')[0].trim();
+        appendMessage('In-Truck Tablet (TRUCK-01)', `🚐 ${techShort} hit "Mark En Route" on tablet! Pushed live GPS tracking link (ETA 14m) to homeowner's phone.`, true);
+        showBookingInHero(data.booking);
+        pushCustomerSmsBooking(data.booking);
+        renderTechTabletView(data.booking);
+        await fetchBoardData();
+      }
+    }
+
+    async function techSaveDiagnosticsAction() {
+      if (!ACTIVE_HERO_BOOKING) return;
+      const readings = {
+        voltage_l1_l2: document.getElementById('techInputVoltage').value,
+        panel_amps: document.getElementById('techInputAmps').value,
+        thermal_hotspot: document.getElementById('techInputThermal').value,
+        ground_bond_pass: true,
+        lug_torque: document.getElementById('techInputTorque').value,
+        recorded_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (Tablet Logged)'
+      };
+      const res = await fetch('/api/tech/save-diagnostics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: ACTIVE_HERO_BOOKING.confirmation_id, readings })
+      });
+      const data = await res.json();
+      if (data.status === 'SUCCESS' && data.booking) {
+        appendMessage('In-Truck Tablet (TRUCK-01)', `🔬 Marcus Vance recorded on-site electrical diagnostics (${readings.voltage_l1_l2}, ${readings.thermal_hotspot}, ${readings.lug_torque}). Sealed on Work Order PDF!`, true);
+        showBookingInHero(data.booking);
+        pushCustomerSmsBooking(data.booking);
+        renderTechTabletView(data.booking);
+        await fetchBoardData();
+      }
+    }
+
+    async function techAuthorizeScopeAction() {
+      if (!ACTIVE_HERO_BOOKING) return;
+      const custName = ACTIVE_HERO_BOOKING.customer_name || 'David Miller';
+      const res = await fetch('/api/tech/sign-authorization', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: ACTIVE_HERO_BOOKING.confirmation_id, signer_name: custName })
+      });
+      const data = await res.json();
+      if (data.status === 'SUCCESS' && data.booking) {
+        appendMessage('In-Truck Tablet (TRUCK-01)', `✍️ Homeowner ${custName} signed digital work authorization on Marcus Vance's tablet! Scope locked.`, true);
+        showBookingInHero(data.booking);
+        pushCustomerSmsBooking(data.booking);
+        renderTechTabletView(data.booking);
+        await fetchBoardData();
+      }
+    }
+
+    async function techCollectFinalBalanceAction() {
+      if (!ACTIVE_HERO_BOOKING) return;
+      await payCustomerFinalBalance(ACTIVE_HERO_BOOKING.confirmation_id);
+    }
+
+    async function techSendReviewSmsAction() {
+      if (!ACTIVE_HERO_BOOKING) return;
+      const res = await fetch('/api/bookings/request-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: ACTIVE_HERO_BOOKING.confirmation_id })
+      });
+      const data = await res.json();
+      if (data.status === 'SUCCESS' && data.booking) {
+        appendMessage('In-Truck Tablet (TRUCK-01)', `⭐ Sent 1-Tap 5-Star Google Review request SMS to ${data.booking.customer_name} from tablet!`, true);
+        showBookingInHero(data.booking);
+        pushCustomerSmsBooking(data.booking);
+        renderTechTabletView(data.booking);
+        await fetchBoardData();
       }
     }
 
@@ -5429,6 +6046,33 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             roi = DB.calculate_contractor_roi_metrics()
             if booking:
                 self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking), "roi_metrics": roi})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/tech/update-stage":
+            cid = req_data.get("confirmation_id", "").strip()
+            stage = req_data.get("stage", "DISPATCHED").strip()
+            booking = DB.update_tech_workflow_stage(cid, stage)
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/tech/save-diagnostics":
+            cid = req_data.get("confirmation_id", "").strip()
+            readings = req_data.get("readings", {})
+            booking = DB.save_diagnostic_readings(cid, readings)
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/tech/sign-authorization":
+            cid = req_data.get("confirmation_id", "").strip()
+            signer_name = req_data.get("signer_name", "").strip()
+            booking = DB.sign_customer_work_authorization(cid, signer_name)
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
             else:
                 self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
 

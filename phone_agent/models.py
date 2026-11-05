@@ -100,6 +100,10 @@ class ServiceBooking:
     selected_option_tier: str = "GOOD"
     upsell_added_amount: float = 0.0
     final_balance_paid: bool = False
+    tech_workflow_stage: str = "DISPATCHED"  # "DISPATCHED", "EN_ROUTE", "ON_SITE_DIAGNOSTIC", "PROPOSAL_APPROVED", "COMPLETED"
+    diagnostic_readings: Optional[Dict[str, Any]] = None
+    customer_signature_name: Optional[str] = None
+    customer_signature_timestamp: Optional[str] = None
 
 
 @dataclass
