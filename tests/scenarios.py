@@ -102,12 +102,12 @@ SCENARIOS: List[CallingScenario] = [
             "A huge tree branch snapped and brought down a live power line right across my driveway! It's violently whipping around and sparking on the wet asphalt!",
             "I'm Sandra Jenkins at 73 Crestview Road, Sudbury. My number is 555-671-2094.",
         ],
-        expected_tools=["triage_fire_shock_emergency", "book_service_call"],
+        expected_tools=["triage_fire_shock_emergency"],
         is_emergency=True,
         expected_emergency_level="LEVEL_1_CRITICAL_LIFE_SAFETY",
-        mandatory_safety_phrases=["stay back", "35", "911"],
+        mandatory_safety_phrases=["stay back", "911", "utility"],
         expected_urgency="EMERGENCY_CRITICAL",
-        description="Downed high-voltage power line. Must warn caller to stay back at least 35 feet, notify utility/911, and initiate code-red response.",
+        description="Downed utility power line arcing (exclusive utility/911 jurisdiction). Commands caller to stay 40 ft back, call 911 and electric utility. Independent electricians are legally prohibited from touching utility lines; book_service_call is ONLY triggered if customer-owned meter mast/weatherhead needs repair post-utility isolation.",
     ),
 
     # -------------------------------------------------------------
@@ -340,7 +340,7 @@ SCENARIOS: List[CallingScenario] = [
     CallingScenario(
         scenario_id="SCENARIO_16",
         title="Outdoor Hot Tub 50-Amp GFCI Spa Disconnect Installation",
-        category="RESIDENTIAL_HIGH_VOLTAGE",
+        category="RESIDENTIAL_240V_DEDICATED_CIRCUIT",
         caller_name="Jessica Taylor",
         caller_phone="(555) 723-5590",
         service_address="17 Woodland Road, Carlisle",
@@ -351,7 +351,7 @@ SCENARIOS: List[CallingScenario] = [
         expected_tools=["check_calendar_availability", "book_service_call"],
         is_emergency=False,
         expected_urgency="STANDARD",
-        description="High-voltage outdoor spa circuit installation. Checks calendar and books residential installation.",
+        description="240V dedicated outdoor spa branch circuit installation (NEC Article 680). Checks calendar and books residential installation.",
     ),
 
     # -------------------------------------------------------------

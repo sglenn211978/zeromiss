@@ -49,14 +49,16 @@ def triage_fire_shock_emergency(
     if is_downed_line:
         severity = EmergencySeverity.LEVEL_1_CRITICAL_LIFE_SAFETY
         utility_shutoff = True
+        emergency_dispatch = False  # Exclusive electric utility and 911 jurisdiction; independent electricians cannot touch utility lines
         life_safety_actions.extend([
             "Stay back at least 35 to 40 feet from the downed power line and anything touching it.",
             "Do NOT attempt to move the wire or approach it, even if it is not currently sparking.",
             "Keep all children and pets inside.",
-            "Call 911 and your power utility emergency line immediately.",
+            "Call 911 and your power utility emergency line immediately — utility distribution lines are strictly utility jurisdiction.",
             "If inside a vehicle touching a wire, remain inside until utility personnel clear it.",
+            "An independent electrician can only be dispatched for customer-owned meter mast, weatherhead, or point-of-attachment repairs after the utility de-energizes and secures the line.",
         ])
-        action_plan = "CRITICAL CODE RED: Downed power line arcing. Caller instructed to stay back 40 feet and call 911/Utility."
+        action_plan = "CRITICAL CODE RED: Downed power line arcing. Exclusive electric utility and 911 jurisdiction. Caller instructed to stay 40 ft back and call 911/Utility immediately. Independent line dispatch prohibited; service call only applicable if customer meter mast or weatherhead is damaged post-utility isolation."
 
     elif is_shock_injury:
         severity = EmergencySeverity.LEVEL_1_CRITICAL_LIFE_SAFETY

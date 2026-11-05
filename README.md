@@ -99,7 +99,7 @@ PYTHONPATH=. python3 -m unittest tests/test_tools.py
 | `SCENARIO_01` | Active Breaker Panel Fire and Arcing Sparks | `EMERGENCY_FIRE` | `LEVEL_1_CRITICAL_LIFE_SAFETY` | `triage_fire_shock_emergency`, `book_service_call` |
 | `SCENARIO_02` | Water Leaking Directly Over Main Panel | `EMERGENCY_WATER` | `LEVEL_1_CRITICAL_LIFE_SAFETY` | `triage_fire_shock_emergency`, `book_service_call` |
 | `SCENARIO_03` | Electric Shock Injury from Dishwasher Metal Frame | `EMERGENCY_SHOCK` | `LEVEL_1_CRITICAL_LIFE_SAFETY` | `triage_fire_shock_emergency`, `book_service_call` |
-| `SCENARIO_04` | Downed Power Line Arcing on Wet Driveway | `EMERGENCY_DOWNED_LINE` | `LEVEL_1_CRITICAL_LIFE_SAFETY` | `triage_fire_shock_emergency`, `book_service_call` |
+| `SCENARIO_04` | Downed Power Line Arcing on Wet Driveway | `EMERGENCY_DOWNED_LINE` | `LEVEL_1_CRITICAL_LIFE_SAFETY` | `triage_fire_shock_emergency` *(utility jurisdiction; `book_service_call` only if weatherhead/mast damaged)* |
 | `SCENARIO_05` | Sizzling Scorched Wall Outlet with Burning Fishy Odor | `EMERGENCY_HAZARD` | `LEVEL_2_HIGH_HAZARD` | `triage_fire_shock_emergency`, `book_service_call` |
 | `SCENARIO_06` | Smoke Emitting from Kitchen Ceiling Light Fixture | `EMERGENCY_SMOKE` | `LEVEL_2_HIGH_HAZARD` | `triage_fire_shock_emergency`, `book_service_call` |
 | `SCENARIO_07` | Routine Ceiling Fan Installation in Master Bedroom | `ROUTINE_INSTALLATION` | `STANDARD` | `check_calendar_availability`, `book_service_call` |
@@ -111,7 +111,7 @@ PYTHONPATH=. python3 -m unittest tests/test_tools.py
 | `SCENARIO_13` | Commercial Restaurant Walk-in Freezer Circuit Tripped | `COMMERCIAL_URGENT` | `URGENT` | `check_calendar_availability`, `book_service_call` |
 | `SCENARIO_14` | Bathroom GFCI Receptacle Tripped and Won't Reset | `ROUTINE_REPAIR` | `STANDARD` | `check_calendar_availability`, `book_service_call` |
 | `SCENARIO_15` | Historic Home Knob-and-Tube Wiring Safety Inspection | `SAFETY_INSPECTION` | `STANDARD` | `check_calendar_availability`, `book_service_call` |
-| `SCENARIO_16` | Outdoor Hot Tub 50-Amp GFCI Spa Disconnect | `RESIDENTIAL_HIGH_VOLTAGE` | `STANDARD` | `check_calendar_availability`, `book_service_call` |
+| `SCENARIO_16` | Outdoor Hot Tub 50-Amp GFCI Spa Disconnect | `RESIDENTIAL_240V_DEDICATED_CIRCUIT` | `STANDARD` | `check_calendar_availability`, `book_service_call` |
 | `SCENARIO_17` | Whole-House Generator Transfer Switch & Inlet Box | `SPECIALTY_GENERATOR` | `STANDARD` | `check_calendar_availability`, `book_service_call` |
 | `SCENARIO_18` | Whole-House Lights Flickering During AC Startup | `DIAGNOSTIC_VOLTAGE_DROP` | `STANDARD` | `check_calendar_availability`, `book_service_call` |
 | `SCENARIO_19` | Commercial Property Security LED Motion Floodlights | `COMMERCIAL_LIGHTING` | `STANDARD` | `check_calendar_availability`, `book_service_call` |
@@ -121,7 +121,7 @@ PYTHONPATH=. python3 -m unittest tests/test_tools.py
 
 ## 🔒 Safety & Triage Protocols
 
-The agent enforces NFPA 70E electrical safety rules:
-- **Level 1 Critical Life-Safety**: Triggered on active flames, sparks, water submersion of panels, downed wires, or shock injuries. Mandates immediate evacuation, 911 calls from outside, warnings against touching water/metal, and dispatches the on-call Master Electrician.
+The agent enforces NFPA 70 (National Electrical Code) and NFPA 70E life-safety triage standards:
+- **Level 1 Critical Life-Safety**: Triggered on active flames, sparks, water submersion of panels, downed wires, or shock injuries. Mandates immediate evacuation (or staying back 40 feet from downed utility lines), 911/utility notification from outside, warnings against touching water/metal, and dispatches the on-call Master Electrician (note: downed utility lines are exclusive utility jurisdiction; contractor dispatch applies strictly to customer-owned meter mast/riser damage post-isolation).
 - **Level 2 High Hazard**: Triggered on burning plastic/fishy odors, sizzling outlets, or smoking fixtures. Advises turning off specific circuit breakers only if safe and dry, isolating the area, and dispatching an urgent technician within 1-2 hours.
 - **Level 3 Moderate / Overload**: Tripped breakers from appliance overload (microwave + toaster). Advises unplugging high-wattage devices and schedules diagnostic service without unsafe breaker forcing.

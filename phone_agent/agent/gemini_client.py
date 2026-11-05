@@ -279,6 +279,25 @@ class Gemini2FlashClient:
             directives = triage_data.get("immediate_life_safety_actions", [])
             primary_safety = " ".join(directives[:3]) if directives else "Please stay clear of the electrical equipment and remain in a safe location."
 
+            is_downed_utility_line = (
+                triage_data.get("hazard_type") == "downed_power_line" or
+                has_downed_line or
+                any(w in filtered_text for w in ["downed line", "power line", "wire on driveway", "wire down"])
+            )
+            has_customer_mast_damage = any(w in filtered_text for w in ["mast", "weatherhead", "riser", "meter box torn", "meter socket"])
+
+            if is_downed_utility_line and not has_customer_mast_damage:
+                # Downed utility distribution lines are under the exclusive jurisdiction of the electric utility and 911.
+                # Independent electricians are legally prohibited from touching or repairing utility lines.
+                spoken_response = (
+                    "Please listen carefully for your life safety: Stay back at least 35 to 40 feet from the downed power line and anything touching it. "
+                    "Do NOT attempt to approach or move the wire under any circumstances, and keep all children and pets inside. "
+                    "Call 911 and your electric utility emergency response line immediately to de-energize and secure the line. "
+                    "Independent electricians are legally prohibited from touching utility distribution lines. "
+                    "Once the utility de-energizes and clears the line, please call us back if your meter mast or weatherhead needs repair."
+                )
+                return {"text": spoken_response, "tool_calls": []}
+
             if address:
                 # In an emergency, physical address is the critical life-safety requirement to roll a truck!
                 dispatch_name = name or "Resident / Caller"
