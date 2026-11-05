@@ -196,6 +196,53 @@ def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -
                 "parts_verification": "⏳ Click '📸 Simulate Customer Photo' to verify breaker brand",
             }
 
+    # 5. Municipal E-Permit & Homeowner Tax Credit / Utility Rebate Packet + 3-Option Flat-Rate Proposal
+    conf_num = str(b.get("confirmation_id", "1005")).split("-")[-1]
+    if is_emerg:
+        permit_info = f"Municipal E-Permit #EL-2026-{conf_num} (Emergency Repair Exemption • Master Lic #EL-49201-MA)"
+        rebate_summary = "Qualifies for $600 IRS Sec. 25C Panel/Circuit Safety Credit (30% Federal Tax Credit)"
+    elif "ev" in title_l:
+        permit_info = f"Municipal E-Permit #EL-2026-{conf_num} (240V EVSE Branch Circuit • Auto-Drafted for 1-Click E-Filing)"
+        rebate_summary = "Qualifies for up to $1,100 Customer Incentives ($600 IRS Sec. 30C/25C Credit + $500 Utility EV Rebate)"
+    elif "panel" in title_l:
+        permit_info = f"Municipal E-Permit #EL-2026-{conf_num} + Utility Service Upgrade Packet (Auto-Drafted for 1-Click Filing)"
+        rebate_summary = "Qualifies for up to $1,250 Customer Incentives ($600 IRS Sec. 25C 200A Panel Credit + $650 Utility Rebate)"
+    else:
+        permit_info = f"Municipal E-Permit #EL-2026-{conf_num} (Master Lic #EL-49201-MA • Ready for 1-Click E-Filing)"
+        rebate_summary = "Qualifies for 30% IRS Sec. 25C Electrical Efficiency & Safety Upgrade Tax Credit"
+
+    selected_tier = str(b.get("selected_option_tier") or "GOOD").upper()
+    upsell_added = float(b.get("upsell_added_amount") or 0.0)
+    total_est_val = float(b.get("estimated_job_value") or (1850.0 if is_emerg else 1450.0))
+    base_est_val = max(300.0, total_est_val - upsell_added)
+
+    quote_options = [
+        {
+            "tier": "GOOD",
+            "label": "Option 1: Good (Standard Scope)",
+            "desc": f"{clean_title} — Standard NEC-compliant repair & 1-Yr Workmanship Warranty",
+            "price": base_est_val,
+            "total": base_est_val,
+            "delta": 0,
+        },
+        {
+            "tier": "BETTER",
+            "label": "Option 2: Better ★ Most Popular (+$485)",
+            "desc": f"{clean_title} + Whole-Home Type 2 Surge Protection (NEC 230.67) & 3-Yr Warranty",
+            "price": base_est_val + 485.0,
+            "total": base_est_val + 485.0,
+            "delta": 485,
+        },
+        {
+            "tier": "BEST",
+            "label": "Option 3: Best 👑 Complete Protection (+$950)",
+            "desc": f"{clean_title} + Surge Protection + Dual-Function AFCI/GFCI Breaker Rejuvenation & 5-Yr Warranty",
+            "price": base_est_val + 950.0,
+            "total": base_est_val + 950.0,
+            "delta": 950,
+        },
+    ]
+
     b["display_title"] = clean_title
     b["display_window"] = clean_window
     b["triage_symptom"] = symptom
@@ -205,6 +252,13 @@ def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -
     b["nec_load_summary"] = nec_load_summary
     b["upsell_recommendation"] = upsell_rec
     b["upsell_value"] = upsell_val
+    b["permit_info"] = permit_info
+    b["rebate_summary"] = rebate_summary
+    b["selected_option_tier"] = selected_tier
+    b["upsell_added_amount"] = upsell_added
+    b["base_job_value"] = base_est_val
+    b["quote_options"] = quote_options
+    b["final_balance_paid"] = bool(b.get("final_balance_paid", False))
     return b
 
 
@@ -214,6 +268,7 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
     conf_id = b.get("confirmation_id", "ZM-BOOK-1001")
     is_emerg = "EMERG" in str(b.get("urgency_level", "")).upper() or "emergency" in str(b.get("service_type", "")).lower()
     is_paid = b.get("payment_status") == "PAID_VERIFIED"
+    is_final_paid = bool(b.get("final_balance_paid", False))
     is_manual = "manual" in str(b.get("booked_by", "")).lower()
 
     title = b.get("display_title", "Electrical Service Dispatch")
@@ -240,6 +295,10 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
     safety_dir = b.get("triage_safety_instruction", "Isolate affected circuit breaker prior to arrival.")
     nec_load_summary = b.get("nec_load_summary", "NEC 220.82 Load Verified")
     upsell_rec = b.get("upsell_recommendation", "Whole-Home Type 2 Surge Protection (NEC 230.67)")
+    permit_info = b.get("permit_info", "Municipal E-Permit Auto-Drafted")
+    rebate_summary = b.get("rebate_summary", "IRS Sec. 25C Tax Credit Eligible")
+    selected_tier = b.get("selected_option_tier", "GOOD")
+    upsell_added = float(b.get("upsell_added_amount", 0.0))
     photo_info = b.get("panel_photo_analysis") or {}
     photo_equip = photo_info.get("equipment_detected", "200A Main Breaker Panel")
     photo_breaker = photo_info.get("breaker_spec", "20A Dual-Function AFCI/GFCI")
@@ -247,7 +306,7 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
 
     fee = float(b.get("dispatch_fee", 199.0 if is_emerg else 89.0))
     est_val = float(b.get("estimated_job_value", 1850.0 if is_emerg else 1450.0))
-    balance_est = max(0.0, est_val - (fee if is_paid else 0.0))
+    balance_est = 0.0 if is_final_paid else max(0.0, est_val - (fee if is_paid else 0.0))
 
     title_lower = title.lower()
     if is_emerg:
@@ -686,6 +745,10 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
         <span style="font-weight:700; color:#0f172a;">{photo_equip} &bull; {photo_breaker}</span>
         <strong style="color:#475569;">⚡ NEC 220.82 Load Audit:</strong>
         <span style="font-weight:700; color:#1e3a8a;">{nec_load_summary}</span>
+        <strong style="color:#475569;">🏛️ Municipal E-Permit:</strong>
+        <span style="font-weight:700; color:#0f172a;">{permit_info}</span>
+        <strong style="color:#475569;">💰 Customer Rebate / 25C:</strong>
+        <span style="font-weight:800; color:#15803d;">{rebate_summary}</span>
         <strong style="color:#475569;">💡 Pre-Qualified Upsell:</strong>
         <span style="font-weight:800; color:#15803d;">{upsell_rec}</span>
       </div>
@@ -745,21 +808,26 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
       <tbody>
         <tr>
           <td><strong>Upfront Dispatch &amp; Diagnostic Deposit</strong> (Credited toward final work order)</td>
-          <td style="font-weight:800; color:{"#15803d" if is_paid else "#b45309"};">
-            {"✓ PAID & VERIFIED VIA STRIPE" if is_paid else "⏳ PENDING CUSTOMER STRIPE AUTHORIZATION"}
+          <td style="font-weight:800; color:{"#15803d" if (is_paid or is_final_paid) else "#b45309"};">
+            {"✓ PAID & VERIFIED VIA STRIPE" if (is_paid or is_final_paid) else "⏳ PENDING CUSTOMER STRIPE AUTHORIZATION"}
           </td>
           <td style="text-align:right; font-weight:800;">${fee:,.2f}</td>
         </tr>
         <tr>
-          <td><strong>Estimated Field Scope &amp; Turnkey Installation</strong> ({title})</td>
-          <td style="color:#475569; font-weight:600;">Subject to On-Site Diagnostic Approval</td>
+          <td>
+            <strong>Selected Flat-Rate Option ({selected_tier} Tier):</strong> {title}
+            {f" + Approved Add-On (+${upsell_added:,.0f})" if upsell_added > 0 else ""}
+          </td>
+          <td style="color:{"#15803d" if is_final_paid else "#475569"}; font-weight:700;">
+            {"✓ FINAL INVOICE PAID IN FULL VIA STRIPE" if is_final_paid else f"Option {selected_tier} Approved • On-Site Completion"}
+          </td>
           <td style="text-align:right; font-weight:800;">${est_val:,.2f}</td>
         </tr>
         <tr style="background:#f8fafc;">
-          <td colspan="2" style="text-align:right; font-weight:900; text-transform:uppercase;">
-            Estimated Balance Upon Completion {("(After Paid Deposit Credit)" if is_paid else "(Including Deposit)")}:
+          <td colspan="2" style="text-align:right; font-weight:900; text-transform:uppercase; color:{"#15803d" if is_final_paid else "#0f172a"};">
+            {"✓ PAID IN FULL VIA STRIPE — REMAINING BALANCE DUE:" if is_final_paid else f"Estimated Balance Upon Completion {('(After Paid Deposit Credit)' if is_paid else '(Including Deposit)')}:"}
           </td>
-          <td style="text-align:right; font-size:13px; font-weight:900; color:#0f172a;">${balance_est:,.2f}</td>
+          <td style="text-align:right; font-size:13px; font-weight:900; color:{"#15803d" if is_final_paid else "#0f172a"};">${balance_est:,.2f}</td>
         </tr>
       </tbody>
     </table>
@@ -2833,26 +2901,57 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     </div>
   </main>
 
-  <!-- MODAL: Sales Pitch -->
+  <!-- MODAL: Sales Pitch & Live Shop Audit Playbook -->
   <div class="modal-overlay" id="pitchModal">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width:740px; width:95%; max-height:90vh; overflow-y:auto;">
       <div class="modal-header">
-        <h3>💡 The End-to-End Story: Why Contractors Buy ZeroMiss</h3>
+        <h3>💡 ZeroMiss Sales Guide &amp; Live Shop Audit Playbook</h3>
         <button class="modal-close" onclick="closePitchModal()">&times;</button>
       </div>
-      <div style="font-size:1rem; color:var(--text-body); line-height:1.6;">
-        <p style="margin-bottom:14px;">
-          <strong>The Problem:</strong> 35% of homeowner calls happen after hours or while electricians are on a ladder. 80% of callers who hit voicemail hang up and call the next contractor on Google.
-        </p>
-        <p style="margin-bottom:14px;">
-          <strong>The ZeroMiss Journey:</strong>
-        </p>
-        <ol style="margin-left:20px; margin-bottom:18px; display:flex; flex-direction:column; gap:8px;">
-          <li><strong>Missed Call Intercepted:</strong> Sarah detects the dropped call and texts the customer within 3 seconds.</li>
-          <li><strong>Instant Booking:</strong> Customer taps the link on their phone to lock in tomorrow's 8:00 AM slot (+$1,200 pipeline booked).</li>
-          <li><strong>No-Show Elimination:</strong> Customer authorizes the $89 diagnostic deposit via Stripe right inside the SMS thread, moving the job to <strong>Revenue Won</strong>.</li>
-        </ol>
-        <button class="btn-modal-submit" onclick="closePitchModal()">Got It — Back to Demo</button>
+      <div style="font-size:0.93rem; color:var(--text-body); line-height:1.55;">
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:12px 14px; margin-bottom:14px;">
+          <div style="font-size:0.8rem; font-weight:800; color:#4f46e5; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
+            ⏱️ The First 180 Seconds After a Missed Call (Why Contractors Lose $12K+/Mo)
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:0.84rem;">
+            <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:9px 11px;">
+              <strong style="color:#b91c1c;">❌ Competitor / Voicemail / Call Center:</strong>
+              <ul style="margin:5px 0 0 16px; color:#7f1d1d;">
+                <li><strong>0:03s:</strong> Caller hits voicemail or hold music; 80% hang up.</li>
+                <li><strong>0:45s:</strong> Homeowner clicks the next electrical shop on Google LSA.</li>
+                <li><strong>3:00m:</strong> Competitor answers and books the $1,850 panel repair.</li>
+              </ul>
+            </div>
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:9px 11px;">
+              <strong style="color:#15803d;">⚡ ZeroMiss Voice &amp; SMS Dispatch Engine:</strong>
+              <ul style="margin:5px 0 0 16px; color:#14532d;">
+                <li><strong>0:03s:</strong> Sarah AI answers or fires instant 3-Sec SMS Booking Link.</li>
+                <li><strong>0:45s:</strong> Triages NFPA 70E hazard, matches truck &amp; collects $89–$199 Stripe deposit.</li>
+                <li><strong>2:00m:</strong> Sends 3-Option Flat-Rate Proposal (+$485 Surge upsell) + Panel Photo check.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-weight:800; font-size:0.86rem; text-transform:uppercase; color:#0f172a; margin-bottom:8px;">
+          🛡️ Top 3 Contractor Objections &amp; Instant Demo Rebuttals
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px; font-size:0.86rem;">
+          <div style="border:1px solid #e2e8f0; border-radius:8px; padding:9px 12px; background:#ffffff;">
+            <strong style="color:#0f172a;">1. &ldquo;We already pay $600/mo for an answering service.&rdquo;</strong><br>
+            <span style="color:#475569;"><strong>Rebuttal:</strong> Call centers only take a name and number—by morning the homeowner already hired someone else. ZeroMiss locks the calendar slot, verifies panel photos, and collects the Stripe deposit on the spot.</span>
+          </div>
+          <div style="border:1px solid #e2e8f0; border-radius:8px; padding:9px 12px; background:#ffffff;">
+            <strong style="color:#0f172a;">2. &ldquo;I answer my own cell phone when I'm in the field.&rdquo;</strong><br>
+            <span style="color:#475569;"><strong>Rebuttal:</strong> When you're troubleshooting a live 200A panel in an attic or talking to an inspector, you can't answer. Missing just <strong>two</strong> panel/EV calls a month costs $4,500+ in high-margin revenue.</span>
+          </div>
+          <div style="border:1px solid #e2e8f0; border-radius:8px; padding:9px 12px; background:#ffffff;">
+            <strong style="color:#0f172a;">3. &ldquo;Homeowners won't pay an upfront deposit before we arrive.&rdquo;</strong><br>
+            <span style="color:#475569;"><strong>Rebuttal:</strong> It's credited 100% toward their repair—and when they also see their IRS 25C $600 Tax Credit &amp; Good/Better/Best options in the SMS, it filters out tire-kickers and increases average ticket by +$485.</span>
+          </div>
+        </div>
+
+        <button class="btn-modal-submit" onclick="closePitchModal()">Got It — Back to Live Demo</button>
       </div>
     </div>
   </div>
@@ -3102,7 +3201,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Section 2: AI Technical Triage, NEC 220.82 Load & Safety Protocol -->
+        <!-- Section 2: AI Technical Triage, NEC 220.82 Load, Municipal Permit & Rebate Protocol -->
         <div class="dossier-triage-banner" id="dossierTriageBanner">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
             <span style="font-size:0.82rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em;" id="dossierTriageTitle">🚨 NFPA 70E HAZARD TRIAGE &amp; SAFETY PROTOCOL LOG</span>
@@ -3117,6 +3216,10 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             <span style="font-weight:600; color:#1e293b;" id="dossierSafetyDirective">Shut off circuit breaker immediately if safe; do not touch scorched outlets.</span>
             <span style="font-weight:700; color:#475569;">⚡ NEC 220.82 Load Audit:</span>
             <span style="font-weight:800; color:#1e3a8a;" id="dossierNecLoad">150A/200A Main Service Verified</span>
+            <span style="font-weight:700; color:#475569;">🏛️ Municipal E-Permit:</span>
+            <span style="font-weight:700; color:#0f172a;" id="dossierPermitInfo">Municipal Electrical Repair Permit Pre-Drafted</span>
+            <span style="font-weight:700; color:#475569;">💰 Customer Rebate / 25C:</span>
+            <span style="font-weight:800; color:#15803d;" id="dossierRebateInfo">Homeowner Insurance &amp; IRS 25C Safety Upgrade Eligible</span>
             <span style="font-weight:700; color:#475569;">💡 Pre-Qualified Upsell:</span>
             <span style="font-weight:800; color:#15803d;" id="dossierUpsellRec">Whole-Home Type 2 Surge Protection (NEC 230.67) — +$485 Add-On</span>
           </div>
@@ -3153,11 +3256,18 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           <div class="dossier-checklist" id="dossierChecklistGrid"></div>
         </div>
 
-        <!-- Section 4: Financial Estimate & Upfront Stripe Deposit Ledger -->
+        <!-- Section 4: Good/Better/Best Proposal Selector & Financial Deposit Ledger -->
         <div class="dossier-box" style="background:#ffffff;">
           <div class="dossier-box-title">
-            <span>💳 Upfront Deposit &amp; Job Revenue Ledger</span>
+            <span>📑 Interactive Good / Better / Best Proposal &amp; Stripe Ledger</span>
             <span id="dossierPaymentPill">⏳ Pending Authorization</span>
+          </div>
+          <div style="margin-bottom:10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+              <span style="font-size:0.78rem; font-weight:800; color:#334155; text-transform:uppercase;">Customer Flat-Rate Option Tier (Click to Preview / Upgrade Ticket):</span>
+              <button class="btn-cal-action" id="dossierSendQuoteBtn" style="background:#4f46e5; color:#fff; border-color:#4338ca; padding:3px 10px; font-size:0.76rem;" onclick="sendQuoteFromDossier()">📑 Push 3-Option Proposal SMS</button>
+            </div>
+            <div id="dossierQuoteOptionsBar" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;"></div>
           </div>
           <table class="dossier-invoice-table">
             <thead>
@@ -3175,7 +3285,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
               </tr>
               <tr>
                 <td id="dossierJobEstDesc">Estimated Field Scope &amp; Installation Revenue</td>
-                <td style="color:#475569;">On-Site Completion Estimate</td>
+                <td id="dossierJobStageText" style="color:#475569;">On-Site Completion Estimate</td>
                 <td style="text-align:right; font-size:0.95rem; color:#15803d;" id="dossierJobValAmt">$1,850.00</td>
               </tr>
             </tbody>
@@ -3187,6 +3297,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <a href="#" target="_blank" id="dossierGcalBtn" class="btn-cal-magic" style="padding:8px 12px; font-size:0.84rem;">📅 Open in Google Calendar</a>
           <button class="btn-cal-action" id="dossierStripePayBtn" style="background:#4f46e5; color:#fff; border-color:#4338ca; padding:8px 12px; font-size:0.84rem;" onclick="authorizeDepositFromDossier()">💳 Authorize Deposit</button>
+          <button class="btn-cal-action" id="dossierFinalPayBtn" style="background:#15803d; color:#fff; border-color:#166534; padding:8px 12px; font-size:0.84rem;" onclick="payFinalBalanceFromDossier()">💰 Collect Final Balance</button>
           <button class="btn-cal-action" id="dossierEnRouteBtn" style="background:#0284c7; color:#fff; border-color:#0369a1; padding:8px 12px; font-size:0.84rem;" onclick="sendEnRouteSmsFromDossier()">🚐 Send "Tech En-Route" SMS</button>
           <button class="btn-cal-action" id="dossierReviewBtn" style="background:#f59e0b; color:#fff; border-color:#d97706; padding:8px 12px; font-size:0.84rem;" onclick="sendReviewSmsFromDossier()">⭐ Request 5-Star Review</button>
           <button class="btn-cal-action" style="background:#0f172a; color:#fff; border-color:#0f172a; padding:8px 12px; font-size:0.84rem;" onclick="openPrintableWorkOrder()">🖨️ Print Work Order (PDF)</button>
@@ -3502,13 +3613,19 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       const cleanWin = booking.display_window || 'Today, within 45–60 min';
       const techShort = (booking.assigned_technician || 'Marcus Vance').split('(')[0].trim();
       const truckShort = (booking.truck_id || 'TRUCK-01').split('(')[0].trim();
-      const isPaid = booking.payment_status === 'PAID_VERIFIED';
+      const isFinalPaid = Boolean(booking.final_balance_paid);
+      const isPaid = booking.payment_status === 'PAID_VERIFIED' || isFinalPaid;
       const photoInfo = booking.panel_photo_analysis || {};
       const photoUploaded = Boolean(photoInfo.uploaded);
+      const selTier = (booking.selected_option_tier || 'GOOD').toUpperCase();
+      const quoteOpts = booking.quote_options || [];
+      const fee = Number(booking.dispatch_fee || 89);
+      const totalVal = Number(booking.estimated_job_value || 1200);
+      const remBalance = isFinalPaid ? 0 : Math.max(0, totalVal - (isPaid ? fee : 0));
 
       const stripeButtonHtml = isPaid
-        ? `<button class="btn-stripe-pay paid" disabled>✓ $${booking.dispatch_fee} Deposit Paid &amp; Verified</button>`
-        : `<button class="btn-stripe-pay" onclick="payStripeDeposit('${booking.confirmation_id}')">👉 Authorize $${booking.dispatch_fee} Deposit via Stripe</button>`;
+        ? `<button class="btn-stripe-pay paid" disabled>✓ $${fee} Deposit Paid &amp; Verified</button>`
+        : `<button class="btn-stripe-pay" onclick="payStripeDeposit('${booking.confirmation_id}')">👉 Authorize $${fee} Deposit via Stripe</button>`;
 
       const photoCardHtml = photoUploaded
         ? `
@@ -3527,6 +3644,45 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             </button>
           </div>
         `;
+
+      const quoteButtonsHtml = quoteOpts.map(opt => {
+        const isSel = opt.tier === selTier;
+        const borderCol = isSel ? '#4ade80' : 'rgba(148,163,184,0.35)';
+        const bgCol = isSel ? 'rgba(22,163,74,0.25)' : 'rgba(15,23,42,0.65)';
+        return `
+          <button onclick="selectCustomerQuoteOption('${booking.confirmation_id}', '${opt.tier}')"
+                  style="width:100%; text-align:left; background:${bgCol}; border:1.5px solid ${borderCol}; border-radius:7px; padding:6px 8px; color:#f8fafc; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:6px;">
+            <div>
+              <div style="font-size:0.76rem; font-weight:800; color:${isSel ? '#4ade80' : '#e2e8f0'};">
+                ${isSel ? '✓ ' : ''}${opt.label}
+              </div>
+              <div style="font-size:0.7rem; color:#cbd5e1;">${opt.desc}</div>
+            </div>
+            <div style="font-size:0.82rem; font-weight:900; color:#4ade80; white-space:nowrap;">$${Number(opt.total).toLocaleString()}</div>
+          </button>
+        `;
+      }).join('');
+
+      const quoteProposalHtml = quoteOpts.length > 0
+        ? `
+          <div class="sms-bubble" style="border-left:3px solid #a855f7;">
+            <div class="sms-tag" style="color:#c084fc;">📑 Good / Better / Best Flat-Rate Options</div>
+            <div style="font-size:0.78rem; color:#e2e8f0; margin-bottom:6px;">
+              Select your preferred scope package (${booking.rebate_summary || 'IRS 25C $600 Tax Credit Eligible'}):
+            </div>
+            <div style="display:flex; flex-direction:column; gap:5px;">
+              ${quoteButtonsHtml}
+            </div>
+            <div style="margin-top:7px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.12); display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; color:#cbd5e1;">Balance Due (${selTier}): <strong>$${remBalance.toLocaleString()}</strong></span>
+              ${isFinalPaid
+                ? `<span style="background:#16a34a; color:#ffffff; font-weight:800; font-size:0.74rem; padding:4px 8px; border-radius:5px;">✓ PAID IN FULL</span>`
+                : `<button onclick="payCustomerFinalBalance('${booking.confirmation_id}')" style="background:#16a34a; color:#ffffff; border:none; border-radius:6px; padding:5px 9px; font-weight:800; font-size:0.75rem; cursor:pointer;">💰 Pay $${remBalance.toLocaleString()} Final Balance</button>`
+              }
+            </div>
+          </div>
+        `
+        : '';
 
       const enRouteHtml = booking.en_route_sent
         ? `
@@ -3555,17 +3711,70 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           <div class="sms-stripe-sheet">
             <div style="display:flex; justify-content:space-between; font-weight:800; font-size:0.86rem; color:#c7d2fe;">
               <span>💳 STRIPE UPFRONT DEPOSIT</span>
-              <span style="color:#4ade80;">$${Number(booking.dispatch_fee).toFixed(2)}</span>
+              <span style="color:#4ade80;">$${fee.toFixed(2)}</span>
             </div>
             ${stripeButtonHtml}
           </div>
           ${photoCardHtml}
         </div>
+        ${quoteProposalHtml}
         ${enRouteHtml}
         ${reviewHtml}
       `;
       phoneMessages.innerHTML = smsHtml;
       phoneMessages.scrollTop = phoneMessages.scrollHeight;
+    }
+
+    async function selectCustomerQuoteOption(confirmationId, tier) {
+      if (!confirmationId && ACTIVE_HERO_BOOKING) confirmationId = ACTIVE_HERO_BOOKING.confirmation_id;
+      if (!confirmationId) return;
+      const res = await fetch('/api/bookings/select-option', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: confirmationId, tier })
+      });
+      const data = await res.json();
+      if (data.status === 'SUCCESS' && data.booking) {
+        const b = data.booking;
+        const addAmt = Number(b.upsell_added_amount || 0);
+        appendMessage(
+          'ZeroMiss Proposal Engine',
+          `📑 Homeowner selected <strong>${b.selected_option_tier} Package</strong>${addAmt > 0 ? ` (+$${addAmt} Add-On)` : ''} — Ticket updated to <strong>$${Number(b.estimated_job_value).toLocaleString()}</strong>!`,
+          true
+        );
+        showBookingInHero(b);
+        pushCustomerSmsBooking(b);
+        await fetchBoardData();
+        if (document.getElementById('ticketDossierModal').classList.contains('active')) {
+          openTicketDossierModal(b);
+        }
+      }
+    }
+
+    async function payCustomerFinalBalance(confirmationId) {
+      if (!confirmationId && ACTIVE_HERO_BOOKING) confirmationId = ACTIVE_HERO_BOOKING.confirmation_id;
+      if (!confirmationId) return;
+      const res = await fetch('/api/bookings/pay-balance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: confirmationId })
+      });
+      const data = await res.json();
+      if (data.status === 'SUCCESS' && data.booking) {
+        const b = data.booking;
+        appendMessage(
+          'Stripe Payment Gateway',
+          `💰 <strong>FINAL INVOICE PAID IN FULL:</strong> ${b.customer_name} completed full payment of <strong>$${Number(b.estimated_job_value).toLocaleString()}.00</strong> (${b.selected_option_tier} Package). Work order closed!`,
+          true
+        );
+        setJourneyStep(3);
+        showBookingInHero(b);
+        pushCustomerSmsBooking(b);
+        await fetchBoardData();
+        if (document.getElementById('ticketDossierModal').classList.contains('active')) {
+          openTicketDossierModal(b);
+        }
+      }
     }
 
     async function simulateCustomerPhotoUpload(confirmationId) {
@@ -4372,6 +4581,10 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       hazFullEl.style.color = isEmerg ? '#b91c1c' : '#1e40af';
       document.getElementById('dossierSafetyDirective').innerText = booking.triage_safety_instruction || 'Isolate affected circuit breaker prior to arrival.';
       document.getElementById('dossierNecLoad').innerText = booking.nec_load_summary || 'NEC 220.82 Service Load Verified';
+      const permEl = document.getElementById('dossierPermitInfo');
+      if (permEl) permEl.innerText = booking.permit_info || 'Municipal Electrical Repair Permit Pre-Drafted';
+      const rebEl = document.getElementById('dossierRebateInfo');
+      if (rebEl) rebEl.innerText = booking.rebate_summary || 'Homeowner Insurance & IRS 25C Safety Upgrade Eligible';
       document.getElementById('dossierUpsellRec').innerText = booking.upsell_recommendation || 'Whole-Home Type 2 Surge Protection (NEC 230.67) — +$485 Add-On';
 
       // AI Panel & Equipment Photo Pre-Check Audit
@@ -4431,30 +4644,89 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         .map(item => `<div class="dossier-check-item">${item}</div>`)
         .join('');
 
-      // Financial Ledger
+      // Good / Better / Best 3-Option Selector Bar & Financial Ledger
       const fee = Number(booking.dispatch_fee || 89);
       const jobVal = Number(booking.estimated_job_value || 1200);
+      const isFinalPaid = Boolean(booking.final_balance_paid);
+      const selTier = (booking.selected_option_tier || 'GOOD').toUpperCase();
+      const quoteOpts = booking.quote_options || [];
+      const quoteBar = document.getElementById('dossierQuoteOptionsBar');
+      if (quoteBar && quoteOpts.length > 0) {
+        quoteBar.innerHTML = quoteOpts.map(opt => {
+          const isSel = opt.tier === selTier;
+          return `
+            <button onclick="selectCustomerQuoteOption('${booking.confirmation_id}', '${opt.tier}')"
+                    style="text-align:left; padding:7px 9px; border-radius:7px; cursor:pointer; background:${isSel ? '#f0fdf4' : '#ffffff'}; border:${isSel ? '2px solid #16a34a' : '1px solid #cbd5e1'};">
+              <div style="font-size:0.74rem; font-weight:800; color:${isSel ? '#15803d' : '#1e293b'};">${isSel ? '✓ ' : ''}${opt.label}</div>
+              <div style="font-size:0.7rem; color:#64748b; margin:2px 0;">${opt.desc}</div>
+              <div style="font-size:0.84rem; font-weight:900; color:#0f172a;">$${Number(opt.total).toLocaleString()}.00</div>
+            </button>
+          `;
+        }).join('');
+      }
+      const sendQuoteBtn = document.getElementById('dossierSendQuoteBtn');
+      if (sendQuoteBtn) {
+        sendQuoteBtn.innerText = booking.quote_sent ? '✓ 3-Option Proposal Sent to Phone' : '📑 Push 3-Option Proposal SMS';
+        sendQuoteBtn.style.background = booking.quote_sent ? '#16a34a' : '#4f46e5';
+      }
+
       document.getElementById('dossierFeeDesc').innerText = isEmerg
         ? 'Priority Code Red Emergency Dispatch & Diagnostic Deposit'
         : 'Upfront Dispatch & Diagnostic Deposit (Credited Toward Job)';
-      document.getElementById('dossierJobEstDesc').innerText = `${booking.display_title || 'Electrical Service'} — Estimated Turnkey Scope`;
+      const upsellAdded = Number(booking.upsell_added_amount || 0);
+      document.getElementById('dossierJobEstDesc').innerText = `${booking.display_title || 'Electrical Service'} — ${selTier} Tier${upsellAdded > 0 ? ` (+$${upsellAdded} Add-On)` : ''}`;
       document.getElementById('dossierFeeAmt').innerText = `$${fee.toFixed(2)}`;
       document.getElementById('dossierJobValAmt').innerText = `$${jobVal.toLocaleString()}.00`;
+
+      const jobStageEl = document.getElementById('dossierJobStageText');
+      if (jobStageEl) {
+        if (isFinalPaid) {
+          jobStageEl.style.color = '#15803d';
+          jobStageEl.style.fontWeight = '800';
+          jobStageEl.innerText = '✓ Final Invoice Paid in Full (Stripe)';
+        } else {
+          jobStageEl.style.color = '#475569';
+          jobStageEl.style.fontWeight = '600';
+          jobStageEl.innerText = `Option ${selTier} Selected • Balance $${Math.max(0, jobVal - ((isPaid || isFinalPaid) ? fee : 0)).toLocaleString()}`;
+        }
+      }
 
       const payPill = document.getElementById('dossierPaymentPill');
       const feeStatus = document.getElementById('dossierFeeStatusText');
       const payBtn = document.getElementById('dossierStripePayBtn');
-      if (isPaid) {
+      const finalPayBtn = document.getElementById('dossierFinalPayBtn');
+      if (isFinalPaid) {
+        payPill.innerHTML = '<span style="background:#16a34a; color:#ffffff; padding:3px 9px; border-radius:6px; font-weight:800;">✓ PAID IN FULL VIA STRIPE ($0 Balance)</span>';
+        feeStatus.style.color = '#15803d';
+        feeStatus.innerText = '✓ Paid & Credited Toward Final Invoice';
+        payBtn.style.display = 'none';
+        if (finalPayBtn) {
+          finalPayBtn.innerText = '✓ Final Balance Paid in Full';
+          finalPayBtn.style.background = '#15803d';
+          finalPayBtn.disabled = true;
+        }
+      } else if (isPaid) {
         payPill.innerHTML = '<span style="background:#dcfce7; color:#15803d; padding:3px 9px; border-radius:6px; font-weight:800;">✓ Deposit Paid &amp; Verified via Stripe</span>';
         feeStatus.style.color = '#15803d';
         feeStatus.innerText = '✓ Paid & Verified (Stripe Escrow)';
         payBtn.style.display = 'none';
+        if (finalPayBtn) {
+          const rem = Math.max(0, jobVal - fee);
+          finalPayBtn.innerText = `💰 Collect $${rem.toLocaleString()} Final Balance`;
+          finalPayBtn.style.background = '#15803d';
+          finalPayBtn.disabled = false;
+        }
       } else {
         payPill.innerHTML = `<span style="background:#fef3c7; color:#b45309; padding:3px 9px; border-radius:6px; font-weight:800;">⏳ Pending $${fee} Deposit</span>`;
         feeStatus.style.color = '#b45309';
         feeStatus.innerText = 'Pending Customer Stripe Authorization';
         payBtn.style.display = 'inline-flex';
         payBtn.innerText = `💳 Authorize $${fee} Deposit`;
+        if (finalPayBtn) {
+          finalPayBtn.innerText = `💰 Collect $${jobVal.toLocaleString()} Final Balance`;
+          finalPayBtn.style.background = '#15803d';
+          finalPayBtn.disabled = false;
+        }
       }
 
       const enRouteBtn = document.getElementById('dossierEnRouteBtn');
@@ -4483,6 +4755,32 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
     function closeTicketDossierModal() {
       document.getElementById('ticketDossierModal').classList.remove('active');
+    }
+
+    async function sendQuoteFromDossier() {
+      if (!ACTIVE_DOSSIER_BOOKING) return;
+      const res = await fetch('/api/bookings/send-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: ACTIVE_DOSSIER_BOOKING.confirmation_id })
+      });
+      const data = await res.json();
+      if (data.status === 'SUCCESS' && data.booking) {
+        appendMessage(
+          'ZeroMiss Proposal Engine',
+          `📑 Sent interactive <strong>Good / Better (+$485) / Best (+$950)</strong> Flat-Rate Proposal &amp; IRS 25C Rebate packet to ${data.booking.customer_name}'s smartphone.`,
+          true
+        );
+        showBookingInHero(data.booking);
+        pushCustomerSmsBooking(data.booking);
+        await fetchBoardData();
+        openTicketDossierModal(data.booking);
+      }
+    }
+
+    async function payFinalBalanceFromDossier() {
+      if (!ACTIVE_DOSSIER_BOOKING) return;
+      await payCustomerFinalBalance(ACTIVE_DOSSIER_BOOKING.confirmation_id);
     }
 
     async function simulatePhotoUploadFromDossier() {
@@ -5103,6 +5401,34 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             booking = DB.mark_review_requested(cid)
             if booking:
                 self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/bookings/send-quote":
+            cid = req_data.get("confirmation_id", "").strip()
+            booking = DB.send_three_option_quote(cid)
+            roi = DB.calculate_contractor_roi_metrics()
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking), "roi_metrics": roi})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/bookings/select-option":
+            cid = req_data.get("confirmation_id", "").strip()
+            tier = req_data.get("tier", "GOOD").strip()
+            booking = DB.select_quote_option(cid, tier)
+            roi = DB.calculate_contractor_roi_metrics()
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking), "roi_metrics": roi})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/bookings/pay-balance":
+            cid = req_data.get("confirmation_id", "").strip()
+            booking = DB.mark_final_balance_paid(cid)
+            roi = DB.calculate_contractor_roi_metrics()
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking), "roi_metrics": roi})
             else:
                 self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
 

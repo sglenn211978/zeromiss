@@ -866,6 +866,47 @@ class DispatchDatabase:
             booking.review_requested = True
             return booking
 
+    def send_three_option_quote(self, confirmation_id: str) -> Optional[ServiceBooking]:
+        """Pushes the interactive Good / Better / Best 3-Option Flat-Rate Proposal to the customer's SMS thread."""
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            booking.quote_sent = True
+            return booking
+
+    def select_quote_option(self, confirmation_id: str, tier: str) -> Optional[ServiceBooking]:
+        """Updates the customer's selected Good / Better / Best option tier and dynamically recalculates job revenue."""
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            clean_tier = (tier or "GOOD").strip().upper()
+            if clean_tier not in ("GOOD", "BETTER", "BEST"):
+                clean_tier = "GOOD"
+            base_val = float(booking.estimated_job_value or 1200.0) - float(getattr(booking, "upsell_added_amount", 0.0) or 0.0)
+            if clean_tier == "BETTER":
+                add_amt = 485.0
+            elif clean_tier == "BEST":
+                add_amt = 950.0
+            else:
+                add_amt = 0.0
+            booking.quote_sent = True
+            booking.selected_option_tier = clean_tier
+            booking.upsell_added_amount = add_amt
+            booking.estimated_job_value = base_val + add_amt
+            return booking
+
+    def mark_final_balance_paid(self, confirmation_id: str) -> Optional[ServiceBooking]:
+        """Marks both the upfront deposit and the remaining final work order balance as paid via Stripe."""
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            booking.payment_status = "PAID_VERIFIED"
+            booking.final_balance_paid = True
+            return booking
+
 
     def sync_google_calendar_busy_blocks(self, external_ics_url: Optional[str] = None) -> Dict[str, Any]:
         """Two-way Google Calendar sync: imports external Google Calendar busy events onto the Fleet Dispatch Board."""

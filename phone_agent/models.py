@@ -96,6 +96,10 @@ class ServiceBooking:
     panel_photo_analysis: Optional[Dict[str, Any]] = None
     en_route_sent: bool = False
     review_requested: bool = False
+    quote_sent: bool = False
+    selected_option_tier: str = "GOOD"
+    upsell_added_amount: float = 0.0
+    final_balance_paid: bool = False
 
 
 @dataclass
