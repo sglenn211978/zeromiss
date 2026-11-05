@@ -145,12 +145,66 @@ def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -
         else:
             b["truck_id"] = "TRUCK-02 (200A Panel & Service Rig)"
 
+    # 4. NEC 220.82 Load Calculation & Pre-Qualified Field Upsell Intelligence
+    title_l = clean_title.lower()
+    if is_emerg:
+        nec_load_summary = "150A/200A Main Service • Branch Circuit #14 Isolated • Thermal Fault Containment Active"
+        upsell_rec = "Whole-Home Dual-Function AFCI/GFCI Breaker & Type 2 Surge Protection Package (NEC 230.67)"
+        upsell_val = 650
+    elif "ev" in title_l:
+        nec_load_summary = "NEC 220.82 Calculation: 200A Service • ~114A Existing Peak • +86A Headroom ✓ Approved for 48A EVSE"
+        upsell_rec = "Whole-Home Type 2 Surge Protective Device (NEC 230.67 EVSE Protection) — +$485 Add-On"
+        upsell_val = 485
+    elif "panel" in title_l:
+        nec_load_summary = "NEC 220.82 Calculation: Existing 100A Bus @ 112% Peak Load • 200A Copper Bus Upgrade Required"
+        upsell_rec = "Whole-Home Generator Interlock Kit + 50A NEMA 14-50 Inlet Box — +$790 Add-On"
+        upsell_val = 790
+    else:
+        nec_load_summary = "NEC 220.82 Calculation: 200A Main Service Verified • Branch Circuit Load Within 80% Continuous Limit"
+        upsell_rec = "Whole-Home Type 2 Surge Protective Device (NEC 230.67 Compliance) — +$485 Add-On"
+        upsell_val = 485
+
+    if not b.get("panel_photo_analysis"):
+        if is_emerg:
+            b["panel_photo_analysis"] = {
+                "uploaded": False,
+                "photo_label": "Awaiting Homeowner SMS Photo (or Click Simulate)",
+                "equipment_detected": "Square D QO 150A Main Panel • NEMA 5-15R Branch Circuit",
+                "breaker_spec": "Square D QO120DF (20A Dual-Function AFCI/GFCI)",
+                "open_spaces": "2 Open Spaces (Pre-Estimated)",
+                "ai_finding": "SMS link sent to homeowner to snap photo of affected outlet & main breaker panel prior to arrival.",
+                "parts_verification": "⏳ Click '📸 Simulate Customer Photo' to verify exact breaker series",
+            }
+        elif "ev" in title_l:
+            b["panel_photo_analysis"] = {
+                "uploaded": False,
+                "photo_label": "Awaiting Homeowner SMS Photo (or Click Simulate)",
+                "equipment_detected": "200A Main Breaker Loadcenter (Reported by Caller)",
+                "breaker_spec": "50A 2-Pole EVSE Breaker (Brand Verified Upon Photo)",
+                "open_spaces": "2+ Open Spaces (Reported by Caller)",
+                "ai_finding": "SMS link sent to homeowner to snap panel label & breaker directory so tech loads exact 50A breaker brand.",
+                "parts_verification": "⏳ Click '📸 Simulate Customer Photo' to lock in breaker brand",
+            }
+        else:
+            b["panel_photo_analysis"] = {
+                "uploaded": False,
+                "photo_label": "Awaiting Homeowner SMS Photo (or Click Simulate)",
+                "equipment_detected": "200A Residential Main Breaker Panel",
+                "breaker_spec": "20A Dual-Function AFCI/GFCI Breaker",
+                "open_spaces": "4 Open Spaces (Pre-Estimated)",
+                "ai_finding": "SMS link sent to homeowner to upload breaker panel photo prior to truck roll.",
+                "parts_verification": "⏳ Click '📸 Simulate Customer Photo' to verify breaker brand",
+            }
+
     b["display_title"] = clean_title
     b["display_window"] = clean_window
     b["triage_symptom"] = symptom
     b["triage_hazard_level"] = hazard_level
     b["triage_hazard_short"] = hazard_short
     b["triage_safety_instruction"] = safety_given
+    b["nec_load_summary"] = nec_load_summary
+    b["upsell_recommendation"] = upsell_rec
+    b["upsell_value"] = upsell_val
     return b
 
 
@@ -184,6 +238,12 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
     symptom = b.get("triage_symptom", "Electrical service request")
     hazard_level = b.get("triage_hazard_level", "Routine Service — Non-Hazardous")
     safety_dir = b.get("triage_safety_instruction", "Isolate affected circuit breaker prior to arrival.")
+    nec_load_summary = b.get("nec_load_summary", "NEC 220.82 Load Verified")
+    upsell_rec = b.get("upsell_recommendation", "Whole-Home Type 2 Surge Protection (NEC 230.67)")
+    photo_info = b.get("panel_photo_analysis") or {}
+    photo_equip = photo_info.get("equipment_detected", "200A Main Breaker Panel")
+    photo_breaker = photo_info.get("breaker_spec", "20A Dual-Function AFCI/GFCI")
+    photo_status = "✓ AI VISION VERIFIED VIA SMS" if photo_info.get("uploaded") else "📋 PRE-ESTIMATED SPEC (SMS LINK ACTIVE)"
 
     fee = float(b.get("dispatch_fee", 199.0 if is_emerg else 89.0))
     est_val = float(b.get("estimated_job_value", 1850.0 if is_emerg else 1450.0))
@@ -609,11 +669,11 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
       </div>
     </div>
 
-    <!-- 4. AI TECHNICAL TRIAGE & NFPA 70E SAFETY DIRECTIVE LOG -->
+    <!-- 4. AI TECHNICAL TRIAGE, PANEL PHOTO AUDIT & NEC 220.82 LOAD VERIFICATION -->
     <div class="triage-section">
       <div class="triage-head">
         <span>{"🚨 NFPA 70E EMERGENCY HAZARD TRIAGE & LIFE-SAFETY RECORD" if is_emerg else "🛡️ AI TECHNICAL TRIAGE & PRE-ARRIVAL LOAD VERIFICATION"}</span>
-        <span>Verified Prior to Dispatch</span>
+        <span>{photo_status}</span>
       </div>
       <div class="triage-grid">
         <strong style="color:#475569;">Reported Symptom:</strong>
@@ -622,6 +682,12 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
         <strong style="color:{"#991b1b" if is_emerg else "#1e3a8a"};">{hazard_level}</strong>
         <strong style="color:#475569;">Safety Directive Issued:</strong>
         <span style="font-weight:600; color:#1e293b;">{safety_dir}</span>
+        <strong style="color:#475569;">📸 Panel / Breaker Spec:</strong>
+        <span style="font-weight:700; color:#0f172a;">{photo_equip} &bull; {photo_breaker}</span>
+        <strong style="color:#475569;">⚡ NEC 220.82 Load Audit:</strong>
+        <span style="font-weight:700; color:#1e3a8a;">{nec_load_summary}</span>
+        <strong style="color:#475569;">💡 Pre-Qualified Upsell:</strong>
+        <span style="font-weight:800; color:#15803d;">{upsell_rec}</span>
       </div>
     </div>
 
@@ -2791,11 +2857,11 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- MODAL: ROI Calculator -->
+  <!-- MODAL: ROI Calculator & Answering Service Comparison -->
   <div class="modal-overlay" id="roiModal">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width:680px; width:95%;">
       <div class="modal-header">
-        <h3>📊 Contractor ROI Calculator</h3>
+        <h3>📊 Contractor ROI Calculator &amp; Answering Service Comparison</h3>
         <button class="modal-close" onclick="closeRoiModal()">&times;</button>
       </div>
       <div>
@@ -2811,11 +2877,47 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         </div>
         <input type="range" id="sliderTicket" min="300" max="4000" step="50" value="1200" oninput="updateRoiCalculation()" style="width:100%;">
 
-        <div class="roi-result-banner">
-          <div style="font-size:0.88rem; font-weight:800; color:#15803d; text-transform:uppercase;">Projected Recouped Annual Revenue</div>
-          <div class="roi-big-gain" id="roiAnnualGain">+$109,368 / yr</div>
-          <div style="font-size:0.9rem; color:var(--text-muted);" id="roiBreakdown">Based on recovering 7.6 missed after-hours jobs/month</div>
+        <div class="roi-result-banner" style="margin-bottom:14px;">
+          <div style="font-size:0.86rem; font-weight:800; color:#15803d; text-transform:uppercase;">Projected Recouped Annual Revenue + Pre-Qualified Upsells</div>
+          <div class="roi-big-gain" id="roiAnnualGain">+$128,808 / yr</div>
+          <div style="font-size:0.9rem; color:var(--text-muted);" id="roiBreakdown">Based on recovering 7.6 missed after-hours jobs/month + $7,800/yr answering service savings</div>
         </div>
+
+        <!-- Side-by-Side Comparison: Traditional Answering Service vs ZeroMiss AI -->
+        <div style="border:1px solid #cbd5e1; border-radius:10px; overflow:hidden; margin-bottom:14px; font-size:0.85rem;">
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#0f172a; color:#ffffff; text-align:left;">
+                <th style="padding:8px 10px;">Capability</th>
+                <th style="padding:8px 10px; color:#fca5a5;">Old Way: Call Center ($650/mo)</th>
+                <th style="padding:8px 10px; color:#86efac;">⚡ ZeroMiss AI Dispatcher</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:7px 10px; font-weight:700;">After-Hours / Dropped Calls</td>
+                <td style="padding:7px 10px; color:#64748b;">Takes "name &amp; number" message; 65% call a competitor before morning</td>
+                <td style="padding:7px 10px; font-weight:800; color:#15803d;">✓ 3-Sec SMS + Instant Calendar Slot Booking</td>
+              </tr>
+              <tr style="border-bottom:1px solid #e2e8f0; background:#f8fafc;">
+                <td style="padding:7px 10px; font-weight:700;">Upfront Diagnostic Deposit</td>
+                <td style="padding:7px 10px; color:#64748b;">$0 collected (high next-day no-show rate)</td>
+                <td style="padding:7px 10px; font-weight:800; color:#15803d;">✓ Collects $89–$199 via Stripe in SMS</td>
+              </tr>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:7px 10px; font-weight:700;">NFPA 70E &amp; Panel Pre-Check</td>
+                <td style="padding:7px 10px; color:#64748b;">Scripts have zero electrical knowledge; wrong parts on truck</td>
+                <td style="padding:7px 10px; font-weight:800; color:#15803d;">✓ AI Panel Photo Audit + NEC 220.82 Load Check</td>
+              </tr>
+              <tr style="background:#f8fafc;">
+                <td style="padding:7px 10px; font-weight:700;">Fleet Truck &amp; GCal Sync</td>
+                <td style="padding:7px 10px; color:#64748b;">Manual email note; double-books busy techs</td>
+                <td style="padding:7px 10px; font-weight:800; color:#15803d;">✓ Two-Way Google Calendar + Truck Assignment</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <button class="btn-modal-submit" onclick="closeRoiModal()">Close Calculator</button>
       </div>
     </div>
@@ -3000,19 +3102,45 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Section 2: AI Technical Triage, Hazard Assessment & Safety Protocol -->
+        <!-- Section 2: AI Technical Triage, NEC 220.82 Load & Safety Protocol -->
         <div class="dossier-triage-banner" id="dossierTriageBanner">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
             <span style="font-size:0.82rem; font-weight:800; text-transform:uppercase; letter-spacing:0.04em;" id="dossierTriageTitle">🚨 NFPA 70E HAZARD TRIAGE &amp; SAFETY PROTOCOL LOG</span>
             <span style="font-size:0.76rem; font-weight:800; background:rgba(255,255,255,0.85); padding:3px 8px; border-radius:5px; border:1px solid rgba(15,23,42,0.15);" id="dossierHazardPill">Code Red Thermal Risk</span>
           </div>
-          <div style="display:grid; grid-template-columns: 150px 1fr; gap:6px 12px; font-size:0.88rem; line-height:1.45;">
+          <div style="display:grid; grid-template-columns: 165px 1fr; gap:5px 12px; font-size:0.86rem; line-height:1.42;">
             <span style="font-weight:700; color:#475569;">Caller Symptom:</span>
             <span style="font-weight:800; color:#0f172a;" id="dossierSymptom">Burning rubber odor behind refrigerator</span>
             <span style="font-weight:700; color:#475569;">Hazard Classification:</span>
             <span style="font-weight:800; color:#b91c1c;" id="dossierHazardFull">NFPA 70E Code Red — Active Thermal / Fire Risk</span>
             <span style="font-weight:700; color:#475569;">Safety Directive Issued:</span>
             <span style="font-weight:600; color:#1e293b;" id="dossierSafetyDirective">Shut off circuit breaker immediately if safe; do not touch scorched outlets.</span>
+            <span style="font-weight:700; color:#475569;">⚡ NEC 220.82 Load Audit:</span>
+            <span style="font-weight:800; color:#1e3a8a;" id="dossierNecLoad">150A/200A Main Service Verified</span>
+            <span style="font-weight:700; color:#475569;">💡 Pre-Qualified Upsell:</span>
+            <span style="font-weight:800; color:#15803d;" id="dossierUpsellRec">Whole-Home Type 2 Surge Protection (NEC 230.67) — +$485 Add-On</span>
+          </div>
+        </div>
+
+        <!-- Section 2.5: AI Panel & Equipment Photo Pre-Check Audit (Eliminates Wasted Truck Rolls) -->
+        <div class="dossier-box" id="dossierPhotoBox" style="background:#f0fdf4; border:1.5px solid #86efac;">
+          <div class="dossier-box-title" style="border-bottom-color:#bbf7d0;">
+            <span>📸 AI Panel &amp; Breaker Photo Pre-Check (Eliminates Wasted Truck Rolls)</span>
+            <span id="dossierPhotoStatusPill" style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:5px; font-weight:800;">📋 Pre-Arrival SMS Active</span>
+          </div>
+          <div style="display:grid; grid-template-columns: 165px 1fr; gap:4px 12px; font-size:0.85rem; line-height:1.4;">
+            <span style="font-weight:700; color:#475569;">Detected Panel / Device:</span>
+            <span style="font-weight:800; color:#0f172a;" id="dossierPhotoEquip">Square D QO 150A Main Panel</span>
+            <span style="font-weight:700; color:#475569;">Required Breaker / Part:</span>
+            <span style="font-weight:800; color:#1e3a8a;" id="dossierPhotoBreaker">Square D QO120DF (20A Dual-Function AFCI/GFCI)</span>
+            <span style="font-weight:700; color:#475569;">AI Vision Inspection:</span>
+            <span style="font-weight:600; color:#1e293b;" id="dossierPhotoFinding">SMS link sent to homeowner to verify panel label prior to arrival.</span>
+          </div>
+          <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <span style="font-size:0.8rem; font-weight:800; color:#15803d;" id="dossierPhotoPartsCheck">✓ Prevents rolling a truck without the matching breaker series</span>
+            <button class="btn-cal-action" id="dossierUploadPhotoBtn" style="background:#16a34a; color:#fff; border-color:#15803d; padding:5px 12px; font-size:0.8rem;" onclick="simulatePhotoUploadFromDossier()">
+              📸 Simulate Homeowner Panel Photo Upload
+            </button>
           </div>
         </div>
 
@@ -3057,13 +3185,15 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
       <div class="dossier-footer-actions">
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <a href="#" target="_blank" id="dossierGcalBtn" class="btn-cal-magic" style="padding:9px 14px; font-size:0.86rem;">📅 Open in Google Calendar</a>
-          <button class="btn-cal-action" id="dossierStripePayBtn" style="background:#4f46e5; color:#fff; border-color:#4338ca;" onclick="authorizeDepositFromDossier()">💳 Authorize Deposit Now</button>
-          <button class="btn-cal-action" style="background:#0f172a; color:#fff; border-color:#0f172a;" onclick="openPrintableWorkOrder()">🖨️ Print Official Work Order (PDF)</button>
+          <a href="#" target="_blank" id="dossierGcalBtn" class="btn-cal-magic" style="padding:8px 12px; font-size:0.84rem;">📅 Open in Google Calendar</a>
+          <button class="btn-cal-action" id="dossierStripePayBtn" style="background:#4f46e5; color:#fff; border-color:#4338ca; padding:8px 12px; font-size:0.84rem;" onclick="authorizeDepositFromDossier()">💳 Authorize Deposit</button>
+          <button class="btn-cal-action" id="dossierEnRouteBtn" style="background:#0284c7; color:#fff; border-color:#0369a1; padding:8px 12px; font-size:0.84rem;" onclick="sendEnRouteSmsFromDossier()">🚐 Send "Tech En-Route" SMS</button>
+          <button class="btn-cal-action" id="dossierReviewBtn" style="background:#f59e0b; color:#fff; border-color:#d97706; padding:8px 12px; font-size:0.84rem;" onclick="sendReviewSmsFromDossier()">⭐ Request 5-Star Review</button>
+          <button class="btn-cal-action" style="background:#0f172a; color:#fff; border-color:#0f172a; padding:8px 12px; font-size:0.84rem;" onclick="openPrintableWorkOrder()">🖨️ Print Work Order (PDF)</button>
         </div>
         <div style="display:flex; gap:8px;">
-          <button class="btn-cal-action" onclick="jumpToCallConsoleFromDossier()">🎙️ View in Call Console</button>
-          <button class="btn-cal-action" style="background:#0f172a; color:#fff;" onclick="closeTicketDossierModal()">Done</button>
+          <button class="btn-cal-action" style="padding:8px 12px; font-size:0.84rem;" onclick="jumpToCallConsoleFromDossier()">🎙️ Call Console</button>
+          <button class="btn-cal-action" style="background:#0f172a; color:#fff; padding:8px 12px; font-size:0.84rem;" onclick="closeTicketDossierModal()">Done</button>
         </div>
       </div>
     </div>
@@ -3370,23 +3500,97 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
     function pushCustomerSmsBooking(booking) {
       const cleanWin = booking.display_window || 'Today, within 45–60 min';
+      const techShort = (booking.assigned_technician || 'Marcus Vance').split('(')[0].trim();
+      const truckShort = (booking.truck_id || 'TRUCK-01').split('(')[0].trim();
+      const isPaid = booking.payment_status === 'PAID_VERIFIED';
+      const photoInfo = booking.panel_photo_analysis || {};
+      const photoUploaded = Boolean(photoInfo.uploaded);
+
+      const stripeButtonHtml = isPaid
+        ? `<button class="btn-stripe-pay paid" disabled>✓ $${booking.dispatch_fee} Deposit Paid &amp; Verified</button>`
+        : `<button class="btn-stripe-pay" onclick="payStripeDeposit('${booking.confirmation_id}')">👉 Authorize $${booking.dispatch_fee} Deposit via Stripe</button>`;
+
+      const photoCardHtml = photoUploaded
+        ? `
+          <div style="margin-top:8px; background:rgba(22,163,74,0.22); border:1px solid #4ade80; border-radius:8px; padding:8px 10px; font-size:0.8rem;">
+            <div style="font-weight:800; color:#4ade80; margin-bottom:2px;">📸 PANEL PHOTO VERIFIED BY SARAH AI ✓</div>
+            <div style="color:#f8fafc; font-weight:700;">${photoInfo.equipment_detected || '200A Main Breaker Panel'}</div>
+            <div style="color:#cbd5e1; font-size:0.76rem; margin-top:2px;">${photoInfo.parts_verification || 'Exact breaker series loaded on truck'}</div>
+          </div>
+        `
+        : `
+          <div style="margin-top:8px; background:rgba(15,23,42,0.55); border:1px dashed #93c5fd; border-radius:8px; padding:8px 10px; font-size:0.8rem;">
+            <div style="font-weight:800; color:#93c5fd; margin-bottom:3px;">📸 OPTIONAL: 1-TAP PANEL / OUTLET PRE-CHECK</div>
+            <div style="color:#e2e8f0; font-size:0.76rem; margin-bottom:6px;">Snap your breaker panel or outlet so ${techShort} brings the exact breaker on ${truckShort}:</div>
+            <button onclick="simulateCustomerPhotoUpload('${booking.confirmation_id}')" style="width:100%; background:#0284c7; color:#ffffff; border:none; border-radius:6px; padding:7px 10px; font-weight:800; font-size:0.8rem; cursor:pointer;">
+              📸 Simulate Customer Panel Photo Upload
+            </button>
+          </div>
+        `;
+
+      const enRouteHtml = booking.en_route_sent
+        ? `
+          <div class="sms-bubble" style="border-left:3px solid #38bdf8;">
+            <div class="sms-tag" style="color:#38bdf8;">🚐 Live GPS Dispatch Tracker</div>
+            <strong>${techShort}</strong> is en route in <strong>🚐 ${truckShort}</strong>!<br>
+            <span style="font-size:0.82rem; color:#cbd5e1;">📍 Live GPS ETA: <strong>14 mins</strong> &bull; Parts &amp; Breaker Loaded ✓</span>
+          </div>
+        `
+        : '';
+
+      const reviewHtml = booking.review_requested
+        ? `
+          <div class="sms-bubble" style="border-left:3px solid #facc15;">
+            <div class="sms-tag" style="color:#facc15;">⭐ Job Complete • 5-Star Review</div>
+            Thank you for choosing ZeroMiss Electrical, ${booking.customer_name}! Tap below to leave ${techShort} a 5-star Google review:<br>
+            <span style="display:inline-block; margin-top:5px; background:#f59e0b; color:#0f172a; font-weight:800; font-size:0.78rem; padding:4px 10px; border-radius:6px;">⭐⭐⭐⭐⭐ Leave Google Review &rarr;</span>
+          </div>
+        `
+        : '';
+
       const smsHtml = `
         <div class="sms-bubble">
-          <div class="sms-tag">Appointment Dispatched</div>
-          Hi ${booking.customer_name}, your technician <strong>${booking.assigned_technician.split('(')[0].trim()}</strong> is scheduled for <strong>${cleanWin}</strong>.
+          <div class="sms-tag">Appointment Dispatched • 🚐 ${truckShort}</div>
+          Hi ${booking.customer_name}, your electrician <strong>${techShort}</strong> is scheduled for <strong>${cleanWin}</strong>.
           <div class="sms-stripe-sheet">
             <div style="display:flex; justify-content:space-between; font-weight:800; font-size:0.86rem; color:#c7d2fe;">
               <span>💳 STRIPE UPFRONT DEPOSIT</span>
               <span style="color:#4ade80;">$${Number(booking.dispatch_fee).toFixed(2)}</span>
             </div>
-            <button class="btn-stripe-pay" onclick="payStripeDeposit('${booking.confirmation_id}')">
-              👉 Authorize $${booking.dispatch_fee} Deposit via Stripe
-            </button>
+            ${stripeButtonHtml}
           </div>
+          ${photoCardHtml}
         </div>
+        ${enRouteHtml}
+        ${reviewHtml}
       `;
       phoneMessages.innerHTML = smsHtml;
       phoneMessages.scrollTop = phoneMessages.scrollHeight;
+    }
+
+    async function simulateCustomerPhotoUpload(confirmationId) {
+      if (!confirmationId && ACTIVE_HERO_BOOKING) confirmationId = ACTIVE_HERO_BOOKING.confirmation_id;
+      if (!confirmationId) return;
+      const res = await fetch('/api/bookings/upload-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: confirmationId })
+      });
+      const data = await res.json();
+      if (data.status === 'SUCCESS' && data.booking) {
+        const pInfo = data.booking.panel_photo_analysis || {};
+        appendMessage(
+          'Sarah AI Vision (Panel Pre-Check)',
+          `📸 Analyzed homeowner photo (${pInfo.photo_label || 'panel.jpg'}): Detected <strong>${pInfo.equipment_detected}</strong>. Required part: <strong>${pInfo.breaker_spec}</strong> (${pInfo.open_spaces}). Verified on ${data.booking.truck_id}!`,
+          true
+        );
+        showBookingInHero(data.booking);
+        pushCustomerSmsBooking(data.booking);
+        await fetchBoardData();
+        if (document.getElementById('ticketDossierModal').classList.contains('active')) {
+          openTicketDossierModal(data.booking);
+        }
+      }
     }
 
     // STEP 1 -> STEP 2: Simulate Dropped Call
@@ -3408,7 +3612,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             </div>
             <div class="sms-action-card" onclick="convertMissedCallLead('${mc.missed_call_id}')">
               <div style="font-size:0.82rem; font-weight:800; color:#4ade80;">⚡ 1-TAP SELF-SCHEDULE ($1,200 JOB)</div>
-              <div style="font-size:0.98rem; font-weight:800; color:#ffffff; margin:4px 0;">Tomorrow, 8:00 AM &bull; Tech: Sarah Chen</div>
+              <div style="font-size:0.98rem; font-weight:800; color:#ffffff; margin:4px 0;">Tomorrow, 8:00 AM &bull; Tech: Sarah Chen (🚐 TRUCK-03)</div>
               <button class="btn-action-claim" id="btnClaim_${mc.missed_call_id}">
                 👉 Tap to Confirm &amp; Book ($1,200)
               </button>
@@ -3444,32 +3648,16 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         });
         const data = await res.json();
         if (data.status === 'SUCCESS') {
-          const cid = data.booking ? data.booking.confirmation_id : '';
-          phoneMessages.innerHTML = `
-            <div class="sms-bubble">
-              <div class="recoup-won-badge">✓ SLOT BOOKED ($1,200 PIPELINE)</div>
-              <div style="margin:10px 0; font-size:0.95rem;">
-                Confirmed for <strong>Tomorrow, 8:00 AM – 12:00 PM</strong> with <strong>Sarah Chen</strong>.
-              </div>
-              <div class="sms-stripe-sheet">
-                <div style="display:flex; justify-content:space-between; font-weight:800; font-size:0.86rem; color:#c7d2fe;">
-                  <span>💳 STEP 4: UPFRONT DEPOSIT</span>
-                  <span style="color:#4ade80;">$89.00</span>
-                </div>
-                <button class="btn-stripe-pay" onclick="payStripeDeposit('${cid}')">
-                  👉 Authorize $89 Deposit via Stripe
-                </button>
-              </div>
-            </div>
-          `;
-
-          if (data.booking) showBookingInHero(data.booking);
+          if (data.booking) {
+            showBookingInHero(data.booking);
+            pushCustomerSmsBooking(data.booking);
+          }
 
           appendMessage('Sarah (ZeroMiss AI)', `✓ Customer booked Tomorrow 8:00 AM – 12:00 PM with Sarah Chen ($1,200 Pipeline Booked). Awaiting $89 Stripe deposit to lock in Revenue Won.`, true);
 
           setJourneyProgress(
             3,
-            '👉 <strong>Next Step (Step 3 of 4):</strong> Slot booked! Now click <strong>"Authorize $89 Deposit via Stripe"</strong> inside the phone to move Pipeline Booked to <strong>Revenue Won</strong>.',
+            '👉 <strong>Next Step (Step 3 of 4):</strong> Slot booked! Now click <strong>"Authorize $89 Deposit via Stripe"</strong> (or test <strong>"📸 Simulate Customer Panel Photo Upload"</strong>) inside the phone.',
             'phone'
           );
 
@@ -4183,6 +4371,29 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       hazFullEl.innerText = booking.triage_hazard_level || (isEmerg ? 'NFPA 70E Code Red — Active Thermal / Fire Risk' : 'Routine Service (Non-Hazardous)');
       hazFullEl.style.color = isEmerg ? '#b91c1c' : '#1e40af';
       document.getElementById('dossierSafetyDirective').innerText = booking.triage_safety_instruction || 'Isolate affected circuit breaker prior to arrival.';
+      document.getElementById('dossierNecLoad').innerText = booking.nec_load_summary || 'NEC 220.82 Service Load Verified';
+      document.getElementById('dossierUpsellRec').innerText = booking.upsell_recommendation || 'Whole-Home Type 2 Surge Protection (NEC 230.67) — +$485 Add-On';
+
+      // AI Panel & Equipment Photo Pre-Check Audit
+      const photoInfo = booking.panel_photo_analysis || {};
+      const photoUploaded = Boolean(photoInfo.uploaded);
+      document.getElementById('dossierPhotoEquip').innerText = photoInfo.equipment_detected || '200A Main Breaker Panel';
+      document.getElementById('dossierPhotoBreaker').innerText = `${photoInfo.breaker_spec || '20A Dual-Function AFCI/GFCI'} (${photoInfo.open_spaces || 'Spaces Verified'})`;
+      document.getElementById('dossierPhotoFinding').innerText = photoInfo.ai_finding || 'SMS link sent to homeowner to verify panel label prior to arrival.';
+      document.getElementById('dossierPhotoPartsCheck').innerText = photoInfo.parts_verification || '✓ Prevents rolling a truck without the matching breaker series';
+      const photoStatusPill = document.getElementById('dossierPhotoStatusPill');
+      const photoUploadBtn = document.getElementById('dossierUploadPhotoBtn');
+      if (photoUploaded) {
+        photoStatusPill.style.background = '#16a34a';
+        photoStatusPill.style.color = '#ffffff';
+        photoStatusPill.innerText = `✓ AI Vision Verified (${photoInfo.uploaded_at || 'Live'})`;
+        photoUploadBtn.style.display = 'none';
+      } else {
+        photoStatusPill.style.background = '#dcfce7';
+        photoStatusPill.style.color = '#15803d';
+        photoStatusPill.innerText = '📋 Pre-Arrival SMS Active';
+        photoUploadBtn.style.display = 'inline-flex';
+      }
 
       // Field Technician Pre-Arrival Checklist & Truck Stock
       const titleLower = (booking.display_title || booking.service_type || '').toLowerCase();
@@ -4243,7 +4454,20 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         feeStatus.style.color = '#b45309';
         feeStatus.innerText = 'Pending Customer Stripe Authorization';
         payBtn.style.display = 'inline-flex';
-        payBtn.innerText = `💳 Authorize $${fee} Deposit Now`;
+        payBtn.innerText = `💳 Authorize $${fee} Deposit`;
+      }
+
+      const enRouteBtn = document.getElementById('dossierEnRouteBtn');
+      if (enRouteBtn) {
+        const truckShort = (booking.truck_id || 'TRUCK-01').split('(')[0].trim();
+        enRouteBtn.innerText = booking.en_route_sent ? `✓ ${truckShort} En-Route SMS Sent` : `🚐 Send "Tech En-Route (${truckShort})" SMS`;
+        enRouteBtn.style.background = booking.en_route_sent ? '#16a34a' : '#0284c7';
+      }
+
+      const revBtn = document.getElementById('dossierReviewBtn');
+      if (revBtn) {
+        revBtn.innerText = booking.review_requested ? '✓ 5-Star Review Sent' : '⭐ Request 5-Star Review';
+        revBtn.style.background = booking.review_requested ? '#16a34a' : '#f59e0b';
       }
 
       const gcalBtn = document.getElementById('dossierGcalBtn');
@@ -4259,6 +4483,47 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
     function closeTicketDossierModal() {
       document.getElementById('ticketDossierModal').classList.remove('active');
+    }
+
+    async function simulatePhotoUploadFromDossier() {
+      if (!ACTIVE_DOSSIER_BOOKING) return;
+      await simulateCustomerPhotoUpload(ACTIVE_DOSSIER_BOOKING.confirmation_id);
+    }
+
+    async function sendEnRouteSmsFromDossier() {
+      if (!ACTIVE_DOSSIER_BOOKING) return;
+      const res = await fetch('/api/bookings/en-route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: ACTIVE_DOSSIER_BOOKING.confirmation_id })
+      });
+      const data = await res.json();
+      if (data.status === 'SUCCESS' && data.booking) {
+        const techShort = (data.booking.assigned_technician || 'Marcus Vance').split('(')[0].trim();
+        const truckShort = (data.booking.truck_id || 'TRUCK-01').split('(')[0].trim();
+        appendMessage('ZeroMiss Fleet GPS', `🚐 Sent live "Tech En-Route" SMS to ${data.booking.customer_name}: ${techShort} is en route in ${truckShort} (ETA 14 mins).`, true);
+        showBookingInHero(data.booking);
+        pushCustomerSmsBooking(data.booking);
+        await fetchBoardData();
+        openTicketDossierModal(data.booking);
+      }
+    }
+
+    async function sendReviewSmsFromDossier() {
+      if (!ACTIVE_DOSSIER_BOOKING) return;
+      const res = await fetch('/api/bookings/request-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation_id: ACTIVE_DOSSIER_BOOKING.confirmation_id })
+      });
+      const data = await res.json();
+      if (data.status === 'SUCCESS' && data.booking) {
+        appendMessage('ZeroMiss Reputation Engine', `⭐ Sent 1-Tap 5-Star Google Review request SMS to ${data.booking.customer_name}.`, true);
+        showBookingInHero(data.booking);
+        pushCustomerSmsBooking(data.booking);
+        await fetchBoardData();
+        openTicketDossierModal(data.booking);
+      }
     }
 
     async function reassignFromDossierModal(newTechId) {
@@ -4574,9 +4839,11 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       document.getElementById('valSliderTicket').innerText = `$${ticket.toLocaleString()}`;
       const afterHoursCalls = calls * 0.35;
       const recoveredJobsMonthly = afterHoursCalls * 0.62 * 0.70;
-      const annualGain = Math.round(recoveredJobsMonthly * ticket * 12);
+      const callCenterAnnualSavings = 650 * 12; // $7,800/yr saved replacing $650/mo human call center
+      const upsellAnnualGain = Math.round(recoveredJobsMonthly * 0.35 * 485 * 12);
+      const annualGain = Math.round(recoveredJobsMonthly * ticket * 12) + callCenterAnnualSavings + upsellAnnualGain;
       document.getElementById('roiAnnualGain').innerText = `+$${annualGain.toLocaleString()} / yr`;
-      document.getElementById('roiBreakdown').innerText = `Based on recovering ${recoveredJobsMonthly.toFixed(1)} missed after-hours jobs/month`;
+      document.getElementById('roiBreakdown').innerText = `Based on recovering ${recoveredJobsMonthly.toFixed(1)} missed after-hours jobs/mo + $7,800/yr call center savings`;
     }
 
     function openTwilioModal() {
@@ -4630,6 +4897,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
     }
     if (urlParams.get('ticket') === 'true' && BOARD_DATA.bookings && BOARD_DATA.bookings.length > 0) {
       openTicketDossierModal(BOARD_DATA.bookings[BOARD_DATA.bookings.length - 1]);
+    }
+    if (urlParams.get('roi') === 'true') {
+      openRoiModal();
     }
     window.addEventListener('DOMContentLoaded', () => fetchBoardData());
   </script>
@@ -4807,6 +5077,30 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             cid = req_data.get("confirmation_id", "").strip()
             truck_id = req_data.get("truck_id", "").strip()
             booking = DB.update_booking_truck(cid, truck_id)
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/bookings/upload-photo":
+            cid = req_data.get("confirmation_id", "").strip()
+            booking = DB.attach_panel_photo_analysis(cid)
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/bookings/en-route":
+            cid = req_data.get("confirmation_id", "").strip()
+            booking = DB.mark_tech_en_route(cid)
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/bookings/request-review":
+            cid = req_data.get("confirmation_id", "").strip()
+            booking = DB.mark_review_requested(cid)
             if booking:
                 self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking)})
             else:

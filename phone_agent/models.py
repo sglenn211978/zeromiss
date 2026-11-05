@@ -93,6 +93,9 @@ class ServiceBooking:
     tech_match_reason: str = "Certified • Nearest Available"
     is_demo_seed: bool = False
     truck_id: str = "TRUCK-01 (Master Emergency Van)"
+    panel_photo_analysis: Optional[Dict[str, Any]] = None
+    en_route_sent: bool = False
+    review_requested: bool = False
 
 
 @dataclass

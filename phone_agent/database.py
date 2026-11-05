@@ -804,6 +804,69 @@ class DispatchDatabase:
             self.gcal_last_sync = f"Synced Truck Update -> {booking.truck_id} ({datetime.now().strftime('%I:%M %p')})"
             return booking
 
+    def attach_panel_photo_analysis(self, confirmation_id: str) -> Optional[ServiceBooking]:
+        """Simulates homeowner breaker panel / hazard photo upload via SMS and runs AI Vision equipment audit."""
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            urg_str = booking.urgency_level.value if hasattr(booking.urgency_level, "value") else str(booking.urgency_level)
+            is_emerg = "EMERG" in urg_str.upper() or "burn" in (booking.issue_description or "").lower()
+            is_ev = "ev" in (booking.service_type or "").lower() or "charger" in (booking.issue_description or "").lower()
+            if is_emerg:
+                booking.panel_photo_analysis = {
+                    "uploaded": True,
+                    "uploaded_at": datetime.now().strftime("%I:%M %p"),
+                    "photo_label": "customer_outlet_thermal_scan.jpg",
+                    "equipment_detected": "NEMA 5-15R Duplex Outlet • Square D QO 150A Main Panel",
+                    "breaker_spec": "Square D QO120DF (20A Dual-Function AFCI/GFCI Plug-On)",
+                    "open_spaces": "2 Open Pole Spaces Verified",
+                    "ai_finding": "Visible carbon tracking & thermal discoloration on neutral blade; branch circuit #14 isolated safely by homeowner.",
+                    "parts_verification": "✓ Exact Breaker & Spec-Grade Receptacle Confirmed on Assigned Truck",
+                }
+            elif is_ev:
+                booking.panel_photo_analysis = {
+                    "uploaded": True,
+                    "uploaded_at": datetime.now().strftime("%I:%M %p"),
+                    "photo_label": "homeowner_main_panel_200a.jpg",
+                    "equipment_detected": "Square D QO 200A Copper-Bus Main Breaker Loadcenter",
+                    "breaker_spec": "Square D QO250 (50A 2-Pole Plug-On Breaker)",
+                    "open_spaces": "6 Open Pole Spaces Verified (Bottom-Right Bus)",
+                    "ai_finding": "200A main breaker verified; no recall hazards (no FPE/Zinsco); 6 open spaces ready for 50A 2-pole EVSE breaker.",
+                    "parts_verification": "✓ QO250 Breaker & #6 AWG Cu Whip Verified on Assigned Truck",
+                }
+            else:
+                booking.panel_photo_analysis = {
+                    "uploaded": True,
+                    "uploaded_at": datetime.now().strftime("%I:%M %p"),
+                    "photo_label": "homeowner_breaker_panel.jpg",
+                    "equipment_detected": "Eaton BR 200A 40-Space Main Breaker Loadcenter",
+                    "breaker_spec": "Eaton BRN120DF (20A Dual-Function AFCI/GFCI)",
+                    "open_spaces": "4 Open Pole Spaces Verified",
+                    "ai_finding": "Panel bus & main lugs intact; no double-tapped neutrals observed; ready for scheduled installation.",
+                    "parts_verification": "✓ Eaton BR Series Breakers & Surge Kit Verified on Assigned Truck",
+                }
+            return booking
+
+    def mark_tech_en_route(self, confirmation_id: str) -> Optional[ServiceBooking]:
+        """Marks the assigned electrician & truck as en route and triggers customer GPS ETA SMS."""
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            booking.en_route_sent = True
+            return booking
+
+    def mark_review_requested(self, confirmation_id: str) -> Optional[ServiceBooking]:
+        """Marks post-job 5-Star Google Review SMS as sent to customer."""
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            booking.review_requested = True
+            return booking
+
+
     def sync_google_calendar_busy_blocks(self, external_ics_url: Optional[str] = None) -> Dict[str, Any]:
         """Two-way Google Calendar sync: imports external Google Calendar busy events onto the Fleet Dispatch Board."""
         with self._lock:
