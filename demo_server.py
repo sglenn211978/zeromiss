@@ -284,6 +284,22 @@ def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -
     b["diagnostic_readings"] = diags
     b["customer_signature_name"] = b.get("customer_signature_name") or b.get("customer_name", "David Miller")
     b["customer_signature_timestamp"] = b.get("customer_signature_timestamp")
+
+    # 6. Connected Invoicing & FSM Software (ServiceTitan, Housecall Pro, Jobber, QuickBooks)
+    from phone_agent.database import format_fsm_ticket_id, format_fsm_metadata
+    connected_fsm = str(b.get("connected_fsm") or getattr(DB, "active_fsm_platform", "HOUSECALL_PRO")).strip().upper()
+    fsm_tid = str(b.get("fsm_ticket_id") or format_fsm_ticket_id(connected_fsm, b.get("confirmation_id", "1001")))
+    fsm_meta = format_fsm_metadata(connected_fsm, b.get("confirmation_id", "1001"))
+
+    b["connected_fsm"] = connected_fsm
+    b["fsm_ticket_id"] = fsm_tid
+    b["fsm_name"] = fsm_meta["name"]
+    b["fsm_icon"] = fsm_meta["icon"]
+    b["fsm_badge"] = fsm_meta["badge"]
+    b["fsm_url"] = fsm_meta["url"]
+    b["fsm_button_label"] = fsm_meta["button_label"]
+    b["fsm_tech_label"] = fsm_meta["tech_label"]
+    b["fsm_accent_color"] = fsm_meta["accent_color"]
     return b
 
 
@@ -325,8 +341,10 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
     selected_tier = b.get("selected_option_tier", "GOOD")
     upsell_added = float(b.get("upsell_added_amount", 0.0))
     photo_info = b.get("panel_photo_analysis") or {}
-    photo_equip = photo_info.get("equipment_detected", "200A Main Breaker Panel")
+    photo_equip = photo_info.get("equipment_detected", "Square D QO 150A Main Panel")
     photo_breaker = photo_info.get("breaker_spec", "20A Dual-Function AFCI/GFCI")
+    fsm_name = b.get("fsm_name", "Housecall Pro")
+    fsm_ticket_id = b.get("fsm_ticket_id", f"HCP-{conf_id.split('-')[-1]}")
     photo_status = "✓ AI VISION VERIFIED VIA SMS" if photo_info.get("uploaded") else "📋 PRE-ESTIMATED SPEC (SMS LINK ACTIVE)"
 
     fee = float(b.get("dispatch_fee", 199.0 if is_emerg else 89.0))
@@ -726,6 +744,7 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
     <!-- 2. SUMMARY STRIP -->
     <div class="meta-strip">
       <span>📋 <strong>Primary Scope:</strong> {title}</span>
+      <span>🔌 <strong>Connected Invoicing App:</strong> {fsm_name} (#{fsm_ticket_id})</span>
       <span>🤖 <strong>Intake Source:</strong> {source_tag}</span>
       {pay_badge_html}
     </div>
@@ -840,7 +859,7 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
       </thead>
       <tbody>
         <tr>
-          <td><strong>Upfront Dispatch &amp; Diagnostic Deposit</strong> (Credited toward final work order)</td>
+          <td><strong>Upfront Dispatch &amp; Diagnostic Deposit</strong> (Credited toward {fsm_name} final invoice)</td>
           <td style="font-weight:800; color:{"#15803d" if (is_paid or is_final_paid) else "#b45309"};">
             {"✓ PAID & VERIFIED VIA STRIPE" if (is_paid or is_final_paid) else "⏳ PENDING CUSTOMER STRIPE AUTHORIZATION"}
           </td>
@@ -848,17 +867,17 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
         </tr>
         <tr>
           <td>
-            <strong>Selected Flat-Rate Option ({selected_tier} Tier):</strong> {title}
-            {f" + Approved Add-On (+${upsell_added:,.0f})" if upsell_added > 0 else ""}
+            <strong>Electrical Scope &amp; Materials:</strong> {title}
+            <div style="font-size:11px; color:#64748b; margin-top:2px;">Billed using contractor's native {fsm_name} price book &amp; on-site tech authorization.</div>
           </td>
           <td style="color:{"#15803d" if is_final_paid else "#475569"}; font-weight:700;">
-            {"✓ FINAL INVOICE PAID IN FULL VIA STRIPE" if is_final_paid else f"Option {selected_tier} Approved • On-Site Completion"}
+            {"✓ FINAL INVOICE PAID IN FULL" if is_final_paid else f"Synced to {fsm_name} • Work Order #{fsm_ticket_id}"}
           </td>
           <td style="text-align:right; font-weight:800;">${est_val:,.2f}</td>
         </tr>
         <tr style="background:#f8fafc;">
           <td colspan="2" style="text-align:right; font-weight:900; text-transform:uppercase; color:{"#15803d" if is_final_paid else "#0f172a"};">
-            {"✓ PAID IN FULL VIA STRIPE — REMAINING BALANCE DUE:" if is_final_paid else f"Estimated Balance Upon Completion {('(After Paid Deposit Credit)' if is_paid else '(Including Deposit)')}:"}
+            {"✓ PAID IN FULL VIA STRIPE — REMAINING BALANCE DUE:" if is_final_paid else f"Estimated Balance Billed via {fsm_name} (After ${fee:,.0f} Paid Deposit Credit):"}
           </td>
           <td style="text-align:right; font-size:13px; font-weight:900; color:{"#15803d" if is_final_paid else "#0f172a"};">${balance_est:,.2f}</td>
         </tr>
@@ -1047,6 +1066,52 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       cursor: pointer;
     }
     .utility-btn:hover { background: rgba(255, 255, 255, 0.18); }
+
+    /* FSM & INVOICING APP SWITCHER BAR */
+    .fsm-switch-container {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 9px;
+      padding: 4px 10px;
+    }
+    .fsm-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+    .fsm-select {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.86rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .fsm-select:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+    .fsm-payload-btn {
+      background: rgba(56, 189, 248, 0.16);
+      border: 1px solid rgba(56, 189, 248, 0.38);
+      color: #38bdf8;
+      padding: 6px 11px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .fsm-payload-btn:hover {
+      background: rgba(56, 189, 248, 0.3);
+    }
 
     /* MAIN CONTAINER — WIDENED TO 1400PX FOR SCREEN-SHARING */
     main {
@@ -2683,6 +2748,17 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         </button>
       </div>
 
+      <div class="fsm-switch-container" title="Select contractor's existing invoicing &amp; FSM software">
+        <span class="fsm-label">Invoicing App:</span>
+        <select id="fsmPlatformSelect" class="fsm-select" onchange="switchFsmPlatform(this.value)">
+          <option value="HOUSECALL_PRO" selected>🏠 Housecall Pro</option>
+          <option value="SERVICETITAN">⚡ ServiceTitan</option>
+          <option value="JOBBER">💼 Jobber</option>
+          <option value="QUICKBOOKS">📗 QuickBooks Online</option>
+        </select>
+        <button class="fsm-payload-btn" onclick="openFsmPayloadModal()" title="View outgoing API webhook payload">📋 View FSM Webhook</button>
+      </div>
+
       <button class="utility-btn" onclick="openRoiModal()">📊 ROI Calculator</button>
       <button class="utility-btn" onclick="openPitchModal()">💡 Sales Guide</button>
       <button class="utility-btn" onclick="openTwilioModal()">📞 Connect Phone</button>
@@ -2932,16 +3008,33 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
                         </button>
                       </div>
 
-                      <!-- Stage 4: Good / Better / Best Proposal & Digital Customer Signature Pad -->
-                      <div class="tech-card" style="border:1.5px solid #a855f7;">
+                      <!-- Stage 4: FSM Job Sync, Deposit Credit & Customer Work Authorization -->
+                      <div class="tech-card" style="border:1.5px solid #3b82f6; background:rgba(30,41,59,0.92);">
                         <div class="tech-card-title">
-                          <span style="color:#c084fc;">📑 Present Scope &amp; Customer Signature</span>
-                          <span style="color:#4ade80; font-weight:800;" id="techTierDisplayPill">BETTER TIER</span>
+                          <span style="color:#93c5fd;" id="techFsmStageTitle">🔌 FSM Scope &amp; Customer Authorization</span>
+                          <span style="background:rgba(37,99,235,0.3); color:#93c5fd; font-weight:800; font-size:0.72rem; padding:2px 6px; border-radius:4px;" id="techFsmTicketPill">HCP-1001</span>
                         </div>
-                        <div style="font-size:0.76rem; color:#cbd5e1; margin-bottom:6px;">
-                          Present flat-rate scope options to customer on tablet:
+
+                        <div style="background:#0f172a; border:1px solid #334155; border-radius:6px; padding:7px 9px; margin-bottom:8px; font-size:0.76rem;">
+                          <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                            <span style="color:#94a3b8;">Connected Platform:</span>
+                            <span style="color:#ffffff; font-weight:700;" id="techFsmNameDisplay">Housecall Pro</span>
+                          </div>
+                          <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                            <span style="color:#94a3b8;">Upfront Deposit Credited:</span>
+                            <span style="color:#4ade80; font-weight:800;" id="techFsmDepositDisplay">-$89.00 (Stripe Paid ✓)</span>
+                          </div>
+                          <div style="display:flex; justify-content:space-between;">
+                            <span style="color:#94a3b8;">Invoicing &amp; Price Book:</span>
+                            <span style="color:#cbd5e1;">Native Shop Flat-Rate</span>
+                          </div>
                         </div>
-                        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; margin-bottom:8px;" id="techQuoteCardsGrid"></div>
+
+                        <div style="margin-bottom:8px;">
+                          <a href="#" id="techFsmDeepLinkBtn" target="_blank" class="tech-btn" style="background:#2563eb; text-decoration:none; text-align:center; display:flex; align-items:center; justify-content:center; gap:6px; font-weight:800; padding:8px;">
+                            <span id="techFsmButtonText">↗ Open Job &amp; Price Book in Housecall Pro</span>
+                          </a>
+                        </div>
 
                         <!-- Digital Signature Pad -->
                         <div style="background:#020617; border:1px solid #334155; border-radius:8px; padding:8px; margin-bottom:6px;">
@@ -3532,18 +3625,23 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           <div class="dossier-checklist" id="dossierChecklistGrid"></div>
         </div>
 
-        <!-- Section 4: Good/Better/Best Proposal Selector & Financial Deposit Ledger -->
+        <!-- Section 4: Connected Invoicing & FSM Integration Bridge -->
         <div class="dossier-box" style="background:#ffffff;">
           <div class="dossier-box-title">
-            <span>📑 Interactive Good / Better / Best Proposal &amp; Stripe Ledger</span>
+            <span>🔌 Connected Invoicing &amp; FSM Integration</span>
             <span id="dossierPaymentPill">⏳ Pending Authorization</span>
           </div>
-          <div style="margin-bottom:10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
-              <span style="font-size:0.78rem; font-weight:800; color:#334155; text-transform:uppercase;">Customer Flat-Rate Option Tier (Click to Preview / Upgrade Ticket):</span>
-              <button class="btn-cal-action" id="dossierSendQuoteBtn" style="background:#4f46e5; color:#fff; border-color:#4338ca; padding:3px 10px; font-size:0.76rem;" onclick="sendQuoteFromDossier()">📑 Push 3-Option Proposal SMS</button>
+          <div style="margin-bottom:10px; background:#f0fdf4; border:1.5px solid #86efac; border-radius:8px; padding:10px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <div>
+                <div style="font-size:0.86rem; font-weight:800; color:#166534;" id="dossierFsmNameText">🏠 Connected to Housecall Pro &bull; Synced Ticket <strong>#HCP-8921</strong></div>
+                <div style="font-size:0.76rem; color:#475569; margin-top:2px;" id="dossierFsmSubText">Upfront diagnostic deposit credited &bull; Price book &amp; quotes managed in external FSM</div>
+              </div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <a href="#" target="_blank" class="btn-cal-action" id="dossierFsmDeepLink" style="background:#0284c7; color:#fff; border-color:#0369a1; padding:4px 10px; font-size:0.78rem; text-decoration:none;">↗ Open in Invoicing App</a>
+                <button class="btn-cal-action" style="background:#0f172a; color:#fff; border-color:#0f172a; padding:4px 10px; font-size:0.78rem;" onclick="openFsmPayloadModal(ACTIVE_DOSSIER_BOOKING ? ACTIVE_DOSSIER_BOOKING.confirmation_id : null)">📋 View FSM Webhook</button>
+              </div>
             </div>
-            <div id="dossierQuoteOptionsBar" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;"></div>
           </div>
           <table class="dossier-invoice-table">
             <thead>
@@ -3560,9 +3658,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
                 <td style="text-align:right; font-size:0.95rem;" id="dossierFeeAmt">$199.00</td>
               </tr>
               <tr>
-                <td id="dossierJobEstDesc">Estimated Field Scope &amp; Installation Revenue</td>
-                <td id="dossierJobStageText" style="color:#475569;">On-Site Completion Estimate</td>
-                <td style="text-align:right; font-size:0.95rem; color:#15803d;" id="dossierJobValAmt">$1,850.00</td>
+                <td id="dossierJobEstDesc">Diagnostic Deposit Credited Toward Final Scope</td>
+                <td id="dossierJobStageText" style="color:#15803d; font-weight:700;">Credited to Connected FSM Invoice</td>
+                <td style="text-align:right; font-size:0.95rem; color:#15803d; font-weight:800;" id="dossierJobValAmt">-$199.00 Credit</td>
               </tr>
             </tbody>
           </table>
@@ -3581,6 +3679,65 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <div style="display:flex; gap:8px;">
           <button class="btn-cal-action" style="padding:8px 12px; font-size:0.84rem;" onclick="jumpToCallConsoleFromDossier()">🎙️ Call Console</button>
           <button class="btn-cal-action" style="background:#0f172a; color:#fff; padding:8px 12px; font-size:0.84rem;" onclick="closeTicketDossierModal()">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FSM & INVOICING WEBHOOK PAYLOAD INSPECTOR MODAL -->
+  <div class="modal-overlay" id="fsmPayloadModal">
+    <div class="modal-card" style="max-width:760px; max-height:92vh; display:flex; flex-direction:column; padding:22px;">
+      <div class="modal-header" style="margin-bottom:12px; padding-bottom:10px;">
+        <div>
+          <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
+            <span>🔌 Outgoing FSM &amp; Invoicing Webhook Bridge</span>
+          </h3>
+          <p style="font-size:0.82rem; color:#64748b; margin-top:2px;">
+            ZeroMiss synchronizes customer records, NFPA triage logs, panel photos, and deposit receipts directly into your existing software.
+          </p>
+        </div>
+        <button class="modal-close" onclick="closeFsmPayloadModal()">&times;</button>
+      </div>
+
+      <!-- Platform Tabs -->
+      <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+        <button class="fsm-modal-tab active" data-platform="HOUSECALL_PRO" onclick="previewFsmPlatformPayload('HOUSECALL_PRO')" style="padding:6px 14px; border-radius:6px; font-weight:700; font-size:0.82rem; cursor:pointer; background:#2563eb; color:#ffffff; border:1.5px solid #3b82f6;">
+          🏠 Housecall Pro
+        </button>
+        <button class="fsm-modal-tab" data-platform="SERVICETITAN" onclick="previewFsmPlatformPayload('SERVICETITAN')" style="padding:6px 14px; border-radius:6px; font-weight:700; font-size:0.82rem; cursor:pointer; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1;">
+          ⚡ ServiceTitan
+        </button>
+        <button class="fsm-modal-tab" data-platform="JOBBER" onclick="previewFsmPlatformPayload('JOBBER')" style="padding:6px 14px; border-radius:6px; font-weight:700; font-size:0.82rem; cursor:pointer; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1;">
+          💼 Jobber
+        </button>
+        <button class="fsm-modal-tab" data-platform="QUICKBOOKS" onclick="previewFsmPlatformPayload('QUICKBOOKS')" style="padding:6px 14px; border-radius:6px; font-weight:700; font-size:0.82rem; cursor:pointer; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1;">
+          📗 QuickBooks Online
+        </button>
+      </div>
+
+      <!-- Target API Endpoint Header -->
+      <div style="background:#0f172a; border-radius:8px 8px 0 0; padding:8px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="background:#22c55e; color:#0f172a; font-weight:800; font-size:0.7rem; padding:2px 6px; border-radius:4px;">SYNCED</span>
+          <span style="font-family:monospace; font-size:0.78rem; color:#93c5fd;" id="fsmEndpointDisplay">POST https://api.housecallpro.com/v1/jobs</span>
+        </div>
+        <span style="font-size:0.72rem; color:#94a3b8;">JSON Webhook Payload</span>
+      </div>
+
+      <!-- JSON Viewer -->
+      <pre id="fsmPayloadJsonPre" style="margin:0; background:#020617; color:#38bdf8; font-family:monospace; font-size:0.8rem; padding:14px; border-radius:0 0 8px 8px; max-height:360px; overflow:auto; line-height:1.45; border:1px solid #334155; border-top:none; flex:1;">// Loading payload...</pre>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; flex-wrap:wrap; gap:8px;">
+        <span style="font-size:0.78rem; color:#64748b;">
+          💡 Your price book, inventory, and final invoicing remain 100% inside your chosen platform.
+        </span>
+        <div style="display:flex; gap:8px;">
+          <button id="btnCopyFsmPayload" class="btn-cal-action" style="background:#0284c7; color:#fff; border-color:#0369a1; padding:7px 14px; font-size:0.82rem;" onclick="copyFsmPayloadJson()">
+            📋 Copy JSON Payload
+          </button>
+          <button class="btn-cal-action" style="background:#0f172a; color:#fff; border-color:#0f172a; padding:7px 14px; font-size:0.82rem;" onclick="closeFsmPayloadModal()">
+            Done
+          </button>
         </div>
       </div>
     </div>
@@ -3924,44 +4081,46 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           </div>
         `;
 
-      const quoteButtonsHtml = quoteOpts.map(opt => {
-        const isSel = opt.tier === selTier;
-        const borderCol = isSel ? '#4ade80' : 'rgba(148,163,184,0.35)';
-        const bgCol = isSel ? 'rgba(22,163,74,0.25)' : 'rgba(15,23,42,0.65)';
-        return `
-          <button onclick="selectCustomerQuoteOption('${booking.confirmation_id}', '${opt.tier}')"
-                  style="width:100%; text-align:left; background:${bgCol}; border:1.5px solid ${borderCol}; border-radius:7px; padding:6px 8px; color:#f8fafc; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:6px;">
-            <div>
-              <div style="font-size:0.76rem; font-weight:800; color:${isSel ? '#4ade80' : '#e2e8f0'};">
-                ${isSel ? '✓ ' : ''}${opt.label}
-              </div>
-              <div style="font-size:0.7rem; color:#cbd5e1;">${opt.desc}</div>
-            </div>
-            <div style="font-size:0.82rem; font-weight:900; color:#4ade80; white-space:nowrap;">$${Number(opt.total).toLocaleString()}</div>
-          </button>
-        `;
-      }).join('');
+      const fsmName = booking.fsm_name || 'Housecall Pro';
+      const fsmIcon = booking.fsm_icon || '🏠';
+      const fsmTicketId = booking.fsm_ticket_id || ('HCP-' + (booking.confirmation_id || '8921').replace(/\D/g, '').slice(-4));
+      const fsmUrl = booking.fsm_url || 'https://app.housecallpro.com/jobs';
+      const fsmBtnLabel = booking.fsm_button_label || `Open in ${fsmName}`;
+      const fsmColor = booking.fsm_accent_color || '#0284c7';
 
-      const quoteProposalHtml = quoteOpts.length > 0
-        ? `
-          <div class="sms-bubble" style="border-left:3px solid #a855f7;">
-            <div class="sms-tag" style="color:#c084fc;">📑 Good / Better / Best Flat-Rate Options</div>
-            <div style="font-size:0.78rem; color:#e2e8f0; margin-bottom:6px;">
-              Select your preferred scope package (${booking.rebate_summary || 'IRS 25C $600 Tax Credit Eligible'}):
+      const fsmBridgeHtml = `
+        <div class="sms-bubble" style="border-left:3px solid ${fsmColor};">
+          <div class="sms-tag" style="color:#38bdf8; display:flex; justify-content:space-between; align-items:center;">
+            <span>${fsmIcon} Synced with ${fsmName}</span>
+            <span style="background:rgba(56,189,248,0.18); color:#38bdf8; padding:2px 6px; border-radius:4px; font-weight:800; font-size:0.72rem;">Job #${fsmTicketId}</span>
+          </div>
+          <div style="font-size:0.78rem; color:#e2e8f0; margin-bottom:8px; line-height:1.4;">
+            Your dispatch details and upfront diagnostic deposit have been synchronized with <strong>${fsmName}</strong>.
+          </div>
+          <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(148,163,184,0.25); border-radius:7px; padding:7px 9px; margin-bottom:8px; font-size:0.75rem;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+              <span style="color:#cbd5e1;">Upfront Diagnostic Deposit:</span>
+              <span style="color:#4ade80; font-weight:800;">-$${fee.toFixed(2)} Credited</span>
             </div>
-            <div style="display:flex; flex-direction:column; gap:5px;">
-              ${quoteButtonsHtml}
+            <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+              <span style="color:#cbd5e1;">Assigned Field Unit:</span>
+              <span style="color:#f8fafc; font-weight:700;">${techShort} &bull; 🚐 ${truckShort}</span>
             </div>
-            <div style="margin-top:7px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.12); display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:0.75rem; color:#cbd5e1;">Balance Due (${selTier}): <strong>$${remBalance.toLocaleString()}</strong></span>
-              ${isFinalPaid
-                ? `<span style="background:#16a34a; color:#ffffff; font-weight:800; font-size:0.74rem; padding:4px 8px; border-radius:5px;">✓ PAID IN FULL</span>`
-                : `<button onclick="payCustomerFinalBalance('${booking.confirmation_id}')" style="background:#16a34a; color:#ffffff; border:none; border-radius:6px; padding:5px 9px; font-weight:800; font-size:0.75rem; cursor:pointer;">💰 Pay $${remBalance.toLocaleString()} Final Balance</button>`
-              }
+            <div style="display:flex; justify-content:space-between;">
+              <span style="color:#cbd5e1;">Municipal E-Permit / 25C:</span>
+              <span style="color:#facc15; font-weight:700;">${booking.rebate_summary || 'Eligible ($600 Tax Credit)'}</span>
             </div>
           </div>
-        `
-        : '';
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <a href="${fsmUrl}" target="_blank" style="flex:1; text-align:center; background:${fsmColor}; color:#ffffff; text-decoration:none; border-radius:6px; padding:6px 10px; font-weight:800; font-size:0.76rem; display:inline-block;">
+              ↗ ${fsmBtnLabel}
+            </a>
+            <button onclick="openFsmPayloadModal('${booking.confirmation_id}')" style="background:#0f172a; color:#94a3b8; border:1px solid rgba(148,163,184,0.4); border-radius:6px; padding:6px 8px; font-size:0.74rem; font-weight:700; cursor:pointer;">
+              📋 View Payload
+            </button>
+          </div>
+        </div>
+      `;
 
       const enRouteHtml = booking.en_route_sent
         ? `
@@ -3996,7 +4155,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           </div>
           ${photoCardHtml}
         </div>
-        ${quoteProposalHtml}
+        ${fsmBridgeHtml}
         ${enRouteHtml}
         ${reviewHtml}
       `;
@@ -4267,24 +4426,36 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         }
       }
 
-      const tierPill = document.getElementById('techTierDisplayPill');
-      if (tierPill) tierPill.innerText = `${selTier} TIER APPROVED`;
+      // Stage 4: Connected Invoicing & FSM Bridge
+      const fsmName = booking.fsm_name || 'Housecall Pro';
+      const fsmIcon = booking.fsm_icon || '🏠';
+      const fsmTicketId = booking.fsm_ticket_id || ('HCP-' + (booking.confirmation_id || '8921').replace(/\D/g, '').slice(-4));
+      const fsmUrl = booking.fsm_url || 'https://app.housecallpro.com/jobs';
+      const fsmBtnLabel = booking.fsm_tech_label || `↗ Open Job & Price Book in ${fsmName}`;
+      const fsmColor = booking.fsm_accent_color || '#2563eb';
 
-      const grid = document.getElementById('techQuoteCardsGrid');
-      if (grid && booking.quote_options) {
-        grid.innerHTML = booking.quote_options.map(opt => {
-          const isSel = opt.tier === selTier;
-          const bgCol = isSel ? 'rgba(22,163,74,0.35)' : 'rgba(15,23,42,0.7)';
-          const bdrCol = isSel ? '#4ade80' : '#475569';
-          return `
-            <button onclick="selectCustomerQuoteOption('${booking.confirmation_id}', '${opt.tier}')"
-                    style="background:${bgCol}; border:1.5px solid ${bdrCol}; border-radius:6px; padding:5px 6px; text-align:left; color:#f8fafc; cursor:pointer;">
-              <div style="font-size:0.68rem; font-weight:800; color:${isSel ? '#4ade80' : '#e2e8f0'};">${isSel ? '✓ ' : ''}${opt.tier}</div>
-              <div style="font-size:0.76rem; font-weight:900; color:#38bdf8;">$${Number(opt.total).toLocaleString()}</div>
-            </button>
-          `;
-        }).join('');
+      const fsmStageTitle = document.getElementById('techFsmStageTitle');
+      if (fsmStageTitle) fsmStageTitle.innerHTML = `${fsmIcon} ${fsmName} Scope &amp; Authorization`;
+
+      const fsmPill = document.getElementById('techFsmTicketPill');
+      if (fsmPill) fsmPill.innerText = fsmTicketId;
+
+      const fsmNameDisp = document.getElementById('techFsmNameDisplay');
+      if (fsmNameDisp) fsmNameDisp.innerText = fsmName;
+
+      const fsmDepositDisp = document.getElementById('techFsmDepositDisplay');
+      if (fsmDepositDisp) {
+        fsmDepositDisp.innerText = isPaid ? `-$${fee.toFixed(2)} (Stripe Paid ✓)` : `-$${fee.toFixed(2)} (Pending)`;
+        fsmDepositDisp.style.color = isPaid ? '#4ade80' : '#fbbf24';
       }
+
+      const fsmLinkBtn = document.getElementById('techFsmDeepLinkBtn');
+      if (fsmLinkBtn) {
+        fsmLinkBtn.href = fsmUrl;
+        fsmLinkBtn.style.background = fsmColor;
+      }
+      const fsmBtnText = document.getElementById('techFsmButtonText');
+      if (fsmBtnText) fsmBtnText.innerText = fsmBtnLabel;
 
       const sigTsEl = document.getElementById('techSigTimestamp');
       if (sigTsEl) {
@@ -4616,6 +4787,10 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       if (data.contractor_email) {
         DEFAULT_CONFIG_EMAIL = data.contractor_email;
         contractorInput.value = data.contractor_email;
+      }
+      if (data.active_fsm_platform) {
+        const fsmSelect = document.getElementById('fsmPlatformSelect');
+        if (fsmSelect) fsmSelect.value = data.active_fsm_platform;
       }
 
       const bookingsCount = (data.bookings || []).length;
@@ -5127,7 +5302,8 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       showBookingInHero(booking);
 
       const isEmerg = (booking.urgency_level || '').includes('EMERG') || (booking.service_type || '').toLowerCase() === 'emergency';
-      const isPaid = booking.payment_status === 'PAID_VERIFIED';
+      const isFinalPaid = Boolean(booking.final_balance_paid);
+      const isPaid = booking.payment_status === 'PAID_VERIFIED' || isFinalPaid;
       const isManual = (booking.booked_by || '').toLowerCase().includes('manual');
 
       const cardEl = document.getElementById('ticketDossierCard');
@@ -5261,51 +5437,46 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         .map(item => `<div class="dossier-check-item">${item}</div>`)
         .join('');
 
-      // Good / Better / Best 3-Option Selector Bar & Financial Ledger
+      // Connected Invoicing & FSM Integration Bridge
       const fee = Number(booking.dispatch_fee || 89);
       const jobVal = Number(booking.estimated_job_value || 1200);
-      const isFinalPaid = Boolean(booking.final_balance_paid);
-      const selTier = (booking.selected_option_tier || 'GOOD').toUpperCase();
-      const quoteOpts = booking.quote_options || [];
-      const quoteBar = document.getElementById('dossierQuoteOptionsBar');
-      if (quoteBar && quoteOpts.length > 0) {
-        quoteBar.innerHTML = quoteOpts.map(opt => {
-          const isSel = opt.tier === selTier;
-          return `
-            <button onclick="selectCustomerQuoteOption('${booking.confirmation_id}', '${opt.tier}')"
-                    style="text-align:left; padding:7px 9px; border-radius:7px; cursor:pointer; background:${isSel ? '#f0fdf4' : '#ffffff'}; border:${isSel ? '2px solid #16a34a' : '1px solid #cbd5e1'};">
-              <div style="font-size:0.74rem; font-weight:800; color:${isSel ? '#15803d' : '#1e293b'};">${isSel ? '✓ ' : ''}${opt.label}</div>
-              <div style="font-size:0.7rem; color:#64748b; margin:2px 0;">${opt.desc}</div>
-              <div style="font-size:0.84rem; font-weight:900; color:#0f172a;">$${Number(opt.total).toLocaleString()}.00</div>
-            </button>
-          `;
-        }).join('');
+
+      const fsmName = booking.fsm_name || 'Housecall Pro';
+      const fsmIcon = booking.fsm_icon || '🏠';
+      const fsmTicketId = booking.fsm_ticket_id || ('HCP-' + (booking.confirmation_id || '8921').replace(/\D/g, '').slice(-4));
+      const fsmUrl = booking.fsm_url || 'https://app.housecallpro.com/jobs';
+      const fsmBtnLabel = booking.fsm_button_label || `Open in ${fsmName}`;
+
+      const fsmNameEl = document.getElementById('dossierFsmNameText');
+      if (fsmNameEl) {
+        fsmNameEl.innerHTML = `${fsmIcon} Connected to ${fsmName} &bull; Synced Ticket <strong>#${fsmTicketId}</strong>`;
       }
-      const sendQuoteBtn = document.getElementById('dossierSendQuoteBtn');
-      if (sendQuoteBtn) {
-        sendQuoteBtn.innerText = booking.quote_sent ? '✓ 3-Option Proposal Sent to Phone' : '📑 Push 3-Option Proposal SMS';
-        sendQuoteBtn.style.background = booking.quote_sent ? '#16a34a' : '#4f46e5';
+      const fsmSubEl = document.getElementById('dossierFsmSubText');
+      if (fsmSubEl) {
+        fsmSubEl.innerText = `Upfront diagnostic deposit credited • Price book & quotes managed in external ${fsmName}`;
+      }
+      const fsmDeepLink = document.getElementById('dossierFsmDeepLink');
+      if (fsmDeepLink) {
+        fsmDeepLink.href = fsmUrl;
+        fsmDeepLink.innerText = `↗ ${fsmBtnLabel}`;
       }
 
       document.getElementById('dossierFeeDesc').innerText = isEmerg
         ? 'Priority Code Red Emergency Dispatch & Diagnostic Deposit'
-        : 'Upfront Dispatch & Diagnostic Deposit (Credited Toward Job)';
-      const upsellAdded = Number(booking.upsell_added_amount || 0);
-      document.getElementById('dossierJobEstDesc').innerText = `${booking.display_title || 'Electrical Service'} — ${selTier} Tier${upsellAdded > 0 ? ` (+$${upsellAdded} Add-On)` : ''}`;
+        : 'Upfront Dispatch & Diagnostic Deposit (Stripe Escrow)';
       document.getElementById('dossierFeeAmt').innerText = `$${fee.toFixed(2)}`;
-      document.getElementById('dossierJobValAmt').innerText = `$${jobVal.toLocaleString()}.00`;
+
+      const jobEstDesc = document.getElementById('dossierJobEstDesc');
+      if (jobEstDesc) jobEstDesc.innerText = `Diagnostic Deposit Credited Toward Final Scope`;
+
+      const jobValAmt = document.getElementById('dossierJobValAmt');
+      if (jobValAmt) jobValAmt.innerText = isPaid ? `-$${fee.toFixed(2)} Credit Applied` : `-$${fee.toFixed(2)} Credit (Pending)`;
 
       const jobStageEl = document.getElementById('dossierJobStageText');
       if (jobStageEl) {
-        if (isFinalPaid) {
-          jobStageEl.style.color = '#15803d';
-          jobStageEl.style.fontWeight = '800';
-          jobStageEl.innerText = '✓ Final Invoice Paid in Full (Stripe)';
-        } else {
-          jobStageEl.style.color = '#475569';
-          jobStageEl.style.fontWeight = '600';
-          jobStageEl.innerText = `Option ${selTier} Selected • Balance $${Math.max(0, jobVal - ((isPaid || isFinalPaid) ? fee : 0)).toLocaleString()}`;
-        }
+        jobStageEl.style.color = '#15803d';
+        jobStageEl.style.fontWeight = '700';
+        jobStageEl.innerText = `Synced to ${fsmName} Invoice #${fsmTicketId}`;
       }
 
       const payPill = document.getElementById('dossierPaymentPill');
@@ -5372,6 +5543,125 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
     function closeTicketDossierModal() {
       document.getElementById('ticketDossierModal').classList.remove('active');
+    }
+
+    let CURRENT_PAYLOAD_BOOKING_ID = null;
+    let CURRENT_PREVIEW_PLATFORM = null;
+
+    async function switchFsmPlatform(platform) {
+      try {
+        const res = await fetch('/api/fsm/switch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ platform: platform })
+        });
+        const data = await res.json();
+        if (data.status === 'SUCCESS') {
+          BOARD_DATA.active_fsm_platform = data.active_fsm_platform;
+          if (data.bookings) BOARD_DATA.bookings = data.bookings;
+          if (data.roi_metrics) updateRoiKpiCards(data.roi_metrics);
+
+          const sel = document.getElementById('fsmPlatformSelect');
+          if (sel) sel.value = data.active_fsm_platform;
+
+          if (ACTIVE_HERO_BOOKING) {
+            const updated = (data.bookings || []).find(b => b.confirmation_id === ACTIVE_HERO_BOOKING.confirmation_id) || ACTIVE_HERO_BOOKING;
+            ACTIVE_HERO_BOOKING = updated;
+            showBookingInHero(updated);
+            pushCustomerSmsBooking(updated);
+            renderTechTabletView(updated);
+            if (document.getElementById('ticketDossierModal').classList.contains('active')) {
+              openTicketDossierModal(updated);
+            }
+          }
+
+          const platformNames = {
+            'HOUSECALL_PRO': 'Housecall Pro',
+            'SERVICETITAN': 'ServiceTitan',
+            'JOBBER': 'Jobber',
+            'QUICKBOOKS': 'QuickBooks Online'
+          };
+          const pName = platformNames[platform] || platform;
+          appendMessage('ZeroMiss Integration Engine', `🔌 Connected Invoicing &amp; FSM system switched to <strong>${pName}</strong>. All tickets, live links, and webhooks updated.`);
+        }
+      } catch (err) {
+        console.error('Failed to switch FSM platform:', err);
+      }
+    }
+
+    async function openFsmPayloadModal(bookingId) {
+      if (!bookingId && ACTIVE_DOSSIER_BOOKING) bookingId = ACTIVE_DOSSIER_BOOKING.confirmation_id;
+      if (!bookingId && ACTIVE_HERO_BOOKING) bookingId = ACTIVE_HERO_BOOKING.confirmation_id;
+      CURRENT_PAYLOAD_BOOKING_ID = bookingId;
+      CURRENT_PREVIEW_PLATFORM = BOARD_DATA.active_fsm_platform || 'HOUSECALL_PRO';
+
+      document.getElementById('fsmPayloadModal').classList.add('active');
+      previewFsmPlatformPayload(CURRENT_PREVIEW_PLATFORM);
+    }
+
+    function closeFsmPayloadModal() {
+      document.getElementById('fsmPayloadModal').classList.remove('active');
+    }
+
+    async function previewFsmPlatformPayload(platform) {
+      CURRENT_PREVIEW_PLATFORM = platform;
+      const tabs = document.querySelectorAll('.fsm-modal-tab');
+      tabs.forEach(t => {
+        if (t.dataset.platform === platform) {
+          t.classList.add('active');
+          t.style.background = '#2563eb';
+          t.style.color = '#ffffff';
+          t.style.borderColor = '#3b82f6';
+        } else {
+          t.classList.remove('active');
+          t.style.background = '#f1f5f9';
+          t.style.color = '#334155';
+          t.style.borderColor = '#cbd5e1';
+        }
+      });
+      await refreshFsmPayloadDisplay();
+    }
+
+    async function refreshFsmPayloadDisplay() {
+      const platform = CURRENT_PREVIEW_PLATFORM || BOARD_DATA.active_fsm_platform || 'HOUSECALL_PRO';
+      const bId = CURRENT_PAYLOAD_BOOKING_ID || '';
+      const endpointEl = document.getElementById('fsmEndpointDisplay');
+      const jsonPre = document.getElementById('fsmPayloadJsonPre');
+
+      const endpoints = {
+        'HOUSECALL_PRO': 'POST https://api.housecallpro.com/v1/jobs',
+        'SERVICETITAN': 'POST https://api.servicetitan.io/jpm/v2/tenant/391028/jobs',
+        'JOBBER': 'POST https://api.getjobber.com/api/graphql (jobCreate)',
+        'QUICKBOOKS': 'POST https://quickbooks.api.intuit.com/v3/company/913035.../invoice'
+      };
+      if (endpointEl) {
+        endpointEl.innerText = endpoints[platform] || `POST /api/fsm/${platform.toLowerCase()}/webhook`;
+      }
+
+      if (jsonPre) {
+        jsonPre.innerText = '// Fetching live synchronized webhook payload...';
+        try {
+          const url = `/api/fsm/payload?id=${encodeURIComponent(bId)}&platform=${encodeURIComponent(platform)}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          jsonPre.innerText = JSON.stringify(data, null, 2);
+        } catch (e) {
+          jsonPre.innerText = `// Error fetching payload: ${e.message}`;
+        }
+      }
+    }
+
+    function copyFsmPayloadJson() {
+      const jsonPre = document.getElementById('fsmPayloadJsonPre');
+      if (jsonPre && navigator.clipboard) {
+        navigator.clipboard.writeText(jsonPre.innerText);
+        const btn = document.getElementById('btnCopyFsmPayload');
+        if (btn) {
+          const oldText = btn.innerText;
+          btn.innerText = '✓ Copied to Clipboard!';
+          setTimeout(() => { btn.innerText = oldText; }, 2000);
+        }
+      }
     }
 
     async function sendQuoteFromDossier() {
@@ -5857,6 +6147,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             "gcal_connected": getattr(DB, "gcal_connected", True),
             "gcal_last_sync": getattr(DB, "gcal_last_sync", "Two-Way Sync Active"),
             "gcal_external_url": getattr(DB, "gcal_external_url", ""),
+            "active_fsm_platform": getattr(DB, "active_fsm_platform", "HOUSECALL_PRO"),
         }
 
     def do_GET(self):
@@ -5876,6 +6167,16 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
 
         elif parsed.path == "/api/board":
             self._send_json(self._get_board_payload())
+
+        elif parsed.path == "/api/fsm/payload":
+            qs = urllib.parse.parse_qs(parsed.query)
+            cid = (qs.get("id", [""])[0] or "").strip()
+            platform = (qs.get("platform", [""])[0] or "").strip() or None
+            if not cid and DB.bookings:
+                live_b = [b for b in DB.bookings.values() if not getattr(b, "is_demo_seed", False)]
+                cid = live_b[-1].confirmation_id if live_b else list(DB.bookings.values())[-1].confirmation_id
+            payload_data = DB.generate_fsm_webhook_payload(cid, platform)
+            self._send_json(payload_data)
 
         elif parsed.path == "/work-order":
             qs = urllib.parse.parse_qs(parsed.query)
@@ -6121,6 +6422,17 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             self._send_json({
                 "status": "SUCCESS",
                 "is_benchmark": is_bench,
+                "roi_metrics": roi,
+            })
+
+        elif parsed.path == "/api/fsm/switch":
+            platform = req_data.get("platform", "HOUSECALL_PRO").strip()
+            DB.set_active_fsm_platform(platform)
+            roi = DB.calculate_contractor_roi_metrics()
+            self._send_json({
+                "status": "SUCCESS",
+                "active_fsm_platform": DB.active_fsm_platform,
+                "bookings": [enrich_booking_dict(b) for b in DB.bookings.values()],
                 "roi_metrics": roi,
             })
 

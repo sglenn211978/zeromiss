@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 audio_recordings/*.wav
 audio_recordings/*.mp3
+sent_emails/
+calendar_events/
+*.log

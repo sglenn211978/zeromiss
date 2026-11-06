@@ -104,6 +104,11 @@ class ServiceBooking:
     diagnostic_readings: Optional[Dict[str, Any]] = None
     customer_signature_name: Optional[str] = None
     customer_signature_timestamp: Optional[str] = None
+    # FSM & External Invoicing Integration (ServiceTitan, Housecall Pro, Jobber, QuickBooks)
+    connected_fsm: str = "HOUSECALL_PRO"  # "SERVICETITAN", "HOUSECALL_PRO", "JOBBER", "QUICKBOOKS"
+    fsm_ticket_id: Optional[str] = None
+    fsm_sync_status: str = "SYNCED"  # "SYNCED", "PENDING", "EXPORTED"
+    fsm_external_url: Optional[str] = None
 
 
 @dataclass

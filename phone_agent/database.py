@@ -14,6 +14,75 @@ from phone_agent.models import (
 )
 
 
+
+def format_fsm_ticket_id(platform: str, confirmation_id: str) -> str:
+    """Formats an external FSM ticket ID corresponding to the booking reference."""
+    clean_p = (platform or "HOUSECALL_PRO").strip().upper()
+    num = confirmation_id.split("-")[-1] if "-" in confirmation_id else confirmation_id
+    if clean_p == "SERVICETITAN":
+        return f"ST-{num}"
+    elif clean_p == "JOBBER":
+        return f"JOB-{num}"
+    elif clean_p == "QUICKBOOKS":
+        return f"QBO-{num}"
+    else:
+        return f"HCP-{num}"
+
+
+def format_fsm_metadata(platform: str, confirmation_id: str) -> Dict[str, Any]:
+    """Returns brand icons, labels, deep links, and UI presentation data for a connected FSM platform."""
+    clean_p = (platform or "HOUSECALL_PRO").strip().upper()
+    ticket_id = format_fsm_ticket_id(clean_p, confirmation_id)
+    if clean_p == "SERVICETITAN":
+        return {
+            "platform": "SERVICETITAN",
+            "name": "ServiceTitan",
+            "icon": "⚡",
+            "badge": f"✓ Synced to ServiceTitan Job #{ticket_id}",
+            "ticket_id": ticket_id,
+            "url": f"https://go.servicetitan.com/#/job/{ticket_id}",
+            "button_label": "↗ Open Invoice in ServiceTitan",
+            "tech_label": "ServiceTitan Mobile",
+            "accent_color": "#0284c7",
+        }
+    elif clean_p == "JOBBER":
+        return {
+            "platform": "JOBBER",
+            "name": "Jobber",
+            "icon": "💼",
+            "badge": f"✓ Synced to Jobber Work Order #{ticket_id}",
+            "ticket_id": ticket_id,
+            "url": f"https://secure.getjobber.com/jobs/{ticket_id}",
+            "button_label": "↗ Open Invoice in Jobber",
+            "tech_label": "Jobber Field App",
+            "accent_color": "#16a34a",
+        }
+    elif clean_p == "QUICKBOOKS":
+        return {
+            "platform": "QUICKBOOKS",
+            "name": "QuickBooks Online",
+            "icon": "📗",
+            "badge": f"✓ Synced to QuickBooks Invoice #{ticket_id}",
+            "ticket_id": ticket_id,
+            "url": f"https://qbo.intuit.com/app/invoice?id={ticket_id}",
+            "button_label": "↗ Open Invoice in QuickBooks",
+            "tech_label": "QuickBooks Invoicing",
+            "accent_color": "#22c55e",
+        }
+    else:
+        return {
+            "platform": "HOUSECALL_PRO",
+            "name": "Housecall Pro",
+            "icon": "🏠",
+            "badge": f"✓ Synced to Housecall Pro Job #{ticket_id}",
+            "ticket_id": ticket_id,
+            "url": f"https://pro.housecallpro.com/app/jobs/{ticket_id}",
+            "button_label": "↗ Open Invoice in Housecall Pro",
+            "tech_label": "Housecall Pro Mobile",
+            "accent_color": "#2563eb",
+        }
+
+
 class DispatchDatabase:
     """Thread-safe state store for technicians, schedule slots, bookings, and emergency reports."""
 
@@ -26,6 +95,7 @@ class DispatchDatabase:
         self.emergency_reports: Dict[str, EmergencyTriageReport] = {}
         self.missed_calls: Dict[str, Dict[str, Any]] = {}
         self.is_benchmark_mode: bool = False
+        self.active_fsm_platform: str = "HOUSECALL_PRO"  # "SERVICETITAN", "HOUSECALL_PRO", "JOBBER", "QUICKBOOKS"
         self.gcal_connected: bool = True
         self.gcal_last_sync: str = "Two-Way Sync Active (Live)"
         self.gcal_external_url: str = "https://calendar.google.com/calendar/ical/apex-electrical-fleet%40group.calendar.google.com/public/basic.ics"
@@ -616,6 +686,10 @@ class DispatchDatabase:
                     matched_truck = getattr(t_obj, "truck_id", matched_truck)
                     break
 
+            fsm_p = getattr(self, "active_fsm_platform", "HOUSECALL_PRO")
+            fsm_tid = format_fsm_ticket_id(fsm_p, confirmation_id)
+            fsm_url = format_fsm_metadata(fsm_p, confirmation_id)["url"]
+
             booking = ServiceBooking(
                 confirmation_id=confirmation_id,
                 customer_name=customer_name,
@@ -639,6 +713,10 @@ class DispatchDatabase:
                 tech_match_reason=tech_match_reason,
                 is_demo_seed=is_demo_seed,
                 truck_id=matched_truck,
+                connected_fsm=fsm_p,
+                fsm_ticket_id=fsm_tid,
+                fsm_sync_status="SYNCED",
+                fsm_external_url=fsm_url,
             )
 
             # 1. ALWAYS synchronize dispatch to Electrical Contractor (Sean Glenn: sean.glenn21@gmail.com)
@@ -941,6 +1019,173 @@ class DispatchDatabase:
             booking.customer_signature_timestamp = f"Digitally Signed by {booking.customer_signature_name} • {datetime.now().strftime('%b %d, %Y at %I:%M %p')}"
             booking.tech_workflow_stage = "PROPOSAL_APPROVED"
             return booking
+
+    def set_active_fsm_platform(self, platform: str) -> str:
+        """Sets the active FSM/Invoicing platform (Housecall Pro, ServiceTitan, Jobber, QuickBooks) and updates bookings."""
+        with self._lock:
+            clean_p = (platform or "HOUSECALL_PRO").strip().upper()
+            if clean_p not in ("SERVICETITAN", "HOUSECALL_PRO", "JOBBER", "QUICKBOOKS"):
+                clean_p = "HOUSECALL_PRO"
+            self.active_fsm_platform = clean_p
+            for b in self.bookings.values():
+                b.connected_fsm = clean_p
+                b.fsm_ticket_id = format_fsm_ticket_id(clean_p, b.confirmation_id)
+                b.fsm_sync_status = "SYNCED"
+                b.fsm_external_url = format_fsm_metadata(clean_p, b.confirmation_id)["url"]
+            return clean_p
+
+    def generate_fsm_webhook_payload(self, confirmation_id: str, platform: Optional[str] = None) -> Dict[str, Any]:
+        """Generates realistic API webhook payloads formatted for the contractor's chosen FSM platform."""
+        with self._lock:
+            booking = self.bookings.get(confirmation_id)
+            if not booking and self.bookings:
+                booking = list(self.bookings.values())[-1]
+            if not booking:
+                return {"error": "Booking not found"}
+
+            fsm_p = (platform or getattr(self, "active_fsm_platform", "HOUSECALL_PRO")).strip().upper()
+            if fsm_p not in ("SERVICETITAN", "HOUSECALL_PRO", "JOBBER", "QUICKBOOKS"):
+                fsm_p = "HOUSECALL_PRO"
+
+            fsm_meta = format_fsm_metadata(fsm_p, booking.confirmation_id)
+            ticket_id = fsm_meta["ticket_id"]
+            is_emerg = "EMERG" in booking.confirmation_id or "emergency" in str(booking.service_type).lower()
+
+            if fsm_p == "SERVICETITAN":
+                return {
+                    "fsm_platform": "ServiceTitan",
+                    "api_endpoint": "POST https://api.servicetitan.io/jpm/v2/tenant/49201/jobs",
+                    "external_job_id": ticket_id,
+                    "customer": {
+                        "name": booking.customer_name,
+                        "phone": booking.phone_number,
+                        "email": booking.customer_email or "customer@example.com",
+                        "address": {
+                            "street": booking.service_address,
+                            "country": "USA",
+                        },
+                    },
+                    "job_type": booking.service_type,
+                    "priority": "HIGH" if is_emerg else "NORMAL",
+                    "business_unit": "Residential Electrical Services",
+                    "assigned_technician": {
+                        "name": booking.assigned_technician,
+                        "truck_unit": booking.truck_id,
+                    },
+                    "appointment": {
+                        "start_date": booking.slot_date,
+                        "arrival_window": booking.slot_time,
+                    },
+                    "custom_fields": {
+                        "ZeroMiss_Source": "24/7 AI Voice Dispatch Engine",
+                        "NFPA_Triage_Level": getattr(booking, "triage_hazard_level", "NFPA 70 / 70E Safety Verified"),
+                        "Upfront_Deposit_Collected": f"${booking.dispatch_fee:.2f} via Stripe",
+                        "Deposit_Status": "CREDITED_TOWARD_FINAL_INVOICE",
+                        "Panel_AI_Precheck": booking.panel_photo_analysis or "Square D QO 200A (Breakers Verified Loaded)",
+                        "On_Site_Diagnostics": booking.diagnostic_readings or "Pending Tech Arrival",
+                        "Legal_Signature": booking.customer_signature_timestamp or "Pending Work Authorization",
+                    },
+                    "accounting_ledger": {
+                        "diagnostic_deposit_credit": -float(booking.dispatch_fee),
+                        "price_book_mode": "Contractor Default Flat-Rate Price Book",
+                        "final_balance_collection": "Pending On-Site Work Completion via ServiceTitan Mobile",
+                    },
+                }
+
+            elif fsm_p == "JOBBER":
+                return {
+                    "fsm_platform": "Jobber",
+                    "api_endpoint": "POST https://api.getjobber.com/api/graphql (jobCreate)",
+                    "client": {
+                        "fullName": booking.customer_name,
+                        "phone": booking.phone_number,
+                        "email": booking.customer_email or "customer@example.com",
+                    },
+                    "property": {
+                        "address": booking.service_address,
+                    },
+                    "job": {
+                        "jobNumber": ticket_id,
+                        "title": f"Electrical Service: {booking.service_type}",
+                        "description": booking.issue_description,
+                        "technician": booking.assigned_technician,
+                        "truck": booking.truck_id,
+                        "depositApplied": float(booking.dispatch_fee),
+                        "invoiceStatus": "Draft Invoice with Deposit Applied in Client Hub",
+                        "customFields": [
+                            {"name": "ZeroMiss Call ID", "value": booking.confirmation_id},
+                            {"name": "NFPA Code Triage", "value": "NFPA 70 & NFPA 70E Standard Compliance"},
+                            {"name": "Diagnostic Readings", "value": str(booking.diagnostic_readings or "Pending")},
+                            {"name": "Customer Signature", "value": booking.customer_signature_timestamp or "Pending"},
+                        ],
+                    },
+                }
+
+            elif fsm_p == "QUICKBOOKS":
+                return {
+                    "fsm_platform": "QuickBooks Online",
+                    "api_endpoint": "POST https://quickbooks.api.intuit.com/v3/company/49201/invoice",
+                    "DocNumber": ticket_id,
+                    "CustomerRef": {
+                        "name": booking.customer_name,
+                        "phone": booking.phone_number,
+                    },
+                    "BillAddr": {
+                        "Line1": booking.service_address,
+                    },
+                    "Deposit": float(booking.dispatch_fee),
+                    "Line": [
+                        {
+                            "Description": f"ZeroMiss AI Dispatch: {booking.service_type} ({booking.issue_description})",
+                            "Amount": float(booking.dispatch_fee),
+                            "DetailType": "SalesItemLineDetail",
+                        },
+                        {
+                            "Description": f"Upfront Stripe Deposit Credit (Ref: {booking.confirmation_id})",
+                            "Amount": -float(booking.dispatch_fee),
+                            "DetailType": "SalesItemLineDetail",
+                        },
+                    ],
+                    "Balance": 0.0,
+                    "PrivateNote": f"Assigned to {booking.assigned_technician} ({booking.truck_id}). Final work scope and parts to be added upon technician completion in QuickBooks.",
+                }
+
+            else:  # HOUSECALL_PRO
+                return {
+                    "fsm_platform": "Housecall Pro",
+                    "api_endpoint": "POST https://api.housecallpro.com/v1/jobs",
+                    "job_id": ticket_id,
+                    "customer": {
+                        "name": booking.customer_name,
+                        "mobile_number": booking.phone_number,
+                        "email": booking.customer_email or "customer@example.com",
+                    },
+                    "address": {
+                        "formatted_address": booking.service_address,
+                    },
+                    "schedule": {
+                        "scheduled_start": booking.slot_date,
+                        "arrival_window_hours": 4,
+                        "window_description": booking.slot_time,
+                    },
+                    "assigned_employee": {
+                        "name": booking.assigned_technician,
+                        "fleet_van": booking.truck_id,
+                    },
+                    "line_items": [
+                        {
+                            "name": "Upfront Dispatch & Diagnostic Fee (ZeroMiss AI Authorized)",
+                            "unit_cost": -float(booking.dispatch_fee),
+                            "quantity": 1,
+                            "notes": "Paid upfront via Stripe — credited toward approved electrical repair scope in Housecall Pro",
+                        }
+                    ],
+                    "notes": f"ZeroMiss AI Triage: {booking.issue_description}. Initial safety directives provided to homeowner.",
+                    "attachments": {
+                        "panel_photo_verified": bool(booking.panel_photo_analysis),
+                        "digital_signature_on_file": bool(booking.customer_signature_timestamp),
+                    },
+                }
 
 
     def sync_google_calendar_busy_blocks(self, external_ics_url: Optional[str] = None) -> Dict[str, Any]:
