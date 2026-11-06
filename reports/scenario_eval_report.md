@@ -1,7 +1,7 @@
 # ZeroMiss Voice Dispatch Agent - 20 Scenario Evaluation Report
 
 - **Model**: `gemini-2.0-flash`
-- **Date**: 2026-11-05 18:07:26
+- **Date**: 2026-11-06 12:32:39
 - **Total Scenarios**: 20
 - **Passed**: 20 / 20 (100.0%)
 - **Failed**: 0
@@ -131,9 +131,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Hello, I just purchased a Tesla Model Y and I need a 50-amp 240-volt Level 2 Wall Connector installed in my garage."*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-06 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"Tomorrow afternoon works well. My name is Michael Chang, 24 Aspen Ridge Court in Newton, phone is 555-602-9844."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Michael Chang. We have Sarah Chen scheduled for 2026-11-06 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1025, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Michael Chang. We have Sarah Chen scheduled for 2026-11-07 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1025, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
 
 ---
 
@@ -144,9 +144,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Hi, we are adding central air conditioning and heat pumps, and our home inspector told us our 100-amp electrical panel needs to be upgraded to 200 amps. Can you give us an estimate?"*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"Yes, tomorrow morning works. My name is Brenda Miller, 307 Pine Hollow Road, Wellesley. Phone is 555-319-4820."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Brenda Miller. We have Marcus Vance scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1028, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Brenda Miller. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1028, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
 
 ---
 
@@ -157,9 +157,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Hi there, we are remodeling our kitchen and want to install 8 recessed LED canless wafer lights and a smart Lutron dimmer switch."*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Dave Miller. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Dave Miller. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"Tomorrow morning is great. My name is Kevin O'Connor, 65 Chestnut Street, Bedford. Cell is 555-441-8971."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Kevin O'Connor. We have Dave Miller scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1031, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Kevin O'Connor. We have Dave Miller scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1031, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
 
 ---
 
@@ -170,9 +170,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Hello, whenever we run our microwave and toaster oven at the same time, the kitchen breaker clicks off. There are no sparks, but it's very frustrating."*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-06 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"That makes sense. Tomorrow afternoon works. My name is Linda Vasquez at 142 Sycamore Lane in Belmont, 555-892-1049."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Linda Vasquez. We have Sarah Chen scheduled for 2026-11-06 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1034, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Linda Vasquez. We have Sarah Chen scheduled for 2026-11-07 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1034, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
 
 ---
 
@@ -183,9 +183,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Hello, our entire house just went pitch dark! All the streetlights and neighbors still have power, so it's just our house. There is no fire or smoke."*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-08 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"Please send someone today. I'm Thomas Reed, 98 Canterbury Road, Arlington, phone 555-780-6612."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Thomas Reed. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1037, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Thomas Reed. We have Marcus Vance scheduled for 2026-11-08 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1037, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."*
 
 ---
 
@@ -196,9 +196,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Sarah, this is Tony at Bella Italia restaurant. Our commercial walk-in freezer breaker tripped and won't reset! We have ten thousand dollars of meat and seafood at risk!"*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"We need someone today immediately. I'm Tony Moretti, Bella Italia at 844 Commercial Boulevard, Somerville. Phone is 555-439-0091."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Tony Moretti. We have Marcus Vance scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1040, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Tony Moretti. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1040, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
 
 ---
 
@@ -209,9 +209,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Hi, my master bathroom GFCI outlet has a red LED light on it and neither the hairdryer nor the vanity lights work. When I press the reset button, it doesn't click."*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-08 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"Tomorrow morning is great. My name is Sarah Jenkins, 214 Lexington Street, Waltham, phone is 555-301-7784."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Sarah Jenkins. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1043, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Sarah Jenkins. We have Marcus Vance scheduled for 2026-11-08 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1043, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."*
 
 ---
 
@@ -222,9 +222,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Hello, we are under contract to buy a 1928 colonial home, and the home inspector found active knob-and-tube wiring in the attic and basement. Our insurer requires a certified master electrician inspection."*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Luis Ortiz. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Luis Ortiz. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"Tomorrow afternoon works. Name is Christopher Vance, 55 Commonwealth Avenue, Boston, phone 555-912-3841."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Christopher Vance. We have Luis Ortiz scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1046, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Christopher Vance. We have Luis Ortiz scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1046, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."*
 
 ---
 
@@ -235,9 +235,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Hi, we have a Sundance spa hot tub being delivered next week, and we need a dedicated 50-amp 240-volt outdoor GFCI disconnect subpanel wired from our basement to the patio."*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"Tomorrow morning works well. My name is Jessica Taylor, 17 Woodland Road, Carlisle, phone 555-723-5590."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Jessica Taylor. We have Marcus Vance scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1049, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Jessica Taylor. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1049, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
 
 ---
 
@@ -248,9 +248,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Hello, we bought a 10,000-watt portable generator and want to install a 30-amp or 50-amp manual transfer switch on our electrical panel with an outdoor power inlet box."*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"Tomorrow afternoon is perfect. Name is Richard Scott, 402 Heritage Way in Wayland, cell 555-834-1192."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Richard Scott. We have Marcus Vance scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1052, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Richard Scott. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1052, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
 
 ---
 
@@ -261,9 +261,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Hi, whenever our central air conditioning turns on, all the lights throughout the house dim and flicker for a second or two. There are no sparks, but it seems like a big voltage dip."*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-06 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"Tomorrow morning is good. My name is Nancy Wheeler, 83 Birchwood Terrace, Needham, phone 555-619-7431."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Nancy Wheeler. We have Sarah Chen scheduled for 2026-11-06 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1055, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Nancy Wheeler. We have Sarah Chen scheduled for 2026-11-07 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1055, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."*
 
 ---
 
@@ -274,9 +274,9 @@
 **Spoken Phone Transcript:**
 
 - **Caller**: *"Hi Sarah, I run a distribution warehouse and we need 4 commercial-grade motion-activated LED floodlights installed around our loading docks and back parking lot."*
-- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Dave Miller. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
+- **Sarah (Dispatcher)**: *"I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Dave Miller. To reserve that for you, may I have your full name, callback phone number, street address, and email?"*
 - **Caller**: *"Tomorrow morning is fine. I'm Arthur Pendelton, 1200 Industrial Parkway, Woburn. Phone is 555-552-8014."*
-- **Sarah (Dispatcher)**: *"You're all confirmed, Arthur Pendelton. We have Dave Miller scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1058, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."*
+- **Sarah (Dispatcher)**: *"You're all confirmed, Arthur Pendelton. We have Dave Miller scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1058, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."*
 
 ---
 

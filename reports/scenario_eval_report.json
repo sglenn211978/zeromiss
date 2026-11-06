@@ -1,7 +1,7 @@
 {
   "test_suite": "ZeroMiss Gemini 2.0 Flash Voice Dispatcher Evaluation",
   "model": "gemini-2.0-flash",
-  "generated_at": "2026-11-05T18:07:26.760645",
+  "generated_at": "2026-11-06T12:32:39.627652",
   "total_scenarios": 20,
   "passed": 20,
   "failed": 0,
@@ -12,7 +12,7 @@
       "title": "Active Breaker Panel Fire and Arcing Sparks",
       "category": "EMERGENCY_FIRE",
       "passed": true,
-      "duration_ms": 25.516405003145337,
+      "duration_ms": 25.51742101786658,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"
@@ -53,7 +53,7 @@
       "title": "Water Leaking Directly Over Main Electrical Panel",
       "category": "EMERGENCY_WATER",
       "passed": true,
-      "duration_ms": 16.740535997087136,
+      "duration_ms": 17.01082198997028,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"
@@ -94,7 +94,7 @@
       "title": "Electric Shock Injury from Dishwasher Metal Frame",
       "category": "EMERGENCY_SHOCK",
       "passed": true,
-      "duration_ms": 16.33699398371391,
+      "duration_ms": 16.198072989936918,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"
@@ -135,7 +135,7 @@
       "title": "Downed Power Line Arcing on Wet Driveway",
       "category": "EMERGENCY_DOWNED_LINE",
       "passed": true,
-      "duration_ms": 12.164833984570578,
+      "duration_ms": 13.646749022882432,
       "tools_called": [
         "triage_fire_shock_emergency"
       ],
@@ -175,7 +175,7 @@
       "title": "Sizzling Scorched Wall Outlet with Burning Fishy Odor",
       "category": "EMERGENCY_HAZARD",
       "passed": true,
-      "duration_ms": 14.556957001332194,
+      "duration_ms": 17.14024000102654,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"
@@ -216,7 +216,7 @@
       "title": "Smoke Emitting from Kitchen Ceiling Light Fixture",
       "category": "EMERGENCY_SMOKE",
       "passed": true,
-      "duration_ms": 14.539567026076838,
+      "duration_ms": 16.94356498774141,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"
@@ -257,7 +257,7 @@
       "title": "Routine Ceiling Fan Installation in Master Bedroom",
       "category": "ROUTINE_INSTALLATION",
       "passed": true,
-      "duration_ms": 14.098312007263303,
+      "duration_ms": 15.311150986235589,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -295,7 +295,7 @@
       "title": "Level 2 Tesla Wall Connector EV Charger Installation",
       "category": "SPECIALTY_EV",
       "passed": true,
-      "duration_ms": 14.067372016143054,
+      "duration_ms": 15.344396000728011,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -316,7 +316,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-06 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-07 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -324,7 +324,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Michael Chang. We have Sarah Chen scheduled for 2026-11-06 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1025, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Michael Chang. We have Sarah Chen scheduled for 2026-11-07 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1025, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -333,7 +333,7 @@
       "title": "100-Amp to 200-Amp Electrical Panel Service Upgrade",
       "category": "SPECIALTY_PANEL",
       "passed": true,
-      "duration_ms": 15.085373976035044,
+      "duration_ms": 17.871133983135223,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -354,7 +354,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -362,7 +362,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Brenda Miller. We have Marcus Vance scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1028, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Brenda Miller. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1028, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -371,7 +371,7 @@
       "title": "Kitchen Renovation Recessed LED Lighting and Dimmer",
       "category": "ROUTINE_INSTALLATION",
       "passed": true,
-      "duration_ms": 13.941379002062604,
+      "duration_ms": 17.848714982392266,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -392,7 +392,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Dave Miller. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Dave Miller. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -400,7 +400,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Kevin O'Connor. We have Dave Miller scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1031, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Kevin O'Connor. We have Dave Miller scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1031, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -409,7 +409,7 @@
       "title": "Kitchen Circuit Breaker Tripping on Microwave & Toaster Overload",
       "category": "OVERLOAD_TRIAGE",
       "passed": true,
-      "duration_ms": 15.193347993772477,
+      "duration_ms": 15.22901697899215,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -430,7 +430,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-06 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-07 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -438,7 +438,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Linda Vasquez. We have Sarah Chen scheduled for 2026-11-06 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1034, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Linda Vasquez. We have Sarah Chen scheduled for 2026-11-07 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1034, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -447,7 +447,7 @@
       "title": "Complete Single-Home Power Outage Diagnostic",
       "category": "URGENT_OUTAGE",
       "passed": true,
-      "duration_ms": 14.393249992281199,
+      "duration_ms": 15.799415006767958,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -468,7 +468,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-08 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -476,7 +476,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Thomas Reed. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1037, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Thomas Reed. We have Marcus Vance scheduled for 2026-11-08 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1037, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -485,7 +485,7 @@
       "title": "Commercial Restaurant Walk-in Freezer Circuit Tripped",
       "category": "COMMERCIAL_URGENT",
       "passed": true,
-      "duration_ms": 14.097264007432386,
+      "duration_ms": 15.860386978602037,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -506,7 +506,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -514,7 +514,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Tony Moretti. We have Marcus Vance scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1040, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Tony Moretti. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1040, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -523,7 +523,7 @@
       "title": "Bathroom GFCI Receptacle Tripped and Won't Reset",
       "category": "ROUTINE_REPAIR",
       "passed": true,
-      "duration_ms": 13.47176800481975,
+      "duration_ms": 15.412420994834974,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -544,7 +544,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-08 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -552,7 +552,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Sarah Jenkins. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1043, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Sarah Jenkins. We have Marcus Vance scheduled for 2026-11-08 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1043, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -561,7 +561,7 @@
       "title": "Historic Home Knob-and-Tube Wiring Safety Inspection",
       "category": "SAFETY_INSPECTION",
       "passed": true,
-      "duration_ms": 14.487256004940718,
+      "duration_ms": 15.482821996556595,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -582,7 +582,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Luis Ortiz. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Luis Ortiz. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -590,7 +590,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Christopher Vance. We have Luis Ortiz scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1046, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Christopher Vance. We have Luis Ortiz scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1046, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -599,7 +599,7 @@
       "title": "Outdoor Hot Tub 50-Amp GFCI Spa Disconnect Installation",
       "category": "RESIDENTIAL_240V_DEDICATED_CIRCUIT",
       "passed": true,
-      "duration_ms": 14.542361022904515,
+      "duration_ms": 15.168534009717405,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -620,7 +620,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -628,7 +628,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Jessica Taylor. We have Marcus Vance scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1049, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Jessica Taylor. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1049, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -637,7 +637,7 @@
       "title": "Whole-House Generator Transfer Switch & Inlet Box",
       "category": "SPECIALTY_GENERATOR",
       "passed": true,
-      "duration_ms": 13.239895983133465,
+      "duration_ms": 15.2649859956,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -658,7 +658,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Marcus Vance. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -666,7 +666,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Richard Scott. We have Marcus Vance scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1052, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Richard Scott. We have Marcus Vance scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1052, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -675,7 +675,7 @@
       "title": "Whole-House Lights Flickering During AC Compressor Startup",
       "category": "DIAGNOSTIC_VOLTAGE_DROP",
       "passed": true,
-      "duration_ms": 14.86733101774007,
+      "duration_ms": 18.587292986921966,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -696,7 +696,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-06 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-07 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -704,7 +704,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Nancy Wheeler. We have Sarah Chen scheduled for 2026-11-06 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1055, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Nancy Wheeler. We have Sarah Chen scheduled for 2026-11-07 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1055, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -713,7 +713,7 @@
       "title": "Commercial Property Security LED Motion Floodlights",
       "category": "COMMERCIAL_LIGHTING",
       "passed": true,
-      "duration_ms": 13.379647978581488,
+      "duration_ms": 17.553912999574095,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -734,7 +734,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "I have an opening available on 2026-11-06 during our 08:00 AM - 12:00 PM window with Dave Miller. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+          "content": "I have an opening available on 2026-11-07 during our 08:00 AM - 12:00 PM window with Dave Miller. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
         },
         {
           "role": "Caller",
@@ -742,7 +742,7 @@
         },
         {
           "role": "Sarah (Dispatcher)",
-          "content": "You're all confirmed, Arthur Pendelton. We have Dave Miller scheduled for 2026-11-06 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1058, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
+          "content": "You're all confirmed, Arthur Pendelton. We have Dave Miller scheduled for 2026-11-07 during our 08:00 AM - 12:00 PM window. Your confirmation number is ZM-BOOK-1058, covered by our $89 diagnostic dispatch fee. We will send you an arrival text when our technician is on the way."
         }
       ]
     },
@@ -751,7 +751,7 @@
       "title": "Panicked Caller: Dryer Popping with Sparks Behind Wall",
       "category": "EMERGENCY_PANIC",
       "passed": true,
-      "duration_ms": 14.509675005683675,
+      "duration_ms": 17.657488002441823,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"
