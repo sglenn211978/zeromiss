@@ -135,8 +135,10 @@ class RequestHandler(BaseHTTPRequestHandler):
           self.send_response(404)
           self.end_headers()
 
+import os
+
 if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", 8000), RequestHandler)
-    print("Serving audio tester on http://localhost:8000")
-    print("Press Ctrl+C to stop.")
+    port = int(os.environ.get("PORT", 8000))
+    server = HTTPServer(("0.0.0.0", port), RequestHandler)
+    print(f"Serving audio tester on http://0.0.0.0:{port}")
     server.serve_forever()
