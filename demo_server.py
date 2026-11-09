@@ -6232,7 +6232,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             twiml = (
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
                 '<Response>\n'
-                '  <Gather input="speech" action="/api/twilio/gather" timeout="3" speechTimeout="auto">\n'
+                '  <Gather input="speech" action="https://zeromissdispatch.com/api/twilio/gather" timeout="4" speechTimeout="auto">\n'
                 '    <Say voice="Polly.Joanna-Neural">'
                 'Thank you for calling ZeroMiss Electrical 24/7 Dispatch. My name is Sarah. '
                 'Are you reporting an electrical emergency, or calling to schedule service?'
