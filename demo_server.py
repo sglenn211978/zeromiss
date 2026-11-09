@@ -6246,28 +6246,39 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
 
         elif parsed.path == "/api/twilio/gather":
             speech_result = req_data.get("SpeechResult", "").strip() or "Hello, I need an electrician."
-            sarah_reply = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, speech_result)
-            clean_reply = sarah_reply.replace("&", "and").replace("<", "").replace(">", "")
+            speech_lower = speech_result.lower()
 
-            if "transfer you directly to Sean Glenn" in sarah_reply:
+            # Catch escalation keywords directly without relying on Gemini's exact phrasing
+            transfer_keywords = ["sean", "glenn", "speak to a human", "speak to someone", "operator", "transfer", "owner"]
+            if any(kw in speech_lower for kw in transfer_keywords):
                 twiml = (
                     '<?xml version="1.0" encoding="UTF-8"?>\n'
                     '<Response>\n'
-                    f'  <Say voice="Polly.Joanna-Neural">{clean_reply}</Say>\n'
+                    '  <Say voice="Polly.Joanna-Neural">Hold on one moment, I will transfer you directly to Sean Glenn right now.</Say>\n'
                     '  <Dial timeout="20">609-972-4328</Dial>\n'
                     '</Response>'
                 )
-            else:
-                twiml = (
-                    '<?xml version="1.0" encoding="UTF-8"?>\n'
-                    '<Response>\n'
-                    '  <Gather input="speech" action="/api/twilio/gather" timeout="4" speechTimeout="auto">\n'
-                    f'    <Say voice="Polly.Joanna-Neural">{clean_reply}</Say>\n'
-                    '  </Gather>\n'
-                    '  <Say voice="Polly.Joanna-Neural">Thank you for calling ZeroMiss. Goodbye.</Say>\n'
-                    '  <Hangup/>\n'
-                    '</Response>'
-                )
+                self._send_twiml(twiml)
+                return
+
+            try:
+                sarah_reply = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, speech_result)
+            except Exception as e:
+                print(f"[ERROR] Voice agent processing error: {e}")
+                sarah_reply = "I understand. Let me get an electrician dispatched to your location right away."
+
+            clean_reply = sarah_reply.replace("&", "and").replace("<", "").replace(">", "")
+
+            twiml = (
+                '<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<Response>\n'
+                '  <Gather input="speech" action="https://zeromissdispatch.com/api/twilio/gather" timeout="4" speechTimeout="auto">\n'
+                f'    <Say voice="Polly.Joanna-Neural">{clean_reply}</Say>\n'
+                '  </Gather>\n'
+                '  <Say voice="Polly.Joanna-Neural">Thank you for calling ZeroMiss. Goodbye.</Say>\n'
+                '  <Hangup/>\n'
+                '</Response>'
+            )
             self._send_twiml(twiml)
             return
 
