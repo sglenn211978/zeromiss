@@ -1,4 +1,4 @@
-"""ZeroMiss Dispatch Tools package."""
+"""JobLatch AI Dispatch Tools package."""
 
 from phone_agent.tools.booking_tool import book_service_call
 from phone_agent.tools.calendar_tool import check_calendar_availability

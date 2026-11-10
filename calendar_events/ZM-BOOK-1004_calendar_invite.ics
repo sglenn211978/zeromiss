@@ -1,18 +1,18 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//ZeroMiss Electrical//Voice Dispatch Agent v1.0//EN
+PRODID:-//JobLatch AI Electrical//Voice Dispatch Agent v1.0//EN
 CALSCALE:GREGORIAN
 METHOD:REQUEST
 BEGIN:VEVENT
-UID:ZM-BOOK-1004@zeromiss.com
-DTSTAMP:20261103T200500Z
-DTSTART:20261104T080000
-DTEND:20261104T120000
-SUMMARY:ZeroMiss Electrical: Tomorrow morning works. My nam
-DESCRIPTION:ZeroMiss Electrical Service Call\nConfirmation: ZM-BOOK-1004\nCustomer: Alex Rivera\nTechnician: Sarah Chen\nArrival Window: 08:00 AM - 12:00 PM\nFee: Free Estimate\nScope: Tomorrow morning works. My name is Alex Rivera, 45 Innovation Way in Cambridge, 555-829-1044, alex@gmail.com\nSupport: (800) 555-MISS
-LOCATION:45 Innovation Way in Cambridge
-ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
-ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN=Alex Rivera:mailto:alex@gmail.com
+UID:ZM-BOOK-1004@joblatchai.com
+DTSTAMP:20261110T164200Z
+DTSTART:20261112T120000
+DTEND:20261112T160000
+SUMMARY:JobLatch AI Electrical: 200A Main Breaker Panel Upgrad
+DESCRIPTION:JobLatch AI Electrical Service Call\nConfirmation: ZM-BOOK-1004\nCustomer: Tom Haverford\nTechnician: Dave Miller (Journeyman Electrician)\nArrival Window: 12:00 PM - 04:00 PM\nFee: $89 Diagnostic Fee\nScope: 200A Main Breaker Panel Upgrade — flickering lights under load\nSupport: (800) 555-LATCH
+LOCATION:28 Newbury St, Suite 2B, Boston
+ORGANIZER;CN=JobLatch AI 24/7 Dispatch:mailto:dispatch@joblatchai.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN=Tom Haverford:mailto:tom.haverford@example.com
 STATUS:CONFIRMED
 SEQUENCE:0
 BEGIN:VALARM

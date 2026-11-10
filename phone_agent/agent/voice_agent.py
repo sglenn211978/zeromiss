@@ -1,4 +1,4 @@
-"""Voice Dispatch Agent orchestrator for ZeroMiss Electrical."""
+"""Voice Dispatch Agent orchestrator for JobLatch AI Electrical."""
 
 import uuid
 from typing import Any, Dict, List, Optional
@@ -126,4 +126,4 @@ class VoiceDispatchAgent:
                 )
                 break
 
-        return final_spoken_response or "Thank you for calling ZeroMiss Electrical. We are processing your request."
+        return final_spoken_response or "Thank you for calling JobLatch AI Electrical. We are processing your request."

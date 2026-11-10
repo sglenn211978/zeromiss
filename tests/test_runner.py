@@ -42,7 +42,7 @@ class ScenarioEvaluationResult:
 
 
 class DispatchScenarioTestRunner:
-    """Evaluates the ZeroMiss Gemini 2.0 Flash Voice Dispatch Agent against 20 calling scenarios."""
+    """Evaluates the JobLatch AI Gemini 2.0 Flash Voice Dispatch Agent against 20 calling scenarios."""
 
     def __init__(self, api_key: Optional[str] = None):
         self.agent = VoiceDispatchAgent(api_key=api_key)
@@ -155,7 +155,7 @@ class DispatchScenarioTestRunner:
     def run_all(self, export_reports: bool = True) -> bool:
         """Executes all 20 calling scenarios and outputs the evaluation report."""
         print(f"\n================================================================================")
-        print(f"  ZeroMiss Voice Dispatch Agent - 20 Scenario Evaluation Test Suite")
+        print(f"  JobLatch AI Voice Dispatch Agent - 20 Scenario Evaluation Test Suite")
         print(f"  Engine: Gemini 2.0 Flash Voice Dispatcher")
         print(f"  Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"================================================================================\n")
@@ -192,7 +192,7 @@ class DispatchScenarioTestRunner:
     def _render_rich_table(self, passed: int, failed: int, pass_rate: float, avg_duration: float):
         """Displays rich terminal table with detailed results."""
         table = Table(
-            title="ZeroMiss Gemini 2.0 Flash Voice Dispatch - Evaluation Matrix",
+            title="JobLatch AI Gemini 2.0 Flash Voice Dispatch - Evaluation Matrix",
             box=ROUNDED,
             show_header=True,
             header_style="bold cyan",
@@ -252,7 +252,7 @@ class DispatchScenarioTestRunner:
         # 1. JSON Report
         json_path = os.path.join(output_dir, "scenario_eval_report.json")
         json_data = {
-            "test_suite": "ZeroMiss Gemini 2.0 Flash Voice Dispatcher Evaluation",
+            "test_suite": "JobLatch AI Gemini 2.0 Flash Voice Dispatcher Evaluation",
             "model": "gemini-2.0-flash",
             "generated_at": datetime.now().isoformat(),
             "total_scenarios": len(self.results),
@@ -269,7 +269,7 @@ class DispatchScenarioTestRunner:
         passed_count = sum(1 for r in self.results if r.passed)
         failed_count = len(self.results) - passed_count
         with open(md_path, "w", encoding="utf-8") as f:
-            f.write("# ZeroMiss Voice Dispatch Agent - 20 Scenario Evaluation Report\n\n")
+            f.write("# JobLatch AI Voice Dispatch Agent - 20 Scenario Evaluation Report\n\n")
             f.write(f"- **Model**: `gemini-2.0-flash`\n")
             f.write(f"- **Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"- **Total Scenarios**: {len(self.results)}\n")

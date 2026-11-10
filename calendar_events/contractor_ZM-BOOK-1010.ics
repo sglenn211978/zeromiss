@@ -1,17 +1,17 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+PRODID:-//JobLatch AI Electrical//Contractor Dispatch System v1.0//EN
 CALSCALE:GREGORIAN
 METHOD:REQUEST
 BEGIN:VEVENT
-UID:contractor-ZM-BOOK-1010@zeromiss.com
-DTSTAMP:20261103T012500Z
-DTSTART:20261103T080000
-DTEND:20261103T120000
-SUMMARY:⚡ ZeroMiss: Kevin O'Connor - Hi there, we are remodeli
-DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-BOOK-1010\nCustomer: Kevin O'Connor ((555) 441-8971)\nTechnician: Dave Miller\nWindow: 08:00 AM - 12:00 PM\nFee: Free Estimate\nScope: Hi there, we are remodeling our kitchen and want to install 8 recessed LED canless wafer lights and a smart Lutron dimmer switch.\nNotes: None\n24/7 Dispatch: (800) 555-MISS
-LOCATION:65 Chestnut Street, Bedford
-ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+UID:contractor-ZM-BOOK-1010@joblatchai.com
+DTSTAMP:20261110T164200Z
+DTSTART:20261112T120000
+DTEND:20261112T160000
+SUMMARY:⚡ JobLatch [TRUCK-02]: Tom Haverford - 200A Main Breaker Panel U
+DESCRIPTION:JobLatch Contractor Dispatch Dossier\nTicket: ZM-BOOK-1010\nCustomer: Tom Haverford ((555) 892-4410)\nTechnician: Dave Miller (Journeyman Electrician)\nFleet Truck/Van: TRUCK-02 (200A Panel & Service Rig)\nWindow: 12:00 PM - 04:00 PM\nFee: $89 Diagnostic Fee\nScope: 200A Main Breaker Panel Upgrade — flickering lights under load\nNotes: Inbound voice triage & panel capacity verification by Sarah AI.\n24/7 Dispatch: (800) 555-LATCH
+LOCATION:28 Newbury St, Suite 2B, Boston
+ORGANIZER;CN=JobLatch AI 24/7 Dispatch:mailto:dispatch@joblatchai.com
 ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
 STATUS:CONFIRMED
 SEQUENCE:0

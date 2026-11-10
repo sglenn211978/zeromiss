@@ -1,17 +1,17 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+PRODID:-//JobLatch AI Electrical//Contractor Dispatch System v1.0//EN
 CALSCALE:GREGORIAN
 METHOD:REQUEST
 BEGIN:VEVENT
-UID:contractor-ZM-EMERG-1005@zeromiss.com
-DTSTAMP:20261103T012500Z
-DTSTART:20261102T211000
-DTEND:20261102T231000
-SUMMARY:🚨 EMERGENCY: David Kim - EMERGENCY: burning_plasti
-DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-EMERG-1005\nCustomer: David Kim ((555) 489-1120)\nTechnician: Marcus Vance (Master Electrician On-Call)\nWindow: Within 45-60 Minutes (Priority Code Red)\nFee: $199 Diagnostic Fee\nScope: EMERGENCY: burning_plastic_insulation - HIGH HAZARD: Thermal/wire insulation degradation risk detected. Immediate circuit isolation advised. Expedited emergency dispatch initiated.\nNotes: Immediate Code Red Dispatch to 521 Highland Avenue, Burlington. Callback: 555-489-1120\n24/7 Dispatch: (800) 555-MISS
-LOCATION:521 Highland Avenue, Burlington
-ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+UID:contractor-ZM-EMERG-1005@joblatchai.com
+DTSTAMP:20261110T164200Z
+DTSTART:20261110T122700
+DTEND:20261110T142700
+SUMMARY:🚨 EMERGENCY [TRUCK-01]: Robert Hall - EMERGENCY: active_sparkin
+DESCRIPTION:JobLatch Contractor Dispatch Dossier\nTicket: ZM-EMERG-1005\nCustomer: Robert Hall ((555) 234-8891)\nTechnician: Marcus Vance (Master Electrician On-Call)\nFleet Truck/Van: TRUCK-01 (Master Emergency Van)\nWindow: Within 45-60 Minutes (Priority Code Red)\nFee: $199 Diagnostic Fee\nScope: EMERGENCY: active_sparking - CRITICAL CODE RED: Active electrical sparking/fire. Immediate building evacuation and 911 call ordered.\nNotes: Immediate Code Red Dispatch to 412 Oak Ridge Lane, Westford. Callback: 555-234-8891\n24/7 Dispatch: (800) 555-LATCH
+LOCATION:412 Oak Ridge Lane, Westford
+ORGANIZER;CN=JobLatch AI 24/7 Dispatch:mailto:dispatch@joblatchai.com
 ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
 STATUS:CONFIRMED
 SEQUENCE:0

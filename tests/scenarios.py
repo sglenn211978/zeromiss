@@ -1,4 +1,4 @@
-"""20 diverse customer calling scenarios for ZeroMiss Voice Dispatch evaluation."""
+"""20 diverse customer calling scenarios for JobLatch AI Voice Dispatch evaluation."""
 
 from dataclasses import dataclass, field
 from typing import List, Optional

@@ -1,4 +1,4 @@
-"""Configuration and business settings for ZeroMiss Electrical Voice Dispatch."""
+"""Configuration and business settings for JobLatch AI Electrical Voice Dispatch."""
 
 import os
 from dataclasses import dataclass
@@ -8,8 +8,8 @@ from typing import Dict, List
 @dataclass
 class DispatchConfig:
     # Company & Contractor Profile
-    company_name: str = "ZeroMiss Electrical & Emergency Services"
-    dispatch_phone: str = "(800) 555-MISS"
+    company_name: str = "JobLatch AI Electrical & Emergency Services"
+    dispatch_phone: str = "(800) 555-LATCH"
     license_number: str = "EC-994821-MA"
     operating_area: str = "Greater Metro & Tri-County Area"
 

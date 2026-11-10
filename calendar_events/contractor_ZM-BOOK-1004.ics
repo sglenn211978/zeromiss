@@ -1,17 +1,17 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+PRODID:-//JobLatch AI Electrical//Contractor Dispatch System v1.0//EN
 CALSCALE:GREGORIAN
 METHOD:REQUEST
 BEGIN:VEVENT
-UID:contractor-ZM-BOOK-1004@zeromiss.com
-DTSTAMP:20261103T200500Z
-DTSTART:20261104T080000
-DTEND:20261104T120000
-SUMMARY:⚡ ZeroMiss: Alex Rivera - Tomorrow morning works. M
-DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-BOOK-1004\nCustomer: Alex Rivera ((555) 829-1044)\nTechnician: Sarah Chen\nWindow: 08:00 AM - 12:00 PM\nFee: Free Estimate\nScope: Tomorrow morning works. My name is Alex Rivera, 45 Innovation Way in Cambridge, 555-829-1044, alex@gmail.com\nNotes: None\n24/7 Dispatch: (800) 555-MISS
-LOCATION:45 Innovation Way in Cambridge
-ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+UID:contractor-ZM-BOOK-1004@joblatchai.com
+DTSTAMP:20261110T164200Z
+DTSTART:20261112T120000
+DTEND:20261112T160000
+SUMMARY:⚡ JobLatch [TRUCK-02]: Tom Haverford - 200A Main Breaker Panel U
+DESCRIPTION:JobLatch Contractor Dispatch Dossier\nTicket: ZM-BOOK-1004\nCustomer: Tom Haverford ((555) 892-4410)\nTechnician: Dave Miller (Journeyman Electrician)\nFleet Truck/Van: TRUCK-02 (200A Panel & Service Rig)\nWindow: 12:00 PM - 04:00 PM\nFee: $89 Diagnostic Fee\nScope: 200A Main Breaker Panel Upgrade — flickering lights under load\nNotes: Inbound voice triage & panel capacity verification by Sarah AI.\n24/7 Dispatch: (800) 555-LATCH
+LOCATION:28 Newbury St, Suite 2B, Boston
+ORGANIZER;CN=JobLatch AI 24/7 Dispatch:mailto:dispatch@joblatchai.com
 ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
 STATUS:CONFIRMED
 SEQUENCE:0

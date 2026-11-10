@@ -1,4 +1,4 @@
-"""ZeroMiss Voice Dispatch - Story-Driven Interactive Demo & Fleet Command Server.
+"""JobLatch AI Voice Dispatch - Story-Driven Interactive Demo & Fleet Command Server.
 
 Designed around the core end-to-end product story:
 Missed Call / Live Voice -> AI Triage & Safety Verification -> Instant Dispatch -> Upfront Stripe Deposit.
@@ -423,7 +423,7 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Work Order #{conf_id} — {cust_name} | ZeroMiss Electrical</title>
+  <title>Work Order #{conf_id} — {cust_name} | JobLatch AI Electrical</title>
   <style>
     @page {{
       size: letter portrait;
@@ -733,10 +733,10 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
       <div class="shop-brand">
         <div class="shop-logo">⚡</div>
         <div>
-          <div class="shop-name">APEX ELECTRICAL SERVICES &bull; ZEROMISS DISPATCH</div>
+          <div class="shop-name">APEX ELECTRICAL SERVICES &bull; JOBLATCH AI DISPATCH</div>
           <div class="shop-meta">
             Master Electrical License #EL-49201-MA &bull; NFPA 70E &amp; NEC 2026 Certified Contractor<br>
-            24/7 Emergency Dispatch Control: (800) 555-MISS &bull; Shop Dispatch Alert: {contractor_email}
+            24/7 Emergency Dispatch Control: (800) 555-LATCH &bull; Shop Dispatch Alert: {contractor_email}
           </div>
         </div>
       </div>
@@ -931,7 +931,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZeroMiss Voice Dispatch | Interactive Product Demo</title>
+  <title>JobLatch AI Voice Dispatch | Interactive Product Demo</title>
   <style>
     :root {
       --bg: #f1f5f9;
@@ -2739,7 +2739,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       <div class="brand-icon">⚡</div>
       <div>
         <div class="brand-title-row">
-          <h1>ZeroMiss Voice Dispatch</h1>
+          <h1>JobLatch AI Voice Dispatch</h1>
           <span class="demo-mode-pill">Interactive Product Demo</span>
         </div>
         <p>Missed Call Recovery, AI Hazard Triage &amp; Autonomous Scheduling for Contractors</p>
@@ -2881,8 +2881,8 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
           <div class="chat-container" id="chatStream">
             <div class="bubble bubble-sarah">
-              <div class="speaker-name">Sarah (ZeroMiss AI Dispatcher)</div>
-              Thank you for calling ZeroMiss Electrical 24/7 Dispatch. Click <strong>"▶ Start Demo"</strong> above, press <strong>"🎙️ Speak to Sarah"</strong>, or type any electrical issue below!
+              <div class="speaker-name">Sarah (JobLatch AI Dispatcher)</div>
+              Thank you for calling JobLatch AI Electrical 24/7 Dispatch. Click <strong>"▶ Start Demo"</strong> above, press <strong>"🎙️ Speak to Sarah"</strong>, or type any electrical issue below!
             </div>
           </div>
 
@@ -2925,9 +2925,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
                       <span>5G &bull; 92%</span>
                     </div>
                     <div class="phone-imessage-header">
-                      <div class="imessage-avatar">ZM</div>
+                      <div class="imessage-avatar">JL</div>
                       <div>
-                        <div class="imessage-name">ZeroMiss Dispatch ✓</div>
+                        <div class="imessage-name">JobLatch AI Dispatch ✓</div>
                         <div class="imessage-sub">Customer SMS Feed</div>
                       </div>
                     </div>
@@ -3213,7 +3213,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <div class="gcal-sync-actions">
           <button class="btn-gcal-sync" onclick="triggerGcalTwoWaySync()">🔄 Sync Google Calendar Busy Blocks</button>
           <button class="btn-gcal-outline" onclick="openGcalSyncModal()">🔗 Configure Google Calendar Sync</button>
-          <a href="/api/calendar.ics" class="btn-gcal-outline" download="zeromiss_schedule.ics">⬇️ Export .ICS</a>
+          <a href="/api/calendar.ics" class="btn-gcal-outline" download="joblatch_schedule.ics">⬇️ Export .ICS</a>
         </div>
       </div>
 
@@ -3285,7 +3285,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
   <div class="modal-overlay" id="pitchModal">
     <div class="modal-card" style="max-width:740px; width:95%; max-height:90vh; overflow-y:auto;">
       <div class="modal-header">
-        <h3>💡 ZeroMiss Sales Guide &amp; Live Shop Audit Playbook</h3>
+        <h3>💡 JobLatch AI Sales Guide &amp; Live Shop Audit Playbook</h3>
         <button class="modal-close" onclick="closePitchModal()">&times;</button>
       </div>
       <div style="font-size:0.93rem; color:var(--text-body); line-height:1.55;">
@@ -3303,7 +3303,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
               </ul>
             </div>
             <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:9px 11px;">
-              <strong style="color:#15803d;">⚡ ZeroMiss Voice &amp; SMS Dispatch Engine:</strong>
+              <strong style="color:#15803d;">⚡ JobLatch AI Voice &amp; SMS Dispatch Engine:</strong>
               <ul style="margin:5px 0 0 16px; color:#14532d;">
                 <li><strong>0:03s:</strong> Sarah AI answers or fires instant 3-Sec SMS Booking Link.</li>
                 <li><strong>0:45s:</strong> Triages NFPA 70E hazard, matches truck &amp; collects $89–$199 Stripe deposit.</li>
@@ -3319,7 +3319,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px; font-size:0.86rem;">
           <div style="border:1px solid #e2e8f0; border-radius:8px; padding:9px 12px; background:#ffffff;">
             <strong style="color:#0f172a;">1. &ldquo;We already pay $600/mo for an answering service.&rdquo;</strong><br>
-            <span style="color:#475569;"><strong>Rebuttal:</strong> Call centers only take a name and number—by morning the homeowner already hired someone else. ZeroMiss locks the calendar slot, verifies panel photos, and collects the Stripe deposit on the spot.</span>
+            <span style="color:#475569;"><strong>Rebuttal:</strong> Call centers only take a name and number—by morning the homeowner already hired someone else. JobLatch AI locks the calendar slot, verifies panel photos, and collects the Stripe deposit on the spot.</span>
           </div>
           <div style="border:1px solid #e2e8f0; border-radius:8px; padding:9px 12px; background:#ffffff;">
             <strong style="color:#0f172a;">2. &ldquo;I answer my own cell phone when I'm in the field.&rdquo;</strong><br>
@@ -3362,14 +3362,14 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           <div style="font-size:0.9rem; color:var(--text-muted);" id="roiBreakdown">Based on recovering 7.6 missed after-hours jobs/month + $7,800/yr answering service savings</div>
         </div>
 
-        <!-- Side-by-Side Comparison: Traditional Answering Service vs ZeroMiss AI -->
+        <!-- Side-by-Side Comparison: Traditional Answering Service vs JobLatch AI -->
         <div style="border:1px solid #cbd5e1; border-radius:10px; overflow:hidden; margin-bottom:14px; font-size:0.85rem;">
           <table style="width:100%; border-collapse:collapse;">
             <thead>
               <tr style="background:#0f172a; color:#ffffff; text-align:left;">
                 <th style="padding:8px 10px;">Capability</th>
                 <th style="padding:8px 10px; color:#fca5a5;">Old Way: Call Center ($650/mo)</th>
-                <th style="padding:8px 10px; color:#86efac;">⚡ ZeroMiss AI Dispatcher</th>
+                <th style="padding:8px 10px; color:#86efac;">⚡ JobLatch AI Dispatcher</th>
               </tr>
             </thead>
             <tbody>
@@ -3502,10 +3502,10 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       </div>
       <div style="font-size:0.95rem; color:var(--text-body); line-height:1.5;">
         <p style="margin-bottom:12px;">
-          ZeroMiss syncs two-way with your shop's <strong>Google Calendar</strong> so dispatches appear immediately on your phone and external events block Sarah from double-booking your electricians:
+          JobLatch AI syncs two-way with your shop's <strong>Google Calendar</strong> so dispatches appear immediately on your phone and external events block Sarah from double-booking your electricians:
         </p>
         <div class="form-group">
-          <label>1. Outbound Feed (Add ZeroMiss Dispatches to Your Google Calendar):</label>
+          <label>1. Outbound Feed (Add JobLatch AI Dispatches to Your Google Calendar):</label>
           <div style="display:flex; gap:8px;">
             <input type="text" id="gcalOutboundInput" readonly style="flex:1; font-family:monospace; background:#f8fafc;">
             <button class="utility-btn" style="background:#0f172a; color:#fff;" onclick="copyIcalFeedUrl()">Copy URL</button>
@@ -3705,7 +3705,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             <span>🔌 Outgoing FSM &amp; Invoicing Webhook Bridge</span>
           </h3>
           <p style="font-size:0.82rem; color:#64748b; margin-top:2px;">
-            ZeroMiss synchronizes customer records, NFPA triage logs, panel photos, and deposit receipts directly into your existing software.
+            JobLatch AI synchronizes customer records, NFPA triage logs, panel photos, and deposit receipts directly into your existing software.
           </p>
         </div>
         <button class="modal-close" onclick="closeFsmPayloadModal()">&times;</button>
@@ -3756,7 +3756,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
   </div>
 
   <footer>
-    ZeroMiss Voice Dispatch &bull; Interactive Product Demo Environment (Simulated Data)
+    JobLatch AI Voice Dispatch &bull; Interactive Product Demo Environment (Simulated Data)
   </footer>
 
   <script>
@@ -3977,7 +3977,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           body: JSON.stringify({ message: msg })
         });
         const data = await res.json();
-        appendMessage('Sarah (ZeroMiss AI)', data.response, true);
+        appendMessage('Sarah (JobLatch AI)', data.response, true);
         speakText(data.response);
 
         if (data.booking) {
@@ -4188,7 +4188,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         ? `
           <div class="sms-bubble" style="border-left:3px solid #facc15;">
             <div class="sms-tag" style="color:#facc15;">⭐ Job Complete • 5-Star Review</div>
-            Thank you for choosing ZeroMiss Electrical, ${booking.customer_name}! Tap below to leave ${techShort} a 5-star Google review:<br>
+            Thank you for choosing JobLatch AI Electrical, ${booking.customer_name}! Tap below to leave ${techShort} a 5-star Google review:<br>
             <span style="display:inline-block; margin-top:5px; background:#f59e0b; color:#0f172a; font-weight:800; font-size:0.78rem; padding:4px 10px; border-radius:6px;">⭐⭐⭐⭐⭐ Leave Google Review &rarr;</span>
           </div>
         `
@@ -4231,7 +4231,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         const b = data.booking;
         const addAmt = Number(b.upsell_added_amount || 0);
         appendMessage(
-          'ZeroMiss Proposal Engine',
+          'JobLatch AI Proposal Engine',
           `📑 Homeowner selected <strong>${b.selected_option_tier} Package</strong>${addAmt > 0 ? ` (+$${addAmt} Add-On)` : ''} — Ticket updated to <strong>$${Number(b.estimated_job_value).toLocaleString()}</strong>!`,
           true
         );
@@ -4667,7 +4667,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
               <span style="font-size:0.8rem; color:#cbd5e1;">3s ago</span>
             </div>
             <div>
-              Hi! This is Sarah from ZeroMiss Electrical. We noticed your call dropped! Tap below to lock in tomorrow's 8:00 AM slot right now:
+              Hi! This is Sarah from JobLatch AI Electrical. We noticed your call dropped! Tap below to lock in tomorrow's 8:00 AM slot right now:
             </div>
             <div class="sms-action-card" onclick="convertMissedCallLead('${mc.missed_call_id}')">
               <div style="font-size:0.82rem; font-weight:800; color:#4ade80;">⚡ 1-TAP SELF-SCHEDULE ($1,200 JOB)</div>
@@ -4712,7 +4712,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             pushCustomerSmsBooking(data.booking);
           }
 
-          appendMessage('Sarah (ZeroMiss AI)', `✓ Customer booked Tomorrow 8:00 AM – 12:00 PM with Sarah Chen ($1,200 Pipeline Booked). Awaiting $89 Stripe deposit to lock in Revenue Won.`, true);
+          appendMessage('Sarah (JobLatch AI)', `✓ Customer booked Tomorrow 8:00 AM – 12:00 PM with Sarah Chen ($1,200 Pipeline Booked). Awaiting $89 Stripe deposit to lock in Revenue Won.`, true);
 
           setJourneyProgress(
             3,
@@ -4743,7 +4743,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           const feePaid = data.booking ? data.booking.dispatch_fee : 89;
           const jobVal = data.booking ? data.booking.estimated_job_value : 1200;
           const pid = data.booking ? data.booking.stripe_payment_intent_id : 'pi_hold';
-          appendMessage('ZeroMiss Billing', `🔒 $${Number(feePaid).toFixed(2)} authorization hold placed via Stripe (${pid}, capture_method=manual). Card will NOT be charged until technician arrives on-site.`, true);
+          appendMessage('JobLatch AI Billing', `🔒 $${Number(feePaid).toFixed(2)} authorization hold placed via Stripe (${pid}, capture_method=manual). Card will NOT be charged until technician arrives on-site.`, true);
 
           setJourneyProgress(
             4,
@@ -4775,7 +4775,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         if (data.status === 'SUCCESS') {
           const fee = data.booking ? data.booking.dispatch_fee : 89;
           const pid = data.booking ? data.booking.stripe_payment_intent_id : '';
-          appendMessage('ZeroMiss Billing', `⚡ Tech arrived on-site! Pre-authorized $${Number(fee).toFixed(2)} hold captured & settled via Stripe Connect (Intent: ${pid}).`, true);
+          appendMessage('JobLatch AI Billing', `⚡ Tech arrived on-site! Pre-authorized $${Number(fee).toFixed(2)} hold captured & settled via Stripe Connect (Intent: ${pid}).`, true);
           await fetchBoardData();
         }
       } catch (e) {
@@ -4795,7 +4795,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         });
         const data = await res.json();
         if (data.status === 'SUCCESS') {
-          appendMessage('ZeroMiss Billing', `⊘ Pre-authorization hold dropped immediately upon cancellation. Zero card charges incurred.`, true);
+          appendMessage('JobLatch AI Billing', `⊘ Pre-authorization hold dropped immediately upon cancellation. Zero card charges incurred.`, true);
           await fetchBoardData();
         }
       } catch (e) {
@@ -4855,8 +4855,8 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       applyScenarioJourneyLabels('missed_call');
       chatStream.innerHTML = `
         <div class="bubble bubble-sarah">
-          <div class="speaker-name">Sarah (ZeroMiss AI Dispatcher)</div>
-          Thank you for calling ZeroMiss Electrical 24/7 Dispatch. Click <strong>"▶ Start Demo"</strong> above, press <strong>"🎙️ Speak to Sarah"</strong>, or type any electrical issue below!
+          <div class="speaker-name">Sarah (JobLatch AI Dispatcher)</div>
+          Thank you for calling JobLatch AI Electrical 24/7 Dispatch. Click <strong>"▶ Start Demo"</strong> above, press <strong>"🎙️ Speak to Sarah"</strong>, or type any electrical issue below!
         </div>
       `;
       dispatchHero.classList.remove('active');
@@ -5714,7 +5714,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
             'QUICKBOOKS': 'QuickBooks Online'
           };
           const pName = platformNames[platform] || platform;
-          appendMessage('ZeroMiss Integration Engine', `🔌 Connected Invoicing &amp; FSM system switched to <strong>${pName}</strong>. All tickets, live links, and webhooks updated.`);
+          appendMessage('JobLatch AI Integration Engine', `🔌 Connected Invoicing &amp; FSM system switched to <strong>${pName}</strong>. All tickets, live links, and webhooks updated.`);
         }
       } catch (err) {
         console.error('Failed to switch FSM platform:', err);
@@ -5806,7 +5806,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       const data = await res.json();
       if (data.status === 'SUCCESS' && data.booking) {
         appendMessage(
-          'ZeroMiss Proposal Engine',
+          'JobLatch AI Proposal Engine',
           `📑 Sent interactive <strong>Good / Better (+$485) / Best (+$950)</strong> Flat-Rate Proposal &amp; IRS 25C Rebate packet to ${data.booking.customer_name}'s smartphone.`,
           true
         );
@@ -5838,7 +5838,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       if (data.status === 'SUCCESS' && data.booking) {
         const techShort = (data.booking.assigned_technician || 'Marcus Vance').split('(')[0].trim();
         const truckShort = (data.booking.truck_id || 'TRUCK-01').split('(')[0].trim();
-        appendMessage('ZeroMiss Fleet GPS', `🚐 Sent live "Tech En-Route" SMS to ${data.booking.customer_name}: ${techShort} is en route in ${truckShort} (ETA 14 mins).`, true);
+        appendMessage('JobLatch AI Fleet GPS', `🚐 Sent live "Tech En-Route" SMS to ${data.booking.customer_name}: ${techShort} is en route in ${truckShort} (ETA 14 mins).`, true);
         showBookingInHero(data.booking);
         pushCustomerSmsBooking(data.booking);
         await fetchBoardData();
@@ -5855,7 +5855,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       });
       const data = await res.json();
       if (data.status === 'SUCCESS' && data.booking) {
-        appendMessage('ZeroMiss Reputation Engine', `⭐ Sent 1-Tap 5-Star Google Review request SMS to ${data.booking.customer_name}.`, true);
+        appendMessage('JobLatch AI Reputation Engine', `⭐ Sent 1-Tap 5-Star Google Review request SMS to ${data.booking.customer_name}.`, true);
         showBookingInHero(data.booking);
         pushCustomerSmsBooking(data.booking);
         await fetchBoardData();
@@ -6258,7 +6258,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
 
 class DemoRequestHandler(BaseHTTPRequestHandler):
-    """Handles web requests for the ZeroMiss Client Demonstration Dashboard."""
+    """Handles web requests for the JobLatch AI Client Demonstration Dashboard."""
 
     def _send_json(self, data: Dict[str, Any], status: int = 200):
         self.send_response(status)
@@ -6347,7 +6347,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             data = ics_content.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/calendar; charset=utf-8")
-            self.send_header("Content-Disposition", 'attachment; filename="zeromiss_dispatch.ics"')
+            self.send_header("Content-Disposition", 'attachment; filename="joblatch_dispatch.ics"')
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
@@ -6376,9 +6376,9 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             twiml = (
                 '<?xml version="1.0" encoding="UTF-8"?>\n'
                 '<Response>\n'
-                '  <Gather input="speech" action="/api/twilio/gather" timeout="3" speechTimeout="auto">\n'
+                '  <Gather input="speech" action="https://zeromissdispatch.com/api/twilio/gather" timeout="4" speechTimeout="auto">\n'
                 '    <Say voice="Polly.Joanna-Neural">'
-                'Thank you for calling ZeroMiss Electrical 24/7 Dispatch. My name is Sarah. '
+                'Thank you for calling JobLatch AI Electrical 24/7 Dispatch. My name is Sarah. '
                 'Are you reporting an electrical emergency, or calling to schedule service?'
                 '</Say>\n'
                 '  </Gather>\n'
@@ -6390,28 +6390,39 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
 
         elif parsed.path == "/api/twilio/gather":
             speech_result = req_data.get("SpeechResult", "").strip() or "Hello, I need an electrician."
-            sarah_reply = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, speech_result)
-            clean_reply = sarah_reply.replace("&", "and").replace("<", "").replace(">", "")
+            speech_lower = speech_result.lower()
 
-            if "transfer you directly to Sean Glenn" in sarah_reply:
+            # Catch escalation keywords directly without relying on Gemini's exact phrasing
+            transfer_keywords = ["sean", "glenn", "speak to a human", "speak to someone", "operator", "transfer", "owner"]
+            if any(kw in speech_lower for kw in transfer_keywords):
                 twiml = (
                     '<?xml version="1.0" encoding="UTF-8"?>\n'
                     '<Response>\n'
-                    f'  <Say voice="Polly.Joanna-Neural">{clean_reply}</Say>\n'
+                    '  <Say voice="Polly.Joanna-Neural">Hold on one moment, I will transfer you directly to Sean Glenn right now.</Say>\n'
                     '  <Dial timeout="20">609-972-4328</Dial>\n'
                     '</Response>'
                 )
-            else:
-                twiml = (
-                    '<?xml version="1.0" encoding="UTF-8"?>\n'
-                    '<Response>\n'
-                    '  <Gather input="speech" action="/api/twilio/gather" timeout="4" speechTimeout="auto">\n'
-                    f'    <Say voice="Polly.Joanna-Neural">{clean_reply}</Say>\n'
-                    '  </Gather>\n'
-                    '  <Say voice="Polly.Joanna-Neural">Thank you for calling ZeroMiss. Goodbye.</Say>\n'
-                    '  <Hangup/>\n'
-                    '</Response>'
-                )
+                self._send_twiml(twiml)
+                return
+
+            try:
+                sarah_reply = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, speech_result)
+            except Exception as e:
+                print(f"[ERROR] Voice agent processing error: {e}")
+                sarah_reply = "I understand. Let me get an electrician dispatched to your location right away."
+
+            clean_reply = sarah_reply.replace("&", "and").replace("<", "").replace(">", "")
+
+            twiml = (
+                '<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<Response>\n'
+                '  <Gather input="speech" action="https://zeromissdispatch.com/api/twilio/gather" timeout="4" speechTimeout="auto">\n'
+                f'    <Say voice="Polly.Joanna-Neural">{clean_reply}</Say>\n'
+                '  </Gather>\n'
+                '  <Say voice="Polly.Joanna-Neural">Thank you for calling JobLatch AI. Goodbye.</Say>\n'
+                '  <Hangup/>\n'
+                '</Response>'
+            )
             self._send_twiml(twiml)
             return
 
@@ -6722,22 +6733,22 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 t1_user = "Help, I smell burning rubber coming from the wall behind my refrigerator!"
                 dialogue.append({"speaker": "David Miller (Caller)", "text": t1_user, "isSarah": False})
                 t1_sarah = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, t1_user)
-                dialogue.append({"speaker": "Sarah (ZeroMiss AI)", "text": t1_sarah, "isSarah": True})
+                dialogue.append({"speaker": "Sarah (JobLatch AI)", "text": t1_sarah, "isSarah": True})
 
                 t2_user = "My name is David Miller, 742 Evergreen Terrace, callback number is (555) 482-9104"
                 dialogue.append({"speaker": "David Miller (Caller)", "text": t2_user, "isSarah": False})
                 t2_sarah = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, t2_user)
-                dialogue.append({"speaker": "Sarah (ZeroMiss AI)", "text": t2_sarah, "isSarah": True})
+                dialogue.append({"speaker": "Sarah (JobLatch AI)", "text": t2_sarah, "isSarah": True})
             else:
                 t1_user = "Hi Sarah, I just bought an EV and need a 50-amp Level 2 charger installed in my garage."
                 dialogue.append({"speaker": "Alex Rivera (Caller)", "text": t1_user, "isSarah": False})
                 t1_sarah = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, t1_user)
-                dialogue.append({"speaker": "Sarah (ZeroMiss AI)", "text": t1_sarah, "isSarah": True})
+                dialogue.append({"speaker": "Sarah (JobLatch AI)", "text": t1_sarah, "isSarah": True})
 
                 t2_user = "Tomorrow morning works. My name is Alex Rivera, 45 Innovation Way in Cambridge, (555) 829-1044, alex@example.com"
                 dialogue.append({"speaker": "Alex Rivera (Caller)", "text": t2_user, "isSarah": False})
                 t2_sarah = ACTIVE_AGENT.process_caller_turn(ACTIVE_SESSION, t2_user)
-                dialogue.append({"speaker": "Sarah (ZeroMiss AI)", "text": t2_sarah, "isSarah": True})
+                dialogue.append({"speaker": "Sarah (JobLatch AI)", "text": t2_sarah, "isSarah": True})
 
             LAST_DIALOGUE = dialogue
             live_bookings = [b for b in DB.bookings.values() if not getattr(b, "is_demo_seed", False)]
@@ -6765,7 +6776,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
 def run_demo_server(port: int = 8080):
     server = HTTPServer(("0.0.0.0", port), DemoRequestHandler)
     print("\n" + "=" * 80)
-    print("  ZeroMiss Voice Dispatch - Story-Driven Interactive Demo Server")
+    print("  JobLatch AI Voice Dispatch - Story-Driven Interactive Demo Server")
     print(f"  Live Demo Web Dashboard: http://localhost:{port}")
     print(f"  Demo Alert Destination:  {DEMO_DISPLAY_EMAIL}")
     print(f"  Live Twilio Voice Webhook: http://localhost:{port}/api/twilio/voice")

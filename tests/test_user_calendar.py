@@ -20,7 +20,7 @@ def test_user_calendar_booking():
     console = Console() if RICH_AVAILABLE else None
 
     print("\n" + "=" * 80)
-    print("  ZeroMiss Voice Dispatch - Custom Email & Calendar Integration Test")
+    print("  JobLatch AI Voice Dispatch - Custom Email & Calendar Integration Test")
     print("  User Email: sean.glenn21@gmail.com")
     print("================================================================================\n")
 
@@ -70,7 +70,7 @@ def test_user_calendar_booking():
         ics_text = f.read()
 
     assert "sean.glenn21@gmail.com" in ics_text, "Email missing from .ics content!"
-    assert "ZeroMiss Electrical" in ics_text, "Brand missing from .ics!"
+    assert "JobLatch AI Electrical" in ics_text, "Brand missing from .ics!"
 
     # Step 5: Verify Google Calendar link
     assert booking.google_calendar_link, "Google Calendar URL not generated!"

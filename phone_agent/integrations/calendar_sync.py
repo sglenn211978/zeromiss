@@ -1,4 +1,4 @@
-"""Google Calendar and iCalendar (.ics) integration for ZeroMiss Voice Dispatch."""
+"""Google Calendar and iCalendar (.ics) integration for JobLatch AI Voice Dispatch."""
 
 import email
 import json
@@ -86,17 +86,17 @@ class CalendarSyncService:
         start_utc = start_dt.strftime("%Y%m%dT%H%M00")
         end_utc = end_dt.strftime("%Y%m%dT%H%M00")
 
-        title = f"ZeroMiss Electrical Service ({confirmation_id})"
+        title = f"JobLatch AI Electrical Service ({confirmation_id})"
         fee_info = "Free Estimate" if dispatch_fee == 0 else f"${dispatch_fee:.0f} Diagnostic Fee"
         details = (
-            f"ZeroMiss Electrical Appointment\n\n"
+            f"JobLatch AI Electrical Appointment\n\n"
             f"Confirmation: {confirmation_id}\n"
             f"Customer: {customer_name} ({customer_email})\n"
             f"Assigned Electrician: {assigned_technician}\n"
             f"Arrival Window: {slot_time}\n"
             f"Fee Structure: {fee_info}\n\n"
             f"Issue / Scope: {issue_description}\n\n"
-            f"Questions? Call 24/7 Dispatch at (800) 555-MISS."
+            f"Questions? Call 24/7 Dispatch at (800) 555-LATCH."
         )
 
         params = {
@@ -134,31 +134,31 @@ class CalendarSyncService:
 
         fee_info = "Free Estimate" if dispatch_fee == 0 else f"${dispatch_fee:.0f} Diagnostic Fee"
         safe_desc = (
-            f"ZeroMiss Electrical Service Call\\n"
+            f"JobLatch AI Electrical Service Call\\n"
             f"Confirmation: {confirmation_id}\\n"
             f"Customer: {customer_name}\\n"
             f"Technician: {assigned_technician}\\n"
             f"Arrival Window: {slot_time}\\n"
             f"Fee: {fee_info}\\n"
             f"Scope: {issue_description}\\n"
-            f"Support: (800) 555-MISS"
+            f"Support: (800) 555-LATCH"
         )
 
         ics_content = (
             "BEGIN:VCALENDAR\r\n"
             "VERSION:2.0\r\n"
-            "PRODID:-//ZeroMiss Electrical//Voice Dispatch Agent v1.0//EN\r\n"
+            "PRODID:-//JobLatch AI Electrical//Voice Dispatch Agent v1.0//EN\r\n"
             "CALSCALE:GREGORIAN\r\n"
             "METHOD:REQUEST\r\n"
             "BEGIN:VEVENT\r\n"
-            f"UID:{confirmation_id}@zeromiss.com\r\n"
+            f"UID:{confirmation_id}@joblatchai.com\r\n"
             f"DTSTAMP:{now_str}\r\n"
             f"DTSTART:{start_str}\r\n"
             f"DTEND:{end_str}\r\n"
-            f"SUMMARY:ZeroMiss Electrical: {issue_description[:30]}\r\n"
+            f"SUMMARY:JobLatch AI Electrical: {issue_description[:30]}\r\n"
             f"DESCRIPTION:{safe_desc}\r\n"
             f"LOCATION:{service_address}\r\n"
-            "ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com\r\n"
+            "ORGANIZER;CN=JobLatch AI 24/7 Dispatch:mailto:dispatch@joblatchai.com\r\n"
             f"ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN={customer_name}:mailto:{customer_email}\r\n"
             "STATUS:CONFIRMED\r\n"
             "SEQUENCE:0\r\n"
@@ -199,15 +199,15 @@ class CalendarSyncService:
         fee_info = "Free Estimate" if dispatch_fee == 0 else f"${dispatch_fee:.0f} Diagnostic Dispatch Fee"
 
         msg = MIMEMultipart("mixed")
-        msg["Subject"] = f"Appointment Confirmed: ZeroMiss Electrical ({confirmation_id})"
-        msg["From"] = "ZeroMiss 24/7 Dispatch <dispatch@zeromiss.com>"
+        msg["Subject"] = f"Appointment Confirmed: JobLatch AI Electrical ({confirmation_id})"
+        msg["From"] = "JobLatch AI 24/7 Dispatch <dispatch@joblatchai.com>"
         msg["To"] = customer_email
 
         html_body = f"""
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: #0f172a; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
-                <h1 style="margin: 0; color: #38bdf8;">ZeroMiss Electrical</h1>
+                <h1 style="margin: 0; color: #38bdf8;">JobLatch AI Electrical</h1>
                 <p style="margin: 5px 0 0 0; font-size: 14px; color: #94a3b8;">Licensed & Insured Electrical Contractors</p>
             </div>
             <div style="background: #ffffff; padding: 25px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
@@ -236,7 +236,7 @@ class CalendarSyncService:
                 </p>
                 <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
                 <p style="font-size: 12px; color: #94a3b8; text-align: center;">
-                    ZeroMiss Electrical & Emergency Dispatch | 24/7 Phone: (800) 555-MISS | Greater Metro Area
+                    JobLatch AI Electrical & Emergency Dispatch | 24/7 Phone: (800) 555-LATCH | Greater Metro Area
                 </p>
             </div>
         </body>
@@ -373,7 +373,7 @@ class CalendarSyncService:
         end_utc = end_dt.strftime("%Y%m%dT%H%M00")
 
         is_emerg = "EMERG" in str(urgency_level).upper() or "CRITICAL" in str(urgency_level).upper()
-        prefix = "🚨 EMERGENCY CODE RED" if is_emerg else "⚡ ZeroMiss Dispatch"
+        prefix = "🚨 EMERGENCY CODE RED" if is_emerg else "⚡ JobLatch Dispatch"
         truck_short = (truck_id or "TRUCK-01").split("(")[0].strip()
         title = f"{prefix} [{truck_short}]: {customer_name} @ {service_address}"
 
@@ -381,7 +381,7 @@ class CalendarSyncService:
         email_str = customer_email or "Not provided by caller"
 
         details = (
-            f"ZeroMiss Electrical Contractor Dispatch Dossier\n"
+            f"JobLatch AI Electrical Contractor Dispatch Dossier\n"
             f"Contractor: {DEFAULT_CONFIG.contractor_name} ({DEFAULT_CONFIG.contractor_email})\n"
             f"Confirmation: {confirmation_id}\n"
             f"Urgency: {urgency_level}\n\n"
@@ -397,7 +397,7 @@ class CalendarSyncService:
             f"• Fee Structure: {fee_info}\n"
             f"• Scope of Work: {issue_description}\n"
             f"• Access Notes: {notes or 'Standard property access'}\n\n"
-            f"24/7 Dispatch Control: (800) 555-MISS"
+            f"24/7 Dispatch Control: (800) 555-LATCH"
         )
 
         params = {
@@ -434,7 +434,7 @@ class CalendarSyncService:
 
         fee_info = "Free Estimate" if dispatch_fee == 0 else f"${dispatch_fee:.0f} Diagnostic Fee"
         safe_desc = (
-            f"ZeroMiss Contractor Dispatch Dossier\\n"
+            f"JobLatch Contractor Dispatch Dossier\\n"
             f"Ticket: {confirmation_id}\\n"
             f"Customer: {customer_name} ({phone_number})\\n"
             f"Technician: {assigned_technician}\\n"
@@ -443,28 +443,28 @@ class CalendarSyncService:
             f"Fee: {fee_info}\\n"
             f"Scope: {issue_description}\\n"
             f"Notes: {notes or 'None'}\\n"
-            f"24/7 Dispatch: (800) 555-MISS"
+            f"24/7 Dispatch: (800) 555-LATCH"
         )
 
         is_emerg = "EMERG" in str(urgency_level).upper() or "CRITICAL" in str(urgency_level).upper()
         truck_short = (truck_id or "TRUCK-01").split("(")[0].strip()
-        summary = f"{'🚨 EMERGENCY' if is_emerg else '⚡ ZeroMiss'} [{truck_short}]: {customer_name} - {issue_description[:25]}"
+        summary = f"{'🚨 EMERGENCY' if is_emerg else '⚡ JobLatch'} [{truck_short}]: {customer_name} - {issue_description[:25]}"
 
         ics_content = (
             "BEGIN:VCALENDAR\r\n"
             "VERSION:2.0\r\n"
-            "PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN\r\n"
+            "PRODID:-//JobLatch AI Electrical//Contractor Dispatch System v1.0//EN\r\n"
             "CALSCALE:GREGORIAN\r\n"
             "METHOD:REQUEST\r\n"
             "BEGIN:VEVENT\r\n"
-            f"UID:contractor-{confirmation_id}@zeromiss.com\r\n"
+            f"UID:contractor-{confirmation_id}@joblatchai.com\r\n"
             f"DTSTAMP:{now_str}\r\n"
             f"DTSTART:{start_str}\r\n"
             f"DTEND:{end_str}\r\n"
             f"SUMMARY:{summary}\r\n"
             f"DESCRIPTION:{safe_desc}\r\n"
             f"LOCATION:{service_address}\r\n"
-            "ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com\r\n"
+            "ORGANIZER;CN=JobLatch AI 24/7 Dispatch:mailto:dispatch@joblatchai.com\r\n"
             f"ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN={DEFAULT_CONFIG.contractor_name}:mailto:{DEFAULT_CONFIG.contractor_email}\r\n"
             "STATUS:CONFIRMED\r\n"
             "SEQUENCE:0\r\n"
@@ -490,10 +490,10 @@ class CalendarSyncService:
         lines = [
             "BEGIN:VCALENDAR",
             "VERSION:2.0",
-            "PRODID:-//ZeroMiss Electrical//Master Fleet Dispatch Feed//EN",
+            "PRODID:-//JobLatch AI Electrical//Master Fleet Dispatch Feed//EN",
             "CALSCALE:GREGORIAN",
             "METHOD:PUBLISH",
-            "X-WR-CALNAME:ZeroMiss Fleet Dispatch Calendar",
+            "X-WR-CALNAME:JobLatch AI Fleet Dispatch Calendar",
         ]
         for b in bookings:
             start_dt, end_dt = self.parse_time_window(b.slot_date, b.slot_time)
@@ -513,7 +513,7 @@ class CalendarSyncService:
             )
             lines.extend([
                 "BEGIN:VEVENT",
-                f"UID:master-{b.confirmation_id}@zeromiss.com",
+                f"UID:master-{b.confirmation_id}@joblatchai.com",
                 f"DTSTAMP:{now_str}",
                 f"DTSTART:{start_str}",
                 f"DTEND:{end_str}",
@@ -554,7 +554,7 @@ class CalendarSyncService:
 
         msg = MIMEMultipart("mixed")
         msg["Subject"] = f"⚡ CONTRACTOR DISPATCH [{badge_text}]: {customer_name} @ {service_address} ({confirmation_id})"
-        msg["From"] = "ZeroMiss 24/7 Dispatch <dispatch@zeromiss.com>"
+        msg["From"] = "JobLatch AI 24/7 Dispatch <dispatch@joblatchai.com>"
         msg["To"] = f"{contractor_name} <{contractor_email}>"
 
         html_body = f"""
@@ -564,7 +564,7 @@ class CalendarSyncService:
                 <table style="width: 100%;">
                     <tr>
                         <td>
-                            <h2 style="margin: 0; color: #38bdf8;">ZeroMiss Electrical Dispatch</h2>
+                            <h2 style="margin: 0; color: #38bdf8;">JobLatch AI Electrical Dispatch</h2>
                             <p style="margin: 5px 0 0 0; font-size: 13px; color: #94a3b8;">
                                 Dispatch Alert for <strong>{contractor_name}</strong> ({contractor_email})
                             </p>
@@ -604,7 +604,7 @@ class CalendarSyncService:
                 </p>
                 <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
                 <p style="font-size: 11px; color: #94a3b8; text-align: center;">
-                    ZeroMiss 24/7 Automated Voice Dispatch System | Contractor Notification Channel
+                    JobLatch AI 24/7 Automated Voice Dispatch System | Contractor Notification Channel
                 </p>
             </div>
         </body>
@@ -670,7 +670,7 @@ class CalendarSyncService:
 
         msg = MIMEMultipart("mixed")
         msg["Subject"] = f"🚨 URGENT CODE RED [{severity_str}]: {report.hazard_type} @ {report.location_in_property} ({report.triage_case_id})"
-        msg["From"] = "ZeroMiss 24/7 Dispatch <dispatch@zeromiss.com>"
+        msg["From"] = "JobLatch AI 24/7 Dispatch <dispatch@joblatchai.com>"
         msg["To"] = f"{contractor_name} <{contractor_email}>"
 
         actions_html = "".join(f"<li style='margin-bottom: 5px; color: #b91c1c; font-weight: bold;'>{act}</li>" for act in report.immediate_life_safety_actions)
@@ -684,7 +684,7 @@ class CalendarSyncService:
             </div>
             <div style="background: #ffffff; padding: 25px; border: 1px solid #f87171; border-top: none; border-radius: 0 0 8px 8px;">
                 <p>Contractor <strong>{contractor_name}</strong>,</p>
-                <p>A high-severity electrical hazard has been reported through ZeroMiss voice dispatch:</p>
+                <p>A high-severity electrical hazard has been reported through JobLatch AI voice dispatch:</p>
                 <table style="width: 100%; border-collapse: collapse; margin: 15px 0; background: #fff1f2; border-radius: 6px;">
                     <tr><td style="padding: 8px; font-weight: bold; width: 35%;">Triage Case:</td><td style="padding: 8px;">{report.triage_case_id}</td></tr>
                     <tr><td style="padding: 8px; font-weight: bold;">Hazard Type:</td><td style="padding: 8px;">{report.hazard_type}</td></tr>

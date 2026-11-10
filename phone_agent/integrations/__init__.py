@@ -1,4 +1,4 @@
-"""Integrations package for ZeroMiss Voice Dispatch."""
+"""Integrations package for JobLatch AI Voice Dispatch."""
 
 from phone_agent.integrations.calendar_sync import CALENDAR_SYNC, CalendarSyncService
 

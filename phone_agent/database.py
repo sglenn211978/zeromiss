@@ -1,4 +1,4 @@
-"""In-memory and SQLite storage for ZeroMiss dispatch operations."""
+"""In-memory and SQLite storage for JobLatch AI dispatch operations."""
 
 import sqlite3
 import threading
@@ -522,7 +522,7 @@ class DispatchDatabase:
 
                 urgency_str = b.urgency_level.value if hasattr(b.urgency_level, "value") else str(b.urgency_level)
                 safe_desc = (
-                    f"ZeroMiss Dispatch Booking\\n"
+                    f"JobLatch AI Dispatch Booking\\n"
                     f"Confirmation: {b.confirmation_id}\\n"
                     f"Customer: {b.customer_name}\\n"
                     f"Phone: {b.phone_number}\\n"
@@ -533,7 +533,7 @@ class DispatchDatabase:
 
                 events.append(
                     "BEGIN:VEVENT\r\n"
-                    f"UID:{b.confirmation_id}@zeromissdispatch.com\r\n"
+                    f"UID:{b.confirmation_id}@joblatchdispatch.com\r\n"
                     f"DTSTAMP:{now_str}\r\n"
                     f"DTSTART:{start_str}\r\n"
                     f"DTEND:{end_str}\r\n"
@@ -547,9 +547,9 @@ class DispatchDatabase:
             return (
                 "BEGIN:VCALENDAR\r\n"
                 "VERSION:2.0\r\n"
-                "PRODID:-//ZeroMiss Electrical//Fleet Dispatch System v2.0//EN\r\n"
+                "PRODID:-//JobLatch AI Electrical//Fleet Dispatch System v2.0//EN\r\n"
                 "CALSCALE:GREGORIAN\r\n"
-                "X-WR-CALNAME:ZeroMiss Electrical Dispatches\r\n"
+                "X-WR-CALNAME:JobLatch AI Electrical Dispatches\r\n"
                 "X-WR-TIMEZONE:America/New_York\r\n"
                 + "".join(events) +
                 "END:VCALENDAR\r\n"
@@ -686,7 +686,7 @@ class DispatchDatabase:
             else:
                 est_val = 650.0
 
-            stripe_url = f"https://pay.zeromissdispatch.com/{confirmation_id.lower()}"
+            stripe_url = f"https://pay.joblatchdispatch.com/{confirmation_id.lower()}"
 
             # Resolve assigned truck_id from the matched technician in the roster
             matched_truck = "TRUCK-01 (Master Emergency Van)"
@@ -1184,7 +1184,7 @@ class DispatchDatabase:
                         "arrival_window": booking.slot_time,
                     },
                     "custom_fields": {
-                        "ZeroMiss_Source": "24/7 AI Voice Dispatch Engine",
+                        "JobLatch_Source": "24/7 AI Voice Dispatch Engine",
                         "NFPA_Triage_Level": getattr(booking, "triage_hazard_level", "NFPA 70 / 70E Safety Verified"),
                         "Upfront_Deposit_Collected": f"${booking.dispatch_fee:.2f} via Stripe",
                         "Deposit_Status": "CREDITED_TOWARD_FINAL_INVOICE",
@@ -1220,7 +1220,7 @@ class DispatchDatabase:
                         "depositApplied": float(booking.dispatch_fee),
                         "invoiceStatus": "Draft Invoice with Deposit Applied in Client Hub",
                         "customFields": [
-                            {"name": "ZeroMiss Call ID", "value": booking.confirmation_id},
+                            {"name": "JobLatch Call ID", "value": booking.confirmation_id},
                             {"name": "NFPA Code Triage", "value": "NFPA 70 & NFPA 70E Standard Compliance"},
                             {"name": "Diagnostic Readings", "value": str(booking.diagnostic_readings or "Pending")},
                             {"name": "Customer Signature", "value": booking.customer_signature_timestamp or "Pending"},
@@ -1243,7 +1243,7 @@ class DispatchDatabase:
                     "Deposit": float(booking.dispatch_fee),
                     "Line": [
                         {
-                            "Description": f"ZeroMiss AI Dispatch: {booking.service_type} ({booking.issue_description})",
+                            "Description": f"JobLatch AI Dispatch: {booking.service_type} ({booking.issue_description})",
                             "Amount": float(booking.dispatch_fee),
                             "DetailType": "SalesItemLineDetail",
                         },
@@ -1281,13 +1281,13 @@ class DispatchDatabase:
                     },
                     "line_items": [
                         {
-                            "name": "Upfront Dispatch & Diagnostic Fee (ZeroMiss AI Authorized)",
+                            "name": "Upfront Dispatch & Diagnostic Fee (JobLatch AI Authorized)",
                             "unit_cost": -float(booking.dispatch_fee),
                             "quantity": 1,
                             "notes": "Paid upfront via Stripe — credited toward approved electrical repair scope in Housecall Pro",
                         }
                     ],
-                    "notes": f"ZeroMiss AI Triage: {booking.issue_description}. Initial safety directives provided to homeowner.",
+                    "notes": f"JobLatch AI Triage: {booking.issue_description}. Initial safety directives provided to homeowner.",
                     "attachments": {
                         "panel_photo_verified": bool(booking.panel_photo_analysis),
                         "digital_signature_on_file": bool(booking.customer_signature_timestamp),

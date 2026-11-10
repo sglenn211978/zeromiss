@@ -1,5 +1,5 @@
 """
-Stripe Payment Integration Module for ZeroMiss Voice Dispatch.
+Stripe Payment Integration Module for JobLatch AI Voice Dispatch.
 
 Implements the 2-step Authorization Hold & On-Site Capture Lifecycle:
 1. Places an authorization hold with capture_method="manual" upon booking (guarantees funds for 7 days without settlement).
@@ -60,7 +60,7 @@ class StripePaymentEngine:
                     "payment_method": payment_method_id,
                     "confirm": True,
                     "capture_method": "manual",
-                    "description": f"ZeroMiss Diagnostic Fee Pre-Auth (Ref: {booking_id})",
+                    "description": f"JobLatch AI Diagnostic Fee Pre-Auth (Ref: {booking_id})",
                     "statement_descriptor_suffix": "DIAG HOLD",
                     "metadata": {
                         "booking_id": booking_id,
@@ -71,7 +71,7 @@ class StripePaymentEngine:
                 }
                 if contractor_account_id and contractor_account_id.startswith("acct_"):
                     params["transfer_data"] = {"destination": contractor_account_id}
-                    params["application_fee_amount"] = 500  # $5.00 ZeroMiss connector fee
+                    params["application_fee_amount"] = 500  # $5.00 JobLatch AI connector fee
 
                 # Clean None values
                 params = {k: v for k, v in params.items() if v is not None}
@@ -95,7 +95,7 @@ class StripePaymentEngine:
             "client_secret": f"{hold_id}_secret_test",
             "customer": customer_id or f"cus_{booking_id.lower()}",
             "payment_method": payment_method_id,
-            "description": f"ZeroMiss Diagnostic Fee Pre-Auth (Ref: {booking_id})",
+            "description": f"JobLatch AI Diagnostic Fee Pre-Auth (Ref: {booking_id})",
             "statement_descriptor_suffix": "DIAG HOLD",
             "transfer_data": {"destination": contractor_account_id},
             "application_fee_amount": 500,
@@ -210,7 +210,7 @@ STRIPE_PAYMENTS = StripePaymentEngine()
 def format_hold_sms_disclosure(amount_dollars: float, contractor_name: str = "Apex Electrical") -> str:
     """Returns the mandatory card-brand compliant SMS disclosure copy."""
     return (
-        f"{contractor_name} / ZeroMiss: An authorization hold of ${amount_dollars:.0f} has been placed "
+        f"{contractor_name} / JobLatch AI: An authorization hold of ${amount_dollars:.0f} has been placed "
         f"on your card to reserve your technician. Your card will not be charged until the technician arrives "
         f"at your property."
     )

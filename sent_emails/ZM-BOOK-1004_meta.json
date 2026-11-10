@@ -1,11 +1,11 @@
 {
   "confirmation_id": "ZM-BOOK-1004",
-  "recipient": "alex@gmail.com",
-  "customer_name": "Alex Rivera",
-  "subject": "Appointment Confirmed: ZeroMiss Electrical (ZM-BOOK-1004)",
-  "sent_at": "2026-11-03T15:05:00.616525",
+  "recipient": "tom.haverford@example.com",
+  "customer_name": "Tom Haverford",
+  "subject": "Appointment Confirmed: JobLatch AI Electrical (ZM-BOOK-1004)",
+  "sent_at": "2026-11-10T11:42:53.862847",
   "eml_path": "sent_emails/ZM-BOOK-1004_email.eml",
   "ics_path": "calendar_events/ZM-BOOK-1004_calendar_invite.ics",
-  "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=ZeroMiss+Electrical+Service+%28ZM-BOOK-1004%29&dates=20261104T080000%2F20261104T120000&details=ZeroMiss+Electrical+Appointment%0A%0AConfirmation%3A+ZM-BOOK-1004%0ACustomer%3A+Alex+Rivera+%28alex%40gmail.com%29%0AAssigned+Electrician%3A+Sarah+Chen%0AArrival+Window%3A+08%3A00+AM+-+12%3A00+PM%0AFee+Structure%3A+Free+Estimate%0A%0AIssue+%2F+Scope%3A+Tomorrow+morning+works.+My+name+is+Alex+Rivera%2C+45+Innovation+Way+in+Cambridge%2C+555-829-1044%2C+alex%40gmail.com%0A%0AQuestions%3F+Call+24%2F7+Dispatch+at+%28800%29+555-MISS.&location=45+Innovation+Way+in+Cambridge&add=alex%40gmail.com",
+  "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=JobLatch+AI+Electrical+Service+%28ZM-BOOK-1004%29&dates=20261112T120000%2F20261112T160000&details=JobLatch+AI+Electrical+Appointment%0A%0AConfirmation%3A+ZM-BOOK-1004%0ACustomer%3A+Tom+Haverford+%28tom.haverford%40example.com%29%0AAssigned+Electrician%3A+Dave+Miller+%28Journeyman+Electrician%29%0AArrival+Window%3A+12%3A00+PM+-+04%3A00+PM%0AFee+Structure%3A+%2489+Diagnostic+Fee%0A%0AIssue+%2F+Scope%3A+200A+Main+Breaker+Panel+Upgrade+%E2%80%94+flickering+lights+under+load%0A%0AQuestions%3F+Call+24%2F7+Dispatch+at+%28800%29+555-LATCH.&location=28+Newbury+St%2C+Suite+2B%2C+Boston&add=tom.haverford%40example.com",
   "status": "DELIVERED"
 }

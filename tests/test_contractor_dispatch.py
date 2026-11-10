@@ -22,7 +22,7 @@ def test_contractor_live_dispatch():
     console = Console() if RICH_AVAILABLE else None
 
     print("\n" + "=" * 80)
-    print("  ZeroMiss Voice Dispatch - Live Contractor Dispatch & Calendar Sync")
+    print("  JobLatch AI Voice Dispatch - Live Contractor Dispatch & Calendar Sync")
     print(f"  Contractor: {DEFAULT_CONFIG.contractor_name} ({DEFAULT_CONFIG.contractor_email})")
     print("================================================================================\n")
 
@@ -120,7 +120,7 @@ def test_contractor_live_dispatch():
             f"[bold]Contractor .ics File:[/bold] {booking.contractor_ics_path}\n"
             f"[bold]Contractor Email Alert:[/bold] {booking.contractor_eml_path}\n"
             f"[bold]Emergency Code-Red Alert:[/bold] {emerg_report.contractor_eml_path}",
-            title="[bold cyan]ZeroMiss Live Contractor Dispatch Sync[/bold cyan]",
+            title="[bold cyan]JobLatch AI Live Contractor Dispatch Sync[/bold cyan]",
             border_style="green",
         )
         console.print(panel)

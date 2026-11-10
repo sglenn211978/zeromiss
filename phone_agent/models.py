@@ -1,4 +1,4 @@
-"""Data models and schemas for ZeroMiss Voice Dispatch Agent."""
+"""Data models and schemas for JobLatch AI Voice Dispatch Agent."""
 
 from dataclasses import dataclass, field
 from datetime import datetime

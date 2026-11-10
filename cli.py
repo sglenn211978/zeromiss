@@ -1,4 +1,4 @@
-"""Command Line Interface for ZeroMiss Electrical Gemini 2.0 Flash Voice Dispatch."""
+"""Command Line Interface for JobLatch AI Electrical Gemini 2.0 Flash Voice Dispatch."""
 
 import argparse
 import os
@@ -23,11 +23,11 @@ except ImportError:
 
 
 def interactive_call(agent: VoiceDispatchAgent, save_audio: bool = False):
-    """Simulates an interactive telephone call with Sarah, the ZeroMiss Voice Dispatcher."""
+    """Simulates an interactive telephone call with Sarah, the JobLatch AI Voice Dispatcher."""
     console = Console() if RICH_AVAILABLE else None
 
     print("\n" + "=" * 70)
-    print("  DIALING: ZeroMiss Electrical 24/7 Voice Dispatch (800-555-MISS)")
+    print("  DIALING: JobLatch AI Electrical 24/7 Voice Dispatch (800-555-LATCH)")
     print("  Connected to: Sarah (Master Electrician Voice Dispatcher)")
     print("  Engine: Gemini 2.0 Flash")
     print(f"  Dispatches Routed to Contractor: {DEFAULT_CONFIG.contractor_name} ({DEFAULT_CONFIG.contractor_email})")
@@ -38,7 +38,7 @@ def interactive_call(agent: VoiceDispatchAgent, save_audio: bool = False):
     print("📞 [Ring... Ring... Connected]\n")
 
     session = agent.create_session()
-    opening_greeting = "Thank you for calling ZeroMiss Electrical 24/7 Dispatch. My name is Sarah. Are you reporting an electrical emergency, or calling to schedule service?"
+    opening_greeting = "Thank you for calling JobLatch AI Electrical 24/7 Dispatch. My name is Sarah. Are you reporting an electrical emergency, or calling to schedule service?"
 
     if console:
         console.print(f"[bold cyan]Sarah:[/bold cyan] {opening_greeting}\n")
@@ -61,7 +61,7 @@ def interactive_call(agent: VoiceDispatchAgent, save_audio: bool = False):
                 continue
 
             if user_input.lower() in ["exit", "quit", "hang up", "bye", "goodbye"]:
-                closing = "Thank you for calling ZeroMiss Electrical. Stay safe, and have a great day!"
+                closing = "Thank you for calling JobLatch AI Electrical. Stay safe, and have a great day!"
                 if console:
                     console.print(f"\n[bold cyan]Sarah:[/bold cyan] {closing}")
                     console.print("[dim]📞 [Call Disconnected][/dim]\n")
@@ -124,7 +124,7 @@ def show_dispatch_board():
     console = Console() if RICH_AVAILABLE else None
 
     print("\n--- ELECTRICAL CONTRACTOR PROFILE ---")
-    print(f"• Contractor Name: {DEFAULT_CONFIG.contractor_name} (ZeroMiss Owner / Dispatch Channel)")
+    print(f"• Contractor Name: {DEFAULT_CONFIG.contractor_name} (JobLatch AI Owner / Dispatch Channel)")
     print(f"• Contractor Email: {DEFAULT_CONFIG.contractor_email}")
     print(f"• Direct Phone: {DEFAULT_CONFIG.contractor_phone}")
 
@@ -155,7 +155,7 @@ def show_dispatch_board():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ZeroMiss Gemini 2.0 Flash Voice Dispatch System")
+    parser = argparse.ArgumentParser(description="JobLatch AI Gemini 2.0 Flash Voice Dispatch System")
     subparsers = parser.add_subparsers(dest="command")
 
     # Command: call

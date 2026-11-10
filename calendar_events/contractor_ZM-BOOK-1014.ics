@@ -1,17 +1,17 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+PRODID:-//JobLatch AI Electrical//Contractor Dispatch System v1.0//EN
 CALSCALE:GREGORIAN
 METHOD:REQUEST
 BEGIN:VEVENT
-UID:contractor-ZM-BOOK-1014@zeromiss.com
-DTSTAMP:20261103T012500Z
-DTSTART:20261104T080000
-DTEND:20261104T120000
-SUMMARY:⚡ ZeroMiss: Sarah Jenkins - Hi, my master bathroom GF
-DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-BOOK-1014\nCustomer: Sarah Jenkins ((555) 301-7784)\nTechnician: Marcus Vance\nWindow: 08:00 AM - 12:00 PM\nFee: $89 Diagnostic Fee\nScope: Hi, my master bathroom GFCI outlet has a red LED light on it and neither the hairdryer nor the vanity lights work. When I press the reset button, it doesn't click.\nNotes: None\n24/7 Dispatch: (800) 555-MISS
-LOCATION:214 Lexington Street, Waltham
-ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+UID:contractor-ZM-BOOK-1014@joblatchai.com
+DTSTAMP:20261110T164200Z
+DTSTART:20261111T080000
+DTEND:20261111T120000
+SUMMARY:⚡ JobLatch [TRUCK-03]: Rachel Green - Tesla Wall Connector 50A 
+DESCRIPTION:JobLatch Contractor Dispatch Dossier\nTicket: ZM-BOOK-1014\nCustomer: Rachel Green ((555) 741-3902)\nTechnician: Sarah Chen (EV & Commercial Specialist)\nFleet Truck/Van: TRUCK-03 (EV & Commercial Van)\nWindow: 08:00 AM - 12:00 PM\nFee: $89 Diagnostic Fee\nScope: Tesla Wall Connector 50A Dedicated Circuit (200A Panel Verified)\nNotes: Autonomous 3-second missed-call SMS recovery booking.\n24/7 Dispatch: (800) 555-LATCH
+LOCATION:114 Commonwealth Ave, Boston
+ORGANIZER;CN=JobLatch AI 24/7 Dispatch:mailto:dispatch@joblatchai.com
 ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
 STATUS:CONFIRMED
 SEQUENCE:0

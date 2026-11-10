@@ -1,4 +1,4 @@
-# ZeroMiss Electrical 24/7 Voice Dispatch Agent (Gemini 2.0 Flash)
+# JobLatch AI Electrical 24/7 Voice Dispatch Agent (Gemini 2.0 Flash)
 
 A production-grade Python voice dispatch system for electrical contracting operations powered by **Google Gemini 2.0 Flash**. Designed for real-time telephone interactions, handling 24/7 emergency fire/shock triage, calendar scheduling, and automated service dispatch.
 
@@ -72,7 +72,7 @@ PYTHONPATH=. python3 cli.py test --scenario SCENARIO_01
 ```
 
 ### 3. Start an Interactive Phone Call
-Dial in to Sarah, the ZeroMiss Voice Dispatcher:
+Dial in to Sarah, the JobLatch AI Voice Dispatcher:
 ```bash
 PYTHONPATH=. python3 cli.py call
 # With audio recording saved to WAV:

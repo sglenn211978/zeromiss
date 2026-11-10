@@ -1,4 +1,4 @@
-"""Calendar availability checking tool for ZeroMiss Voice Dispatch."""
+"""Calendar availability checking tool for JobLatch AI Voice Dispatch."""
 
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional

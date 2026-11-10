@@ -101,7 +101,7 @@ class TestDispatchTools(unittest.TestCase):
         self.assertGreater(len(tone), 0)
         ring = AudioStreamSimulator.generate_phone_ring()
         self.assertGreater(len(ring), 0)
-        speech = AudioStreamSimulator.simulate_speech_pcm("Hello this is Sarah at ZeroMiss")
+        speech = AudioStreamSimulator.simulate_speech_pcm("Hello this is Sarah at JobLatch AI")
         self.assertGreater(len(speech), 0)
 
 

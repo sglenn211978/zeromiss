@@ -1,1 +1,1 @@
-"""Tests package for ZeroMiss Voice Dispatch Agent."""
+"""Tests package for JobLatch AI Voice Dispatch Agent."""

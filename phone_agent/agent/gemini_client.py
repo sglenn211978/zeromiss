@@ -463,7 +463,7 @@ class Gemini2FlashClient:
 
         # General conversational fallback
         spoken_response = (
-            "Thank you for calling ZeroMiss Electrical. We are ready to assist with installations, repairs, and 24/7 emergencies. How can I help you today?"
+            "Thank you for calling JobLatch AI Electrical. We are ready to assist with installations, repairs, and 24/7 emergencies. How can I help you today?"
         )
         return {"text": spoken_response, "tool_calls": []}
 
@@ -511,7 +511,7 @@ class Gemini2FlashClient:
         # Name extraction
         name = None
         stop_words = {
-            "zeromiss", "voltshield", "electric", "electrical", "street", "avenue", "road", "court",
+            "joblatch", "joblatchai", "zeromiss", "voltshield", "electric", "electrical", "street", "avenue", "road", "court",
             "drive", "lane", "boulevard", "terrace", "today", "tomorrow", "wednesday",
             "thursday", "friday", "saturday", "sunday", "morning", "afternoon", "evening",
             "hi", "hello", "hey", "yes", "no", "thanks", "thank", "you", "please", "estimate",
