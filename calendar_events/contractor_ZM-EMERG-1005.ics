@@ -5,9 +5,9 @@ CALSCALE:GREGORIAN
 METHOD:REQUEST
 BEGIN:VEVENT
 UID:contractor-ZM-EMERG-1005@joblatchai.com
-DTSTAMP:20261110T170800Z
-DTSTART:20261110T125300
-DTEND:20261110T145300
+DTSTAMP:20261110T172100Z
+DTSTART:20261110T130600
+DTEND:20261110T150600
 SUMMARY:🚨 EMERGENCY [TRUCK-01]: Robert Hall - EMERGENCY: active_sparkin
 DESCRIPTION:JobLatch Contractor Dispatch Dossier\nTicket: ZM-EMERG-1005\nCustomer: Robert Hall ((555) 234-8891)\nTechnician: Marcus Vance (Master Electrician On-Call)\nFleet Truck/Van: TRUCK-01 (Master Emergency Van)\nWindow: Within 45-60 Minutes (Priority Code Red)\nFee: $199 Diagnostic Fee\nScope: EMERGENCY: active_sparking - CRITICAL CODE RED: Active electrical sparking/fire. Immediate building evacuation and 911 call ordered.\nNotes: Immediate Code Red Dispatch to 412 Oak Ridge Lane, Westford. Callback: 555-234-8891\n24/7 Dispatch: (800) 555-LATCH
 LOCATION:412 Oak Ridge Lane, Westford

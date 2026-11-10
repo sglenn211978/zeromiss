@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/joblatch_ai_logo.jpg" alt="JobLatch AI Logo" width="240" style="border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+</p>
+
 # JobLatch AI Electrical 24/7 Voice Dispatch Agent (Gemini 2.0 Flash)
 
 A production-grade Python voice dispatch system for electrical contracting operations powered by **Google Gemini 2.0 Flash**. Designed for real-time telephone interactions, handling 24/7 emergency fire/shock triage, calendar scheduling, and automated service dispatch.

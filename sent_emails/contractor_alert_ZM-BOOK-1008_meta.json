@@ -7,7 +7,7 @@
   "service_address": "28 Newbury St, Suite 2B, Boston",
   "urgency": "URGENT",
   "subject": "\u26a1 CONTRACTOR DISPATCH [URGENT]: Tom Haverford @ 28 Newbury St, Suite 2B, Boston (ZM-BOOK-1008)",
-  "sent_at": "2026-11-10T12:08:13.658802",
+  "sent_at": "2026-11-10T12:21:14.153482",
   "eml_path": "sent_emails/contractor_alert_ZM-BOOK-1008.eml",
   "contractor_ics_path": "calendar_events/contractor_ZM-BOOK-1008.ics",
   "google_calendar_link": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E2%9A%A1+JobLatch+Dispatch+%5BTRUCK-02%5D%3A+Tom+Haverford+%40+28+Newbury+St%2C+Suite+2B%2C+Boston&dates=20261112T120000%2F20261112T160000&details=JobLatch+AI+Electrical+Contractor+Dispatch+Dossier%0AContractor%3A+Sean+Glenn+%28sean.glenn21%40gmail.com%29%0AConfirmation%3A+ZM-BOOK-1008%0AUrgency%3A+URGENT%0A%0ACUSTOMER+CONTACT%3A%0A%E2%80%A2+Name%3A+Tom+Haverford%0A%E2%80%A2+Phone%3A+%28555%29+892-4410%0A%E2%80%A2+Email%3A+tom.haverford%40example.com%0A%E2%80%A2+Service+Address%3A+28+Newbury+St%2C+Suite+2B%2C+Boston%0A%0ADISPATCH+DETAILS%3A%0A%E2%80%A2+Electrician%3A+Dave+Miller+%28Journeyman+Electrician%29%0A%E2%80%A2+Assigned+Fleet+Vehicle%3A+TRUCK-02+%28200A+Panel+%26+Service+Rig%29%0A%E2%80%A2+Arrival+Window%3A+2026-11-12+%2812%3A00+PM+-+04%3A00+PM%29%0A%E2%80%A2+Fee+Structure%3A+%2489+Diagnostic+Fee%0A%E2%80%A2+Scope+of+Work%3A+200A+Main+Breaker+Panel+Upgrade+%E2%80%94+flickering+lights+under+load%0A%E2%80%A2+Access+Notes%3A+Inbound+voice+triage+%26+panel+capacity+verification+by+Sarah+AI.%0A%0A24%2F7+Dispatch+Control%3A+%28800%29+555-LATCH&location=28+Newbury+St%2C+Suite+2B%2C+Boston&add=sean.glenn21%40gmail.com",

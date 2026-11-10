@@ -3,7 +3,7 @@
   "contractor_email": "sean.glenn21@gmail.com",
   "severity": "LEVEL_1_CRITICAL_LIFE_SAFETY",
   "hazard_type": "electric_shock_injury",
-  "timestamp": "2026-11-10T12:08:18.924048",
+  "timestamp": "2026-11-10T12:21:18.466530",
   "eml_path": "sent_emails/contractor_emergency_EMERG-5003.eml",
   "status": "DELIVERED_TO_CONTRACTOR"
 }

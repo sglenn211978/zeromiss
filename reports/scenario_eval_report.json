@@ -1,7 +1,7 @@
 {
   "test_suite": "JobLatch AI Gemini 2.0 Flash Voice Dispatcher Evaluation",
   "model": "gemini-2.0-flash",
-  "generated_at": "2026-11-10T12:08:19.187215",
+  "generated_at": "2026-11-10T12:21:18.655054",
   "total_scenarios": 20,
   "passed": 20,
   "failed": 0,
@@ -12,7 +12,7 @@
       "title": "Active Breaker Panel Fire and Arcing Sparks",
       "category": "EMERGENCY_FIRE",
       "passed": true,
-      "duration_ms": 34.22505500202533,
+      "duration_ms": 18.23498100566212,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"
@@ -53,7 +53,7 @@
       "title": "Water Leaking Directly Over Main Electrical Panel",
       "category": "EMERGENCY_WATER",
       "passed": true,
-      "duration_ms": 21.210349004832096,
+      "duration_ms": 11.916748000658117,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"
@@ -94,7 +94,7 @@
       "title": "Electric Shock Injury from Dishwasher Metal Frame",
       "category": "EMERGENCY_SHOCK",
       "passed": true,
-      "duration_ms": 17.86086799984332,
+      "duration_ms": 12.091560987755656,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"
@@ -135,7 +135,7 @@
       "title": "Downed Power Line Arcing on Wet Driveway",
       "category": "EMERGENCY_DOWNED_LINE",
       "passed": true,
-      "duration_ms": 13.910689987824298,
+      "duration_ms": 9.223299988661893,
       "tools_called": [
         "triage_fire_shock_emergency"
       ],
@@ -175,7 +175,7 @@
       "title": "Sizzling Scorched Wall Outlet with Burning Fishy Odor",
       "category": "EMERGENCY_HAZARD",
       "passed": true,
-      "duration_ms": 18.60585699614603,
+      "duration_ms": 11.033738002879545,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"
@@ -216,7 +216,7 @@
       "title": "Smoke Emitting from Kitchen Ceiling Light Fixture",
       "category": "EMERGENCY_SMOKE",
       "passed": true,
-      "duration_ms": 18.75475600536447,
+      "duration_ms": 10.922061002929695,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"
@@ -257,7 +257,7 @@
       "title": "Routine Ceiling Fan Installation in Master Bedroom",
       "category": "ROUTINE_INSTALLATION",
       "passed": true,
-      "duration_ms": 11.368496008799411,
+      "duration_ms": 9.762548987055197,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -295,7 +295,7 @@
       "title": "Level 2 Tesla Wall Connector EV Charger Installation",
       "category": "SPECIALTY_EV",
       "passed": true,
-      "duration_ms": 12.189332002890296,
+      "duration_ms": 10.068735005916096,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -333,7 +333,7 @@
       "title": "100-Amp to 200-Amp Electrical Panel Service Upgrade",
       "category": "SPECIALTY_PANEL",
       "passed": true,
-      "duration_ms": 15.233329992042854,
+      "duration_ms": 9.65387499309145,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -371,7 +371,7 @@
       "title": "Kitchen Renovation Recessed LED Lighting and Dimmer",
       "category": "ROUTINE_INSTALLATION",
       "passed": true,
-      "duration_ms": 15.284383000107482,
+      "duration_ms": 9.310603010817431,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -409,7 +409,7 @@
       "title": "Kitchen Circuit Breaker Tripping on Microwave & Toaster Overload",
       "category": "OVERLOAD_TRIAGE",
       "passed": true,
-      "duration_ms": 16.985976995783858,
+      "duration_ms": 9.479759013629518,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -447,7 +447,7 @@
       "title": "Complete Single-Home Power Outage Diagnostic",
       "category": "URGENT_OUTAGE",
       "passed": true,
-      "duration_ms": 15.447110999957658,
+      "duration_ms": 9.054911992279813,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -485,7 +485,7 @@
       "title": "Commercial Restaurant Walk-in Freezer Circuit Tripped",
       "category": "COMMERCIAL_URGENT",
       "passed": true,
-      "duration_ms": 16.618406007182784,
+      "duration_ms": 10.407955996925011,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -523,7 +523,7 @@
       "title": "Bathroom GFCI Receptacle Tripped and Won't Reset",
       "category": "ROUTINE_REPAIR",
       "passed": true,
-      "duration_ms": 15.793310987646692,
+      "duration_ms": 9.1762270021718,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -561,7 +561,7 @@
       "title": "Historic Home Knob-and-Tube Wiring Safety Inspection",
       "category": "SAFETY_INSPECTION",
       "passed": true,
-      "duration_ms": 14.016008994076401,
+      "duration_ms": 9.190614990075119,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -599,7 +599,7 @@
       "title": "Outdoor Hot Tub 50-Amp GFCI Spa Disconnect Installation",
       "category": "RESIDENTIAL_240V_DEDICATED_CIRCUIT",
       "passed": true,
-      "duration_ms": 10.715766999055631,
+      "duration_ms": 9.28462200681679,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -637,7 +637,7 @@
       "title": "Whole-House Generator Transfer Switch & Inlet Box",
       "category": "SPECIALTY_GENERATOR",
       "passed": true,
-      "duration_ms": 12.02988499426283,
+      "duration_ms": 9.229656992829405,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -675,7 +675,7 @@
       "title": "Whole-House Lights Flickering During AC Compressor Startup",
       "category": "DIAGNOSTIC_VOLTAGE_DROP",
       "passed": true,
-      "duration_ms": 10.780579003039747,
+      "duration_ms": 9.947490005288273,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -713,7 +713,7 @@
       "title": "Commercial Property Security LED Motion Floodlights",
       "category": "COMMERCIAL_LIGHTING",
       "passed": true,
-      "duration_ms": 9.365120989969,
+      "duration_ms": 8.736224001040682,
       "tools_called": [
         "check_calendar_availability",
         "book_service_call"
@@ -751,7 +751,7 @@
       "title": "Panicked Caller: Dryer Popping with Sparks Behind Wall",
       "category": "EMERGENCY_PANIC",
       "passed": true,
-      "duration_ms": 11.33197000308428,
+      "duration_ms": 10.853756000869907,
       "tools_called": [
         "triage_fire_shock_emergency",
         "book_service_call"

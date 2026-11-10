@@ -306,7 +306,7 @@ def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -
 def render_printable_work_order_html(booking_obj: Any, contractor_email: str) -> str:
     """Renders a dedicated, contractor-grade printable 8.5x11 Field Service Work Order & NFPA 70E Dispatch Sheet."""
     b = enrich_booking_dict(booking_obj)
-    conf_id = b.get("confirmation_id", "ZM-BOOK-1001")
+    conf_id = b.get("confirmation_id", "JL-BOOK-1001")
     is_emerg = "EMERG" in str(b.get("urgency_level", "")).upper() or "emergency" in str(b.get("service_type", "")).lower()
     p_status = b.get("payment_status", "PENDING_AUTHORIZATION")
     is_hold = p_status == "AUTHORIZED_HOLD"
@@ -424,6 +424,7 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
 <head>
   <meta charset="utf-8">
   <title>Work Order #{conf_id} — {cust_name} | JobLatch AI Electrical</title>
+  <link rel="icon" type="image/jpeg" href="/assets/joblatch_ai_logo.jpg">
   <style>
     @page {{
       size: letter portrait;
@@ -489,16 +490,23 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
       gap: 12px;
     }}
     .shop-logo {{
-      width: 42px;
-      height: 42px;
-      background: {priority_banner_color};
+      width: 46px;
+      height: 46px;
+      background: #0b1329;
       color: #ffffff;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      font-weight: 900;
+      overflow: hidden;
+      border: 1.5px solid rgba(56, 189, 248, 0.4);
+      flex-shrink: 0;
+    }}
+    .shop-logo img {{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }}
     .shop-name {{
       font-size: 18px;
@@ -731,7 +739,9 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
     <!-- 1. CONTRACTOR LETTERHEAD -->
     <div class="letterhead">
       <div class="shop-brand">
-        <div class="shop-logo">⚡</div>
+        <div class="shop-logo">
+          <img src="/assets/joblatch_ai_logo.jpg" alt="JobLatch AI" onerror="this.onerror=null; this.parentElement.innerHTML='⚡';">
+        </div>
         <div>
           <div class="shop-name">APEX ELECTRICAL SERVICES &bull; JOBLATCH AI DISPATCH</div>
           <div class="shop-meta">
@@ -932,6 +942,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobLatch AI Voice Dispatch | Interactive Product Demo</title>
+  <link rel="icon" type="image/jpeg" href="/assets/joblatch_ai_logo.jpg">
   <style>
     :root {
       --bg: #f1f5f9;
@@ -990,16 +1001,24 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       gap: 14px;
     }
     .brand-icon {
-      background: #2563eb;
+      background: #0b1329;
       color: white;
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
-      font-weight: 800;
+      overflow: hidden;
+      border: 1.5px solid rgba(56, 189, 248, 0.45);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+      flex-shrink: 0;
+    }
+    .brand-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
     .brand-title-row {
       display: flex;
@@ -1568,16 +1587,25 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       border-bottom: 1px solid #334155;
     }
     .imessage-avatar {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: #2563eb;
+      background: #0b1329;
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
+      border: 1.5px solid rgba(56, 189, 248, 0.5);
       font-weight: 800;
       font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+    .imessage-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
     .imessage-name { font-size: 1rem; font-weight: 800; color: #ffffff; }
     .imessage-sub { font-size: 0.86rem; color: #cbd5e1; }
@@ -2736,7 +2764,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
   <!-- TOP HEADER -->
   <header>
     <div class="brand">
-      <div class="brand-icon">⚡</div>
+      <div class="brand-icon">
+        <img src="/assets/joblatch_ai_logo.jpg" alt="JobLatch AI" onerror="this.onerror=null; this.parentElement.innerHTML='⚡';">
+      </div>
       <div>
         <div class="brand-title-row">
           <h1>JobLatch AI Voice Dispatch</h1>
@@ -2925,7 +2955,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
                       <span>5G &bull; 92%</span>
                     </div>
                     <div class="phone-imessage-header">
-                      <div class="imessage-avatar">JL</div>
+                      <div class="imessage-avatar"><img src="/assets/joblatch_ai_logo.jpg" alt="JobLatch AI" onerror="this.onerror=null; this.parentElement.innerText='JL';"></div>
                       <div>
                         <div class="imessage-name">JobLatch AI Dispatch ✓</div>
                         <div class="imessage-sub">Customer SMS Feed</div>
@@ -3537,7 +3567,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       </div>
 
       <div class="dossier-sub-bar">
-        <span>📋 Work Order ID: <strong id="dossierConfId">#ZM-EMERG-1005</strong></span>
+        <span>📋 Work Order ID: <strong id="dossierConfId">#JL-EMERG-1005</strong></span>
         <span>🕒 Dispatched At: <strong id="dossierCreatedAt">Today, 12:45 PM EST</strong></span>
         <span>📧 Shop Copy: <strong id="dossierContractorEmail">dispatch@apex-electrical-demo.com</strong></span>
       </div>
@@ -6351,6 +6381,22 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
+        elif parsed.path in ("/assets/joblatch_ai_logo.jpg", "/assets/logo.jpg", "/favicon.ico"):
+            logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "joblatch_ai_logo.jpg")
+            if os.path.exists(logo_path):
+                with open(logo_path, "rb") as f:
+                    img_data = f.read()
+                self.send_response(200)
+                content_type = "image/x-icon" if parsed.path == "/favicon.ico" else "image/jpeg"
+                self.send_header("Content-Type", content_type)
+                self.send_header("Content-Length", str(len(img_data)))
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.end_headers()
+                self.wfile.write(img_data)
+            else:
+                self.send_response(404)
+                self.end_headers()
+
         else:
             self.send_response(404)
             self.end_headers()
