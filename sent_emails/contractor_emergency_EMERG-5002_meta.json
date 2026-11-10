@@ -3,7 +3,7 @@
   "contractor_email": "sean.glenn21@gmail.com",
   "severity": "LEVEL_1_CRITICAL_LIFE_SAFETY",
   "hazard_type": "water_electrical_contact",
-  "timestamp": "2026-11-10T11:42:44.780534",
+  "timestamp": "2026-11-10T12:08:18.903406",
   "eml_path": "sent_emails/contractor_emergency_EMERG-5002.eml",
   "status": "DELIVERED_TO_CONTRACTOR"
 }
