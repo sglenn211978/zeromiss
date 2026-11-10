@@ -1,17 +1,17 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+PRODID:-//JobLatch AI Electrical//Contractor Dispatch System v1.0//EN
 CALSCALE:GREGORIAN
 METHOD:REQUEST
 BEGIN:VEVENT
-UID:contractor-ZM-EMERG-1020@zeromiss.com
+UID:contractor-ZM-EMERG-1020@joblatchai.com
 DTSTAMP:20261103T012500Z
 DTSTART:20261102T211000
 DTEND:20261102T231000
 SUMMARY:🚨 EMERGENCY: Chloe Bennett - EMERGENCY: active_sparkin
-DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-EMERG-1020\nCustomer: Chloe Bennett ((555) 948-2233)\nTechnician: Marcus Vance (Master Electrician On-Call)\nWindow: Within 45-60 Minutes (Priority Code Red)\nFee: $199 Diagnostic Fee\nScope: EMERGENCY: active_sparking - CRITICAL CODE RED: Active electrical sparking/fire. Immediate building evacuation and 911 call ordered.\nNotes: Immediate Code Red Dispatch to 27 Sunnyhill Lane in Winchester. Callback: 555-948-2233\n24/7 Dispatch: (800) 555-MISS
+DESCRIPTION:JobLatch AI Contractor Dispatch Dossier\nTicket: ZM-EMERG-1020\nCustomer: Chloe Bennett ((555) 948-2233)\nTechnician: Marcus Vance (Master Electrician On-Call)\nWindow: Within 45-60 Minutes (Priority Code Red)\nFee: $199 Diagnostic Fee\nScope: EMERGENCY: active_sparking - CRITICAL CODE RED: Active electrical sparking/fire. Immediate building evacuation and 911 call ordered.\nNotes: Immediate Code Red Dispatch to 27 Sunnyhill Lane in Winchester. Callback: 555-948-2233\n24/7 Dispatch: (800) 555-LATCH
 LOCATION:27 Sunnyhill Lane in Winchester
-ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ORGANIZER;CN=JobLatch AI 24/7 Dispatch:mailto:dispatch@joblatchai.com
 ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
 STATUS:CONFIRMED
 SEQUENCE:0

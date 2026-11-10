@@ -1,17 +1,17 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//ZeroMiss Electrical//Contractor Dispatch System v1.0//EN
+PRODID:-//JobLatch AI Electrical//Contractor Dispatch System v1.0//EN
 CALSCALE:GREGORIAN
 METHOD:REQUEST
 BEGIN:VEVENT
-UID:contractor-ZM-BOOK-1001@zeromiss.com
+UID:contractor-ZM-BOOK-1001@joblatchai.com
 DTSTAMP:20261103T012500Z
 DTSTART:20261104T080000
 DTEND:20261104T120000
-SUMMARY:⚡ ZeroMiss: Sean Glenn - what is the estimate pric
-DESCRIPTION:ZeroMiss Contractor Dispatch Dossier\nTicket: ZM-BOOK-1001\nCustomer: Sean Glenn ((609) 972-4328)\nTechnician: Marcus Vance\nWindow: 08:00 AM - 12:00 PM\nFee: $89 Diagnostic Fee\nScope: what is the estimate pricing\nNotes: None\n24/7 Dispatch: (800) 555-MISS
+SUMMARY:⚡ JobLatch AI: Sean Glenn - what is the estimate pric
+DESCRIPTION:JobLatch AI Contractor Dispatch Dossier\nTicket: ZM-BOOK-1001\nCustomer: Sean Glenn ((609) 972-4328)\nTechnician: Marcus Vance\nWindow: 08:00 AM - 12:00 PM\nFee: $89 Diagnostic Fee\nScope: what is the estimate pricing\nNotes: None\n24/7 Dispatch: (800) 555-LATCH
 LOCATION:1212 homeless ave 08360
-ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ORGANIZER;CN=JobLatch AI 24/7 Dispatch:mailto:dispatch@joblatchai.com
 ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Sean Glenn:mailto:sean.glenn21@gmail.com
 STATUS:CONFIRMED
 SEQUENCE:0

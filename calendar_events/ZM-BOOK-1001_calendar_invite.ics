@@ -1,17 +1,17 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//ZeroMiss Electrical//Voice Dispatch Agent v1.0//EN
+PRODID:-//JobLatch AI Electrical//Voice Dispatch Agent v1.0//EN
 CALSCALE:GREGORIAN
 METHOD:REQUEST
 BEGIN:VEVENT
-UID:ZM-BOOK-1001@zeromiss.com
+UID:ZM-BOOK-1001@joblatchai.com
 DTSTAMP:20261103T012500Z
 DTSTART:20261104T080000
 DTEND:20261104T120000
-SUMMARY:ZeroMiss Electrical: what is the estimate pricing
-DESCRIPTION:ZeroMiss Electrical Service Call\nConfirmation: ZM-BOOK-1001\nCustomer: Sean Glenn\nTechnician: Marcus Vance\nArrival Window: 08:00 AM - 12:00 PM\nFee: $89 Diagnostic Fee\nScope: what is the estimate pricing\nSupport: (800) 555-MISS
+SUMMARY:JobLatch AI Electrical: what is the estimate pricing
+DESCRIPTION:JobLatch AI Electrical Service Call\nConfirmation: ZM-BOOK-1001\nCustomer: Sean Glenn\nTechnician: Marcus Vance\nArrival Window: 08:00 AM - 12:00 PM\nFee: $89 Diagnostic Fee\nScope: what is the estimate pricing\nSupport: (800) 555-LATCH
 LOCATION:1212 homeless ave 08360
-ORGANIZER;CN=ZeroMiss 24/7 Dispatch:mailto:dispatch@zeromiss.com
+ORGANIZER;CN=JobLatch AI 24/7 Dispatch:mailto:dispatch@joblatchai.com
 ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN=Sean Glenn:mailto:sglenn21@msn.com
 STATUS:CONFIRMED
 SEQUENCE:0
