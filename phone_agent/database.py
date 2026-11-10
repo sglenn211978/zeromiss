@@ -12,6 +12,7 @@ from phone_agent.models import (
     Technician,
     UrgencyLevel,
 )
+from phone_agent.integrations.stripe_payments import STRIPE_PAYMENTS, format_hold_sms_disclosure
 
 
 
@@ -306,8 +307,11 @@ class DispatchDatabase:
                 is_demo_seed=True,
             )
             b1.payment_status = "PAID_VERIFIED"
+            b1.stripe_payment_intent_id = "pi_seed_rachel_green_8900"
+            b1.captured_at = datetime.now().isoformat()
+            b1.captured_amount_cents = 8900
 
-            self.book_slot(
+            b2 = self.book_slot(
                 customer_name="Tom Haverford",
                 phone_number="(555) 892-4410",
                 service_address="28 Newbury St, Suite 2B, Boston",
@@ -324,6 +328,11 @@ class DispatchDatabase:
                 tech_match_reason="Journeyman • Panel & Load Balancing",
                 is_demo_seed=True,
             )
+            if b2:
+                b2.payment_status = "AUTHORIZED_HOLD"
+                b2.stripe_payment_intent_id = "pi_seed_tom_haverford_hold"
+                b2.hold_placed_at = datetime.now().isoformat()
+                b2.hold_expires_at = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def add_technician(
         self,
@@ -806,13 +815,103 @@ class DispatchDatabase:
             self.emergency_reports[triage_case_id] = report
             return report
 
-    def mark_booking_paid(self, confirmation_id: str) -> Optional[ServiceBooking]:
-        """Marks a booking diagnostic/emergency fee as paid via Stripe."""
+    def place_authorization_hold(
+        self,
+        confirmation_id: str,
+        payment_method_id: str = "pm_card_visa",
+    ) -> Optional[ServiceBooking]:
+        """
+        Places a 2-step authorization hold for an emergency dispatch/diagnostic fee.
+        Guarantees funds for up to 7 days without settling the charge (capture_method="manual").
+        Funds are routed via Stripe Connect to the contractor's destination merchant account.
+        """
         with self._lock:
             if confirmation_id not in self.bookings:
                 return None
             booking = self.bookings[confirmation_id]
+            amt_cents = int(float(booking.dispatch_fee or 89.0) * 100)
+            contractor_acct = getattr(booking, "stripe_connect_account_id", "acct_apex_electric_101")
+            intent = STRIPE_PAYMENTS.create_dispatch_hold(
+                customer_id=getattr(booking, "stripe_customer_id", f"cus_{booking.confirmation_id.lower()}"),
+                payment_method_id=payment_method_id,
+                amount_cents=amt_cents,
+                booking_id=booking.confirmation_id,
+                contractor_account_id=contractor_acct,
+                customer_name=booking.customer_name,
+            )
+            booking.payment_status = "AUTHORIZED_HOLD"
+            booking.stripe_payment_intent_id = intent["id"]
+            booking.stripe_customer_id = intent.get("customer")
+            booking.stripe_capture_method = "manual"
+            booking.hold_placed_at = datetime.now().isoformat()
+            booking.hold_expires_at = intent.get("metadata", {}).get("hold_expires_at")
+            return booking
+
+    def capture_dispatch_fee(
+        self,
+        confirmation_id: str,
+        amount_to_capture_cents: Optional[int] = None,
+    ) -> Optional[ServiceBooking]:
+        """
+        Settles the authorized hold once the technician arrives on site (Stage 2: ON_SITE_DIAGNOSTIC).
+        Can capture full amount or a lesser amount if discounted.
+        """
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            pid = getattr(booking, "stripe_payment_intent_id", None)
+            if not pid:
+                amt = amount_to_capture_cents or int(float(booking.dispatch_fee or 89.0) * 100)
+                intent = STRIPE_PAYMENTS.create_dispatch_hold(
+                    customer_id=getattr(booking, "stripe_customer_id", f"cus_{booking.confirmation_id.lower()}"),
+                    amount_cents=amt,
+                    booking_id=booking.confirmation_id,
+                    contractor_account_id=getattr(booking, "stripe_connect_account_id", "acct_apex_electric_101"),
+                    customer_name=booking.customer_name,
+                )
+                pid = intent["id"]
+                booking.stripe_payment_intent_id = pid
+                booking.hold_placed_at = datetime.now().isoformat()
+                booking.hold_expires_at = intent.get("metadata", {}).get("hold_expires_at")
+
+            cap_result = STRIPE_PAYMENTS.capture_dispatch_fee(pid, amount_to_capture_cents)
+            booking.payment_status = "CAPTURED_ON_SITE"
+            booking.captured_at = datetime.now().isoformat()
+            booking.captured_amount_cents = cap_result.get("amount_received", int(float(booking.dispatch_fee or 89.0) * 100))
+            return booking
+
+    def release_dispatch_hold(
+        self,
+        confirmation_id: str,
+        reason: str = "customer_requested",
+    ) -> Optional[ServiceBooking]:
+        """
+        Instantly drops the pre-auth hold on the customer's card when service is cancelled before arrival.
+        Zero processing fees incurred; zero dispute risk.
+        """
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            pid = getattr(booking, "stripe_payment_intent_id", None)
+            if pid:
+                STRIPE_PAYMENTS.release_dispatch_hold(pid, reason)
+            booking.payment_status = "RELEASED_CANCELED"
+            booking.released_at = datetime.now().isoformat()
+            return booking
+
+    def mark_booking_paid(self, confirmation_id: str) -> Optional[ServiceBooking]:
+        """Marks a booking diagnostic/emergency fee as paid/captured via Stripe."""
+        with self._lock:
+            if confirmation_id not in self.bookings:
+                return None
+            booking = self.bookings[confirmation_id]
+            if booking.payment_status == "AUTHORIZED_HOLD":
+                return self.capture_dispatch_fee(confirmation_id)
             booking.payment_status = "PAID_VERIFIED"
+            if not booking.captured_at:
+                booking.captured_at = datetime.now().isoformat()
             return booking
 
     def reassign_booking_technician(self, confirmation_id: str, technician_id: str) -> Optional[ServiceBooking]:
@@ -981,6 +1080,8 @@ class DispatchDatabase:
             if confirmation_id not in self.bookings:
                 return None
             booking = self.bookings[confirmation_id]
+            if booking.payment_status == "AUTHORIZED_HOLD":
+                self.capture_dispatch_fee(confirmation_id)
             booking.payment_status = "PAID_VERIFIED"
             booking.final_balance_paid = True
             booking.tech_workflow_stage = "COMPLETED"
@@ -996,6 +1097,10 @@ class DispatchDatabase:
             booking.tech_workflow_stage = clean_stage
             if clean_stage == "EN_ROUTE":
                 booking.en_route_sent = True
+            elif clean_stage == "ON_SITE_DIAGNOSTIC":
+                # Automatically capture pre-auth hold upon technician arrival on-site
+                if booking.payment_status == "AUTHORIZED_HOLD":
+                    self.capture_dispatch_fee(confirmation_id)
             return booking
 
     def save_diagnostic_readings(self, confirmation_id: str, readings: Dict[str, Any]) -> Optional[ServiceBooking]:
@@ -1007,6 +1112,8 @@ class DispatchDatabase:
             booking.diagnostic_readings = readings or {}
             if booking.tech_workflow_stage in ("DISPATCHED", "EN_ROUTE"):
                 booking.tech_workflow_stage = "ON_SITE_DIAGNOSTIC"
+            if booking.payment_status == "AUTHORIZED_HOLD":
+                self.capture_dispatch_fee(confirmation_id)
             return booking
 
     def sign_customer_work_authorization(self, confirmation_id: str, signer_name: str) -> Optional[ServiceBooking]:
@@ -1344,15 +1451,22 @@ class DispatchDatabase:
             revenue_won = sum(
                 getattr(b, "estimated_job_value", 0.0)
                 for b in session_bookings
-                if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "PAID_VERIFIED"
+                if getattr(b, "payment_status", "PENDING_AUTHORIZATION") in ("PAID_VERIFIED", "CAPTURED_ON_SITE")
             )
             fees_collected = sum(
                 b.dispatch_fee for b in session_bookings
-                if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "PAID_VERIFIED"
+                if getattr(b, "payment_status", "PENDING_AUTHORIZATION") in ("PAID_VERIFIED", "CAPTURED_ON_SITE")
+            )
+            fees_on_hold = sum(
+                b.dispatch_fee for b in session_bookings
+                if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "AUTHORIZED_HOLD"
             )
             emergency_count = sum(1 for b in session_bookings if b.urgency_level == UrgencyLevel.EMERGENCY_CRITICAL)
             routine_count = len(session_bookings) - emergency_count
-            paid_count = sum(1 for b in session_bookings if getattr(b, "payment_status", "PENDING_AUTHORIZATION") == "PAID_VERIFIED")
+            paid_count = sum(
+                1 for b in session_bookings
+                if getattr(b, "payment_status", "PENDING_AUTHORIZATION") in ("PAID_VERIFIED", "CAPTURED_ON_SITE", "AUTHORIZED_HOLD")
+            )
 
             converted_mc = [mc for mc in self.missed_calls.values() if mc.get("status") == "RECOUPED_WON"]
             unconverted_mc = [mc for mc in self.missed_calls.values() if mc.get("status") != "RECOUPED_WON"]
@@ -1374,6 +1488,7 @@ class DispatchDatabase:
                 "total_pipeline_revenue": total_pipeline,
                 "revenue_won": revenue_won,
                 "fees_collected": fees_collected,
+                "fees_on_hold": fees_on_hold,
                 "total_bookings": len(session_bookings),
                 "calendar_bookings_count": len(self.bookings),
                 "emergency_count": emergency_count,

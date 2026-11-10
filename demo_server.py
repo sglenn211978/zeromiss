@@ -308,7 +308,9 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
     b = enrich_booking_dict(booking_obj)
     conf_id = b.get("confirmation_id", "ZM-BOOK-1001")
     is_emerg = "EMERG" in str(b.get("urgency_level", "")).upper() or "emergency" in str(b.get("service_type", "")).lower()
-    is_paid = b.get("payment_status") == "PAID_VERIFIED"
+    p_status = b.get("payment_status", "PENDING_AUTHORIZATION")
+    is_hold = p_status == "AUTHORIZED_HOLD"
+    is_paid = p_status in ("PAID_VERIFIED", "CAPTURED_ON_SITE")
     is_final_paid = bool(b.get("final_balance_paid", False))
     is_manual = "manual" in str(b.get("booked_by", "")).lower()
 
@@ -408,9 +410,13 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
     priority_label = "🚨 PRIORITY CODE RED — EMERGENCY FIELD WORK ORDER" if is_emerg else "⚡ OFFICIAL FIELD SERVICE WORK ORDER & DISPATCH SHEET"
     source_tag = "Manual Dispatcher Entry" if is_manual else "Autonomous AI Triage & Dispatch (Sarah AI)"
     pay_badge_html = (
-        f'<span class="wo-badge badge-paid">✓ ${fee:,.2f} DEPOSIT PAID &amp; VERIFIED (STRIPE)</span>'
+        f'<span class="wo-badge badge-paid">✓ ${fee:,.2f} CAPTURED ON-SITE (STRIPE)</span>'
         if is_paid
-        else f'<span class="wo-badge badge-pending">⏳ ${fee:,.2f} DEPOSIT PENDING AUTHORIZATION</span>'
+        else (
+            f'<span class="wo-badge" style="background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; font-weight:800; font-size:12px; padding:4px 10px; border-radius:6px;">⏳ ${fee:,.2f} PRE-AUTH HOLD ACTIVE (CARD NOT CHARGED)</span>'
+            if is_hold
+            else f'<span class="wo-badge badge-pending">⏳ ${fee:,.2f} DEPOSIT PENDING AUTHORIZATION</span>'
+        )
     )
 
     return f"""<!DOCTYPE html>
@@ -859,9 +865,14 @@ def render_printable_work_order_html(booking_obj: Any, contractor_email: str) ->
       </thead>
       <tbody>
         <tr>
-          <td><strong>Upfront Dispatch &amp; Diagnostic Deposit</strong> (Credited toward {fsm_name} final invoice)</td>
-          <td style="font-weight:800; color:{"#15803d" if (is_paid or is_final_paid) else "#b45309"};">
-            {"✓ PAID & VERIFIED VIA STRIPE" if (is_paid or is_final_paid) else "⏳ PENDING CUSTOMER STRIPE AUTHORIZATION"}
+          <td>
+            <strong>Upfront Dispatch &amp; Diagnostic Fee (2-Step Stripe Authorization Hold)</strong>
+            <div style="font-size:11px; color:#64748b; margin-top:2px;">
+              {"PaymentIntent: " + (b.get("stripe_payment_intent_id") or "pi_hold_...") + " • capture_method=manual (7-Day Hold) • Dest: " + (b.get("stripe_connect_account_id") or "acct_apex_electric_101")}
+            </div>
+          </td>
+          <td style="font-weight:800; color:{"#15803d" if (is_paid or is_final_paid) else ("#2563eb" if is_hold else "#b45309")};">
+            {"✓ CAPTURED & SETTLED ON-SITE" if (is_paid or is_final_paid) else ("⏳ 7-DAY PRE-AUTH HOLD ACTIVE (CARD NOT CHARGED)" if is_hold else "⏳ PENDING AUTHORIZATION HOLD")}
           </td>
           <td style="text-align:right; font-weight:800;">${fee:,.2f}</td>
         </tr>
@@ -3671,6 +3682,7 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <a href="#" target="_blank" id="dossierGcalBtn" class="btn-cal-magic" style="padding:8px 12px; font-size:0.84rem;">📅 Open in Google Calendar</a>
           <button class="btn-cal-action" id="dossierStripePayBtn" style="background:#4f46e5; color:#fff; border-color:#4338ca; padding:8px 12px; font-size:0.84rem;" onclick="authorizeDepositFromDossier()">💳 Authorize Deposit</button>
+          <button class="btn-cal-action" id="dossierReleaseHoldBtn" style="background:#dc2626; color:#fff; border-color:#b91c1c; padding:8px 12px; font-size:0.84rem; display:none;" onclick="releaseHoldFromDossier()">⊘ Drop / Cancel Hold</button>
           <button class="btn-cal-action" id="dossierFinalPayBtn" style="background:#15803d; color:#fff; border-color:#166534; padding:8px 12px; font-size:0.84rem;" onclick="payFinalBalanceFromDossier()">💰 Collect Final Balance</button>
           <button class="btn-cal-action" id="dossierEnRouteBtn" style="background:#0284c7; color:#fff; border-color:#0369a1; padding:8px 12px; font-size:0.84rem;" onclick="sendEnRouteSmsFromDossier()">🚐 Send "Tech En-Route" SMS</button>
           <button class="btn-cal-action" id="dossierReviewBtn" style="background:#f59e0b; color:#fff; border-color:#d97706; padding:8px 12px; font-size:0.84rem;" onclick="sendReviewSmsFromDossier()">⭐ Request 5-Star Review</button>
@@ -3998,16 +4010,26 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       bBadge.innerText = isEmerg ? '🚨 Code Red Emergency (45m)' : '✓ Confirmed Service Dispatch';
 
       const payBadge = document.getElementById('heroPayBadge');
-      if (booking.payment_status === 'PAID_VERIFIED') {
+      if (booking.payment_status === 'CAPTURED_ON_SITE' || booking.payment_status === 'PAID_VERIFIED') {
         payBadge.style.color = '#15803d';
         payBadge.style.background = '#dcfce7';
         payBadge.style.borderColor = '#86efac';
-        payBadge.innerText = `✓ $${booking.dispatch_fee} Deposit Paid`;
+        payBadge.innerText = `✓ $${booking.dispatch_fee} Captured On-Site`;
+      } else if (booking.payment_status === 'AUTHORIZED_HOLD') {
+        payBadge.style.color = '#1d4ed8';
+        payBadge.style.background = '#dbeafe';
+        payBadge.style.borderColor = '#93c5fd';
+        payBadge.innerText = `⏳ $${booking.dispatch_fee} Pre-Auth Hold Active`;
+      } else if (booking.payment_status === 'RELEASED_CANCELED') {
+        payBadge.style.color = '#991b1b';
+        payBadge.style.background = '#fee2e2';
+        payBadge.style.borderColor = '#fca5a5';
+        payBadge.innerText = `⊘ Hold Released (No Charge)`;
       } else {
         payBadge.style.color = '#b45309';
         payBadge.style.background = '#fef3c7';
         payBadge.style.borderColor = '#fde68a';
-        payBadge.innerText = `💳 Pending $${booking.dispatch_fee} Deposit`;
+        payBadge.innerText = `💳 Pending $${booking.dispatch_fee} Hold`;
       }
 
       // Clean human-readable title & window
@@ -4050,7 +4072,10 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       const techShort = (booking.assigned_technician || 'Marcus Vance').split('(')[0].trim();
       const truckShort = (booking.truck_id || 'TRUCK-01').split('(')[0].trim();
       const isFinalPaid = Boolean(booking.final_balance_paid);
-      const isPaid = booking.payment_status === 'PAID_VERIFIED' || isFinalPaid;
+      const isHold = booking.payment_status === 'AUTHORIZED_HOLD';
+      const isCaptured = booking.payment_status === 'CAPTURED_ON_SITE' || booking.payment_status === 'PAID_VERIFIED' || isFinalPaid;
+      const isCanceled = booking.payment_status === 'RELEASED_CANCELED';
+      const isPaid = isCaptured;
       const photoInfo = booking.panel_photo_analysis || {};
       const photoUploaded = Boolean(photoInfo.uploaded);
       const selTier = (booking.selected_option_tier || 'GOOD').toUpperCase();
@@ -4059,9 +4084,36 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       const totalVal = Number(booking.estimated_job_value || 1200);
       const remBalance = isFinalPaid ? 0 : Math.max(0, totalVal - (isPaid ? fee : 0));
 
-      const stripeButtonHtml = isPaid
-        ? `<button class="btn-stripe-pay paid" disabled>✓ $${fee} Deposit Paid &amp; Verified</button>`
-        : `<button class="btn-stripe-pay" onclick="payStripeDeposit('${booking.confirmation_id}')">👉 Authorize $${fee} Deposit via Stripe</button>`;
+      let stripeButtonHtml = '';
+      if (isCaptured) {
+        stripeButtonHtml = `
+          <button class="btn-stripe-pay paid" disabled style="background:#15803d; color:#fff;">✓ $${fee} Diagnostic Fee Settled &amp; Captured</button>
+          <div style="margin-top:6px; font-size:0.72rem; color:#86efac; line-height:1.35;">
+            ✓ Captured upon technician on-site arrival • Applied toward final work order.
+          </div>
+        `;
+      } else if (isHold) {
+        stripeButtonHtml = `
+          <button class="btn-stripe-pay" disabled style="background:#1d4ed8; color:#fff; cursor:default;">⏳ $${fee} Pre-Auth Hold Active (Card Not Charged)</button>
+          <div style="margin-top:6px; font-size:0.72rem; color:#bfdbfe; line-height:1.35; background:rgba(30,58,138,0.3); border:1px solid #3b82f6; border-radius:6px; padding:6px 8px;">
+            ℹ️ <strong>Card-Brand Disclosure:</strong> An authorization hold of $${fee} has been placed to reserve your technician. Your card will not be charged until the technician arrives at your property.
+          </div>
+        `;
+      } else if (isCanceled) {
+        stripeButtonHtml = `
+          <button class="btn-stripe-pay" disabled style="background:#475569; color:#cbd5e1;">⊘ Pre-Auth Hold Dropped / Canceled</button>
+          <div style="margin-top:6px; font-size:0.72rem; color:#94a3b8; line-height:1.35;">
+            ✓ Hold released immediately upon cancellation. Zero card charges incurred.
+          </div>
+        `;
+      } else {
+        stripeButtonHtml = `
+          <button class="btn-stripe-pay" onclick="payStripeDeposit('${booking.confirmation_id}')">👉 Place $${fee} Authorization Hold</button>
+          <div style="margin-top:6px; font-size:0.72rem; color:#cbd5e1; line-height:1.35;">
+            🔒 <strong>2-Step Guarantee:</strong> Places a temporary hold to reserve your slot. Funds are <strong>only charged once our electrician arrives on-site</strong>.
+          </div>
+        `;
+      }
 
       const photoCardHtml = photoUploaded
         ? `
@@ -4348,7 +4400,9 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       const techShort = (booking.assigned_technician || 'Marcus Vance').split('(')[0].trim();
       const truckShort = (booking.truck_id || 'TRUCK-01').split('(')[0].trim();
       const isFinalPaid = Boolean(booking.final_balance_paid);
-      const isPaid = booking.payment_status === 'PAID_VERIFIED' || isFinalPaid;
+      const isHold = booking.payment_status === 'AUTHORIZED_HOLD';
+      const isCaptured = booking.payment_status === 'CAPTURED_ON_SITE' || booking.payment_status === 'PAID_VERIFIED' || isFinalPaid;
+      const isPaid = isCaptured;
       const isEnRoute = Boolean(booking.en_route_sent);
       const fee = Number(booking.dispatch_fee || 89);
       const totalVal = Number(booking.estimated_job_value || 1200);
@@ -4445,8 +4499,16 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
       const fsmDepositDisp = document.getElementById('techFsmDepositDisplay');
       if (fsmDepositDisp) {
-        fsmDepositDisp.innerText = isPaid ? `-$${fee.toFixed(2)} (Stripe Paid ✓)` : `-$${fee.toFixed(2)} (Pending)`;
-        fsmDepositDisp.style.color = isPaid ? '#4ade80' : '#fbbf24';
+        if (isCaptured) {
+          fsmDepositDisp.innerText = `-$${fee.toFixed(2)} (Stripe Captured ✓)`;
+          fsmDepositDisp.style.color = '#4ade80';
+        } else if (isHold) {
+          fsmDepositDisp.innerText = `-$${fee.toFixed(2)} (Pre-Auth Hold Active)`;
+          fsmDepositDisp.style.color = '#60a5fa';
+        } else {
+          fsmDepositDisp.innerText = `-$${fee.toFixed(2)} (Pending)`;
+          fsmDepositDisp.style.color = '#fbbf24';
+        }
       }
 
       const fsmLinkBtn = document.getElementById('techFsmDeepLinkBtn');
@@ -4665,13 +4727,13 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       }
     }
 
-    // STEP 3 -> STEP 4: Authorize Stripe Deposit
+    // STEP 3 -> STEP 4: Place Stripe Pre-Authorization Hold
     async function payStripeDeposit(confirmationId) {
       if (!confirmationId && BOARD_DATA.bookings && BOARD_DATA.bookings.length) {
         confirmationId = BOARD_DATA.bookings[BOARD_DATA.bookings.length - 1].confirmation_id;
       }
       try {
-        const res = await fetch('/api/bookings/pay', {
+        const res = await fetch('/api/bookings/hold', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ confirmation_id: confirmationId })
@@ -4680,23 +4742,12 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         if (data.status === 'SUCCESS') {
           const feePaid = data.booking ? data.booking.dispatch_fee : 89;
           const jobVal = data.booking ? data.booking.estimated_job_value : 1200;
-          document.querySelectorAll('.btn-stripe-pay').forEach(btn => {
-            btn.classList.add('paid');
-            btn.innerHTML = `✓ $${feePaid} Deposit Paid & Verified`;
-            btn.disabled = true;
-          });
-          const heroPay = document.getElementById('heroPayBadge');
-          if (heroPay) {
-            heroPay.style.color = '#15803d';
-            heroPay.style.background = '#dcfce7';
-            heroPay.style.borderColor = '#86efac';
-            heroPay.innerHTML = `✓ $${feePaid} Deposit Paid (Locked)`;
-          }
-          appendMessage('ZeroMiss Billing', `💳 $${Number(feePaid).toFixed(2)} deposit verified via Stripe. $${Number(jobVal).toLocaleString()} job moved from Pipeline Booked to Revenue Won!`, true);
+          const pid = data.booking ? data.booking.stripe_payment_intent_id : 'pi_hold';
+          appendMessage('ZeroMiss Billing', `🔒 $${Number(feePaid).toFixed(2)} authorization hold placed via Stripe (${pid}, capture_method=manual). Card will NOT be charged until technician arrives on-site.`, true);
 
           setJourneyProgress(
             4,
-            `🎉 <strong>Journey Complete!</strong> Deposit verified via Stripe — <strong>$${Number(jobVal).toLocaleString()} Revenue Won</strong> + <strong>$${feePaid} Deposit Collected</strong>!`,
+            `🔒 <strong>Pre-Auth Hold Placed!</strong> $${feePaid} hold active on card — <strong>$${Number(jobVal).toLocaleString()} Revenue Won</strong> locked!`,
             'complete'
           );
           document.getElementById('jStep4').classList.remove('active-step');
@@ -4706,7 +4757,49 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
           await fetchBoardData();
         }
       } catch (e) {
-        alert('Payment error.');
+        alert('Payment hold error.');
+      }
+    }
+
+    async function captureStripeHold(confirmationId) {
+      if (!confirmationId && BOARD_DATA.bookings && BOARD_DATA.bookings.length) {
+        confirmationId = BOARD_DATA.bookings[BOARD_DATA.bookings.length - 1].confirmation_id;
+      }
+      try {
+        const res = await fetch('/api/bookings/capture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ confirmation_id: confirmationId })
+        });
+        const data = await res.json();
+        if (data.status === 'SUCCESS') {
+          const fee = data.booking ? data.booking.dispatch_fee : 89;
+          const pid = data.booking ? data.booking.stripe_payment_intent_id : '';
+          appendMessage('ZeroMiss Billing', `⚡ Tech arrived on-site! Pre-authorized $${Number(fee).toFixed(2)} hold captured & settled via Stripe Connect (Intent: ${pid}).`, true);
+          await fetchBoardData();
+        }
+      } catch (e) {
+        alert('Capture error.');
+      }
+    }
+
+    async function releaseStripeHold(confirmationId) {
+      if (!confirmationId && BOARD_DATA.bookings && BOARD_DATA.bookings.length) {
+        confirmationId = BOARD_DATA.bookings[BOARD_DATA.bookings.length - 1].confirmation_id;
+      }
+      try {
+        const res = await fetch('/api/bookings/release', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ confirmation_id: confirmationId, reason: 'customer_cancellation' })
+        });
+        const data = await res.json();
+        if (data.status === 'SUCCESS') {
+          appendMessage('ZeroMiss Billing', `⊘ Pre-authorization hold dropped immediately upon cancellation. Zero card charges incurred.`, true);
+          await fetchBoardData();
+        }
+      } catch (e) {
+        alert('Release error.');
       }
     }
 
@@ -4853,16 +4946,17 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         PREV_METRICS.pipeline = 0;
       }
 
-      // 2. UPFRONT DEPOSITS COLLECTED
+      // 2. UPFRONT DEPOSITS COLLECTED & PRE-AUTH HOLDS
       const fees = Math.round(roi.fees_collected || 0);
+      const feesOnHold = Math.round(roi.fees_on_hold || 0);
       const elFees = document.getElementById('kpiFeesCol');
       const cardFees = document.getElementById('cardMetricFees');
-      elFees.style.color = fees > 0 ? '#15803d' : '#0f172a';
+      elFees.style.color = (fees > 0 || feesOnHold > 0) ? '#15803d' : '#0f172a';
       document.getElementById('kpiFeesSubtext').innerText = isBench
         ? '16 Verified Deposits (Simulated Benchmark)'
-        : (fees > 0 ? `✓ $${fees} Verified via Stripe` : (pipelineBooked > 0 ? '⏳ Awaiting Customer Stripe Authorization' : '0 Stripe Deposits Paid'));
-      animateMetricCountUp(elFees, cardFees, animate ? PREV_METRICS.fees : fees, fees, v => `$${v.toLocaleString()}`);
-      PREV_METRICS.fees = fees;
+        : (fees > 0 ? `✓ $${fees} Captured On-Site` + (feesOnHold > 0 ? ` (+$${feesOnHold} on Hold)` : '') : (feesOnHold > 0 ? `⏳ $${feesOnHold} Pre-Auth Hold Active` : (pipelineBooked > 0 ? '⏳ Awaiting Customer Pre-Auth Hold' : '0 Stripe Deposits Paid')));
+      animateMetricCountUp(elFees, cardFees, animate ? PREV_METRICS.fees : (fees + feesOnHold), (fees + feesOnHold), v => `$${v.toLocaleString()}`);
+      PREV_METRICS.fees = fees + feesOnHold;
 
       // 3. MISSED CALLS RECOUPED
       const missedRec = isBench ? 7 : (roi.missed_recovered || 0);
@@ -5071,9 +5165,16 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
               const tTruckShort = (t.truck_id || 'TRUCK-01').split('(')[0].trim();
               return `<option value="${t.technician_id}" ${sel}>👷 ${t.name} (${tTruckShort})</option>`;
             }).join('');
-            const payPill = b.payment_status === 'PAID_VERIFIED'
-              ? `<span style="background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:800;">✓ $${b.dispatch_fee} Deposit Paid</span>`
-              : `<span style="background:#fef3c7; color:#b45309; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:800;">💳 Pending $${b.dispatch_fee} Deposit</span>`;
+            let payPill = '';
+            if (b.payment_status === 'CAPTURED_ON_SITE' || b.payment_status === 'PAID_VERIFIED') {
+              payPill = `<span style="background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:800;">✓ $${b.dispatch_fee} Captured</span>`;
+            } else if (b.payment_status === 'AUTHORIZED_HOLD') {
+              payPill = `<span style="background:#dbeafe; color:#1e40af; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:800;">⏳ $${b.dispatch_fee} Pre-Auth Hold</span>`;
+            } else if (b.payment_status === 'RELEASED_CANCELED') {
+              payPill = `<span style="background:#fee2e2; color:#991b1b; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:800;">⊘ Hold Released</span>`;
+            } else {
+              payPill = `<span style="background:#fef3c7; color:#b45309; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:800;">💳 Pending $${b.dispatch_fee} Hold</span>`;
+            }
 
             return `
               <div class="dispatch-queue-card ${isEmerg ? 'is-emerg-queue' : ''}">
@@ -5303,7 +5404,10 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
       const isEmerg = (booking.urgency_level || '').includes('EMERG') || (booking.service_type || '').toLowerCase() === 'emergency';
       const isFinalPaid = Boolean(booking.final_balance_paid);
-      const isPaid = booking.payment_status === 'PAID_VERIFIED' || isFinalPaid;
+      const isHold = booking.payment_status === 'AUTHORIZED_HOLD';
+      const isCaptured = booking.payment_status === 'CAPTURED_ON_SITE' || booking.payment_status === 'PAID_VERIFIED' || isFinalPaid;
+      const isCanceled = booking.payment_status === 'RELEASED_CANCELED';
+      const isPaid = isCaptured;
       const isManual = (booking.booked_by || '').toLowerCase().includes('manual');
 
       const cardEl = document.getElementById('ticketDossierCard');
@@ -5482,34 +5586,62 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       const payPill = document.getElementById('dossierPaymentPill');
       const feeStatus = document.getElementById('dossierFeeStatusText');
       const payBtn = document.getElementById('dossierStripePayBtn');
+      const releaseBtn = document.getElementById('dossierReleaseHoldBtn');
       const finalPayBtn = document.getElementById('dossierFinalPayBtn');
+      const pid = booking.stripe_payment_intent_id || 'pi_hold_demo';
+      const dest = booking.stripe_connect_account_id || 'acct_apex_electric_101';
+
       if (isFinalPaid) {
         payPill.innerHTML = '<span style="background:#16a34a; color:#ffffff; padding:3px 9px; border-radius:6px; font-weight:800;">✓ PAID IN FULL VIA STRIPE ($0 Balance)</span>';
         feeStatus.style.color = '#15803d';
-        feeStatus.innerText = '✓ Paid & Credited Toward Final Invoice';
+        feeStatus.innerText = `✓ Final Invoice Paid in Full • Stripe Connect Dest: ${dest}`;
         payBtn.style.display = 'none';
+        if (releaseBtn) releaseBtn.style.display = 'none';
         if (finalPayBtn) {
           finalPayBtn.innerText = '✓ Final Balance Paid in Full';
           finalPayBtn.style.background = '#15803d';
           finalPayBtn.disabled = true;
         }
-      } else if (isPaid) {
-        payPill.innerHTML = '<span style="background:#dcfce7; color:#15803d; padding:3px 9px; border-radius:6px; font-weight:800;">✓ Deposit Paid &amp; Verified via Stripe</span>';
+      } else if (isCaptured) {
+        payPill.innerHTML = '<span style="background:#dcfce7; color:#15803d; padding:3px 9px; border-radius:6px; font-weight:800;">✓ Diagnostic Fee Captured On-Site</span>';
         feeStatus.style.color = '#15803d';
-        feeStatus.innerText = '✓ Paid & Verified (Stripe Escrow)';
+        feeStatus.innerText = `✓ Captured & Settled upon On-Site Arrival (${pid}) • Stripe Dest: ${dest}`;
         payBtn.style.display = 'none';
+        if (releaseBtn) releaseBtn.style.display = 'none';
         if (finalPayBtn) {
           const rem = Math.max(0, jobVal - fee);
           finalPayBtn.innerText = `💰 Collect $${rem.toLocaleString()} Final Balance`;
           finalPayBtn.style.background = '#15803d';
           finalPayBtn.disabled = false;
         }
+      } else if (isHold) {
+        payPill.innerHTML = `<span style="background:#dbeafe; color:#1e40af; padding:3px 9px; border-radius:6px; font-weight:800;">⏳ Pre-Auth Hold Active ($${fee})</span>`;
+        feeStatus.style.color = '#1e40af';
+        feeStatus.innerText = `⏳ Authorized (capture_method=manual) • Card not yet charged • Intent: ${pid}`;
+        payBtn.style.display = 'inline-flex';
+        payBtn.style.background = '#2563eb';
+        payBtn.innerText = `⚡ Settle / Capture $${fee} On-Site`;
+        if (releaseBtn) releaseBtn.style.display = 'inline-flex';
+        if (finalPayBtn) {
+          finalPayBtn.innerText = `💰 Collect $${jobVal.toLocaleString()} Final Balance`;
+          finalPayBtn.style.background = '#15803d';
+          finalPayBtn.disabled = false;
+        }
+      } else if (isCanceled) {
+        payPill.innerHTML = `<span style="background:#fee2e2; color:#991b1b; padding:3px 9px; border-radius:6px; font-weight:800;">⊘ Pre-Auth Hold Released ($0)</span>`;
+        feeStatus.style.color = '#991b1b';
+        feeStatus.innerText = `⊘ Pre-authorization hold cancelled prior to arrival • $0 charged to customer`;
+        payBtn.style.display = 'none';
+        if (releaseBtn) releaseBtn.style.display = 'none';
+        if (finalPayBtn) finalPayBtn.style.display = 'none';
       } else {
-        payPill.innerHTML = `<span style="background:#fef3c7; color:#b45309; padding:3px 9px; border-radius:6px; font-weight:800;">⏳ Pending $${fee} Deposit</span>`;
+        payPill.innerHTML = `<span style="background:#fef3c7; color:#b45309; padding:3px 9px; border-radius:6px; font-weight:800;">⏳ Pending $${fee} Pre-Auth Hold</span>`;
         feeStatus.style.color = '#b45309';
         feeStatus.innerText = 'Pending Customer Stripe Authorization';
         payBtn.style.display = 'inline-flex';
-        payBtn.innerText = `💳 Authorize $${fee} Deposit`;
+        payBtn.style.background = '#4f46e5';
+        payBtn.innerText = `💳 Place $${fee} Pre-Auth Hold`;
+        if (releaseBtn) releaseBtn.style.display = 'none';
         if (finalPayBtn) {
           finalPayBtn.innerText = `💰 Collect $${jobVal.toLocaleString()} Final Balance`;
           finalPayBtn.style.background = '#15803d';
@@ -5756,7 +5888,19 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 
     async function authorizeDepositFromDossier() {
       if (!ACTIVE_DOSSIER_BOOKING) return;
-      await payStripeDeposit(ACTIVE_DOSSIER_BOOKING.confirmation_id);
+      if (ACTIVE_DOSSIER_BOOKING.payment_status === 'AUTHORIZED_HOLD') {
+        await captureStripeHold(ACTIVE_DOSSIER_BOOKING.confirmation_id);
+      } else {
+        await payStripeDeposit(ACTIVE_DOSSIER_BOOKING.confirmation_id);
+      }
+      const updated = (BOARD_DATA.bookings || []).find(b => b.confirmation_id === ACTIVE_DOSSIER_BOOKING.confirmation_id);
+      if (updated) openTicketDossierModal(updated);
+    }
+
+    async function releaseHoldFromDossier() {
+      if (!ACTIVE_DOSSIER_BOOKING) return;
+      if (!confirm(`Are you sure you want to release the pre-authorization hold for ${ACTIVE_DOSSIER_BOOKING.customer_name}? This drops the hold with zero card charges.`)) return;
+      await releaseStripeHold(ACTIVE_DOSSIER_BOOKING.confirmation_id);
       const updated = (BOARD_DATA.bookings || []).find(b => b.confirmation_id === ACTIVE_DOSSIER_BOOKING.confirmation_id);
       if (updated) openTicketDossierModal(updated);
     }
@@ -6271,9 +6415,45 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             self._send_twiml(twiml)
             return
 
+        elif parsed.path == "/api/bookings/hold":
+            cid = req_data.get("confirmation_id", "").strip()
+            pm_id = req_data.get("payment_method_id", "pm_card_visa").strip()
+            booking = DB.place_authorization_hold(cid, pm_id)
+            roi = DB.calculate_contractor_roi_metrics()
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking), "roi_metrics": roi})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/bookings/capture":
+            cid = req_data.get("confirmation_id", "").strip()
+            amt_cents = req_data.get("amount_cents")
+            booking = DB.capture_dispatch_fee(cid, amt_cents)
+            roi = DB.calculate_contractor_roi_metrics()
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking), "roi_metrics": roi})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
+        elif parsed.path == "/api/bookings/release":
+            cid = req_data.get("confirmation_id", "").strip()
+            reason = req_data.get("reason", "customer_requested").strip()
+            booking = DB.release_dispatch_hold(cid, reason)
+            roi = DB.calculate_contractor_roi_metrics()
+            if booking:
+                self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking), "roi_metrics": roi})
+            else:
+                self._send_json({"status": "ERROR", "message": "Booking not found"}, 404)
+
         elif parsed.path == "/api/bookings/pay":
             cid = req_data.get("confirmation_id", "").strip()
-            booking = DB.mark_booking_paid(cid)
+            target = DB.bookings.get(cid)
+            if target and target.payment_status == "PENDING_AUTHORIZATION":
+                booking = DB.place_authorization_hold(cid)
+            elif target and target.payment_status == "AUTHORIZED_HOLD":
+                booking = DB.capture_dispatch_fee(cid)
+            else:
+                booking = DB.mark_booking_paid(cid)
             roi = DB.calculate_contractor_roi_metrics()
             if booking:
                 self._send_json({"status": "SUCCESS", "booking": enrich_booking_dict(booking), "roi_metrics": roi})

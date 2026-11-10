@@ -84,9 +84,18 @@ class ServiceBooking:
     contractor_ics_path: Optional[str] = None
     contractor_alert_sent: bool = False
     contractor_eml_path: Optional[str] = None
-    # Maximum-ROI Revenue & Payment Integration
-    payment_status: str = "PENDING_AUTHORIZATION"  # "PENDING_AUTHORIZATION", "PAID_VERIFIED", "EXEMPT"
+    # Maximum-ROI Revenue & Payment Integration (Stripe 2-Step Authorization Hold & Settlement)
+    payment_status: str = "PENDING_AUTHORIZATION"  # "PENDING_AUTHORIZATION", "AUTHORIZED_HOLD", "CAPTURED_ON_SITE", "PAID_VERIFIED", "RELEASED_CANCELED", "EXEMPT"
     stripe_payment_link: Optional[str] = None
+    stripe_payment_intent_id: Optional[str] = None
+    stripe_customer_id: Optional[str] = None
+    stripe_connect_account_id: Optional[str] = "acct_apex_electric_101"
+    stripe_capture_method: str = "manual"
+    hold_placed_at: Optional[str] = None
+    hold_expires_at: Optional[str] = None
+    captured_at: Optional[str] = None
+    released_at: Optional[str] = None
+    captured_amount_cents: Optional[int] = None
     sms_lead_recovery_sent: bool = False
     estimated_job_value: float = 850.0
     booked_by: str = "Booked by Sarah AI"
