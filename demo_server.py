@@ -6645,6 +6645,24 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 return
 
+        elif parsed.path in ("/landing", "/home", "/about"):
+            html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "joblatch_landing.html")
+            if not os.path.exists(html_path):
+                html_path = "/home/sglenn21/.gemini/antigravity/brain/0c957ebd-6431-4284-8987-1b9ba147bc8e/joblatch_landing.html"
+            if os.path.exists(html_path):
+                with open(html_path, "rb") as f:
+                    page_data = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(page_data)))
+                self.end_headers()
+                self.wfile.write(page_data)
+                return
+            else:
+                self.send_response(404)
+                self.end_headers()
+                return
+
         elif parsed.path == "/api/calendar.ics":
             from phone_agent.integrations.calendar_sync import CALENDAR_SYNC
             ics_content = CALENDAR_SYNC.generate_master_feed_ics(list(DB.bookings.values()))
