@@ -3,84 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JobLatch AI | 24/7 Autonomous Voice Dispatch for Trade Contractors</title>
-    <meta name="description" content="Never miss an emergency call. JobLatch AI answers in 1 ring, triages technical hazards, captures Stripe pre-auth holds, and books directly into your field service software.">
+    <title>JobLatch AI — 24/7 Autonomous Voice Dispatch for Trade Contractors</title>
+    <meta name="description" content="The tactical AI voice dispatch system built for commercial and residential trade contractors. Answers in 1 ring, triages emergency hazards, places Stripe pre-auth holds, and routes directly into ServiceTitan and Housecall Pro.">
     <link rel="icon" type="image/jpeg" href="/assets/joblatch_ai_logo.jpg">
+
+    <!-- Google Fonts: Space Grotesk (Technical Display), Inter (Clean Body), JetBrains Mono (Telemetry/Code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN & Lucide Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        carbon: {
+                            950: '#06090e',
+                            900: '#0b101b',
+                            850: '#101726',
+                            800: '#162033',
+                            700: '#1e293b',
+                            600: '#334155',
+                        },
+                        amber: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        electric: {
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
     <style>
-        body { 
-            background-color: #020617; 
-            color: #f8fafc; 
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+        body {
+            background-color: #06090e;
+            color: #f1f5f9;
+            font-family: 'Inter', system-ui, sans-serif;
         }
-        @keyframes pulseSlow {
-            0%, 100% { opacity: 0.25; transform: scale(1); }
-            50% { opacity: 0.45; transform: scale(1.04); }
+
+        /* Subtle Technical Blueprint Grid Background */
+        .technical-grid {
+            background-image: 
+                radial-gradient(rgba(14, 165, 233, 0.08) 1px, transparent 1px),
+                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 32px 32px, 128px 128px, 128px 128px;
         }
-        .glow-aura {
-            animation: pulseSlow 7s ease-in-out infinite;
+
+        /* Industrial Bezel & Tactical Borders */
+        .chassis-card {
+            background: linear-gradient(180deg, #101726 0%, #0b101b 100%);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
-        .glass-card {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+
+        .chassis-card-hover:hover {
+            border-color: rgba(56, 189, 248, 0.35);
+            box-shadow: 0 8px 30px -4px rgba(14, 165, 233, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
+
+        /* Hardware Screws for Tactile Feel */
+        .hardware-corner {
+            position: relative;
+        }
+        .hardware-corner::before, .hardware-corner::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #334155;
+            border: 1px solid #475569;
+            box-shadow: inset 0 1px 1px rgba(0,0,0,0.8);
+        }
+        .hardware-corner::before { top: 8px; left: 8px; }
+        .hardware-corner::after { top: 8px; right: 8px; }
+
+        /* Range Slider Styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #1e293b;
+            height: 8px;
+            border-radius: 4px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #f59e0b;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+            transition: transform 0.1s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        /* Animated Audio Waveform */
+        .wave-bar {
+            width: 3px;
+            background: #38bdf8;
+            border-radius: 2px;
+            transition: height 0.15s ease;
+        }
+        .playing .wave-bar {
+            animation: waveBounce 1.2s ease-in-out infinite alternate;
+        }
+        @keyframes waveBounce {
+            0% { height: 6px; }
+            50% { height: 28px; }
+            100% { height: 12px; }
+        }
+        .playing .wave-bar:nth-child(2n) { animation-delay: 0.2s; background: #0ea5e9; }
+        .playing .wave-bar:nth-child(3n) { animation-delay: 0.4s; background: #f59e0b; }
+        .playing .wave-bar:nth-child(4n) { animation-delay: 0.1s; }
+        .playing .wave-bar:nth-child(5n) { animation-delay: 0.35s; }
     </style>
 </head>
-<body class="selection:bg-blue-500/30 selection:text-blue-200 antialiased overflow-x-hidden min-h-screen">
+<body class="selection:bg-amber-500/30 selection:text-amber-200 antialiased overflow-x-hidden min-h-screen technical-grid">
 
-    <!-- Glowing Background Gradients -->
-    <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-blue-600/20 via-cyan-500/10 to-transparent blur-[130px] glow-aura"></div>
-        <div class="absolute top-[800px] left-1/4 w-[550px] h-[550px] bg-indigo-600/15 rounded-full blur-[150px]"></div>
-        <div class="absolute top-[1600px] right-1/4 w-[650px] h-[650px] bg-blue-500/10 rounded-full blur-[160px]"></div>
+    <!-- TOP TELEMETRY RIBBON -->
+    <div class="border-b border-carbon-800 bg-carbon-950/90 text-[11px] font-mono text-slate-400 py-1.5 px-4 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <span class="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    DISPATCH CORE v2.4 OPERATIONAL
+                </span>
+                <span class="hidden md:inline text-carbon-700">|</span>
+                <span class="hidden md:inline text-slate-400">
+                    <strong class="text-slate-200 font-semibold">Twilio SIP Trunk:</strong> Connected (US-East / Sub-1s Route)
+                </span>
+                <span class="hidden lg:inline text-carbon-700">|</span>
+                <span class="hidden lg:inline text-slate-400">
+                    <strong class="text-slate-200 font-semibold">Gemini 2.0 Streaming:</strong> 180ms TTS Latency
+                </span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-amber-400/90 font-medium">NFPA 70E Code Red Protocols Armed</span>
+                <span class="text-carbon-700">|</span>
+                <a href="#demo" class="text-electric-400 hover:text-electric-300 font-semibold underline underline-offset-2">
+                    Test Live Sandbox &rarr;
+                </a>
+            </div>
+        </div>
     </div>
 
-    <!-- Sticky Navigation Bar -->
-    <nav class="border-b border-white/10 bg-slate-950/70 backdrop-blur-xl sticky top-0 z-50">
+    <!-- 1. STICKY NAVIGATION BAR WITH OFFICIAL LOGO -->
+    <nav class="border-b border-carbon-800/80 bg-carbon-950/85 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <!-- Brand Logo -->
-            <a href="/" class="flex items-center gap-3 group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25 border border-blue-400/30 group-hover:scale-105 transition-transform">
-                    <i data-lucide="mic" class="w-5 h-5 text-white"></i>
+            <!-- Brand Logo & Wordmark -->
+            <a href="/" class="flex items-center gap-3.5 group">
+                <div class="relative">
+                    <img 
+                        src="/assets/joblatch_ai_logo.jpg" 
+                        alt="JobLatch AI Official Logo" 
+                        class="w-11 h-11 rounded-xl object-cover ring-2 ring-electric-500/30 group-hover:ring-electric-400 transition-all shadow-lg shadow-electric-500/10"
+                        onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white text-lg\'>JL</div>';"
+                    >
+                    <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-carbon-950"></span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xl font-bold tracking-tight text-white">
-                        JobLatch<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">.ai</span>
-                    </span>
-                    <span class="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                        Gemini 2.0 Flash
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl font-extrabold tracking-tight text-white font-display">
+                            JobLatch<span class="text-electric-400">.ai</span>
+                        </span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                            PRO TRADE
+                        </span>
+                    </div>
+                    <span class="text-[11px] font-mono text-slate-400 tracking-tight">
+                        Autonomous 24/7 Voice Dispatch
                     </span>
                 </div>
             </a>
 
-            <!-- Nav Links -->
-            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-                <a href="#demo" class="hover:text-blue-400 transition-colors flex items-center gap-1.5">
+            <!-- Navigation Links -->
+            <div class="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
+                <a href="#demo" class="hover:text-electric-400 transition-colors flex items-center gap-1.5 font-semibold text-white">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Live Demo
+                    Live Dispatch Demo
                 </a>
-                <a href="#how-it-works" class="hover:text-white transition-colors">How It Works</a>
-                <a href="#roi" class="hover:text-white transition-colors">ROI Impact</a>
-                <a href="#features" class="hover:text-white transition-colors">Core Engine</a>
+                <a href="#audio-preview" class="hover:text-white transition-colors">Call Audio</a>
+                <a href="#calculator" class="hover:text-white transition-colors">Lost Revenue Calculator</a>
+                <a href="#dossier" class="hover:text-white transition-colors">Tech Dossier</a>
                 <a href="#integrations" class="hover:text-white transition-colors">Integrations</a>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- Header Action Buttons -->
             <div class="flex items-center gap-3">
                 <a
                     href="/dashboard"
                     target="_blank"
-                    class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition"
-                    title="Open Dashboard in full browser window"
+                    class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-mono font-semibold bg-carbon-900 hover:bg-carbon-800 text-slate-300 border border-carbon-700 transition"
+                    title="Open Dispatch Console in new tab"
                 >
-                    <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-400"></i>
+                    <i data-lucide="maximize-2" class="w-3.5 h-3.5 text-slate-400"></i>
                     <span>Fullscreen App</span>
                 </a>
                 <a
                     href="#demo"
-                    class="bg-white hover:bg-slate-100 text-slate-950 font-bold px-5 py-2.5 rounded-lg text-sm transition-all shadow-lg shadow-white/10 flex items-center gap-1.5 group"
+                    class="bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold px-5 py-2.5 rounded-lg text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center gap-1.5 group"
                 >
                     <span>Test Sarah AI</span>
                     <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i>
@@ -89,379 +233,623 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="relative max-w-7xl mx-auto px-6 pt-20 pb-24 text-center">
-        <!-- Eyebrow Pill -->
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs sm:text-sm font-medium mb-8 shadow-sm backdrop-blur-md">
-            <i data-lucide="zap" class="w-4 h-4"></i>
-            <span>Powered by Gemini 2.0 Flash</span>
-            <span class="text-slate-500 hidden sm:inline">&bull;</span>
-            <span class="text-slate-300 hidden sm:inline">Zero Voicemails &bull; 100% Locked Dispatches</span>
-        </div>
+    <!-- 2. HERO SECTION -->
+    <section class="relative max-w-7xl mx-auto px-6 pt-16 pb-20">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <!-- Left Column: Copy & Value Proposition -->
+            <div class="lg:col-span-7 text-left">
+                <!-- Tactical Badges -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-carbon-900 border border-carbon-700 text-slate-300 text-xs font-mono mb-6 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span class="text-amber-400 font-bold">FIELD-TESTED</span>
+                    <span class="text-carbon-600">•</span>
+                    <span>Zero Voicemails</span>
+                    <span class="text-carbon-600">•</span>
+                    <span class="text-electric-400 font-semibold">$89–$199 Stripe Pre-Auth Holds</span>
+                </div>
 
-        <!-- Headline -->
-        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-[1.1] max-w-5xl mx-auto">
-            Automated 24/7 Voice Dispatch <br class="hidden md:block"/>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-indigo-500">
-                for Trade Contractors.
-            </span>
-        </h1>
+                <!-- Main Industrial Headline -->
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-[1.12] font-display text-white">
+                    The 24/7 AI Voice Dispatch Engine Built for 
+                    <span class="block mt-1 text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-electric-400">
+                        High-Volume Trade Contractors.
+                    </span>
+                </h1>
 
-        <!-- Subtitle -->
-        <p class="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
-            Never miss an emergency call. Our AI answers in 1 ring, triages technical hazards, places <strong class="text-white font-semibold">$89–$199 Stripe pre-auth holds</strong> on the homeowner's card, and books the job directly into your workflow while you sleep.
-        </p>
+                <!-- Subtitle with Hard Business Math -->
+                <p class="text-base sm:text-lg text-slate-300 max-w-2xl mb-8 leading-relaxed font-normal">
+                    When an emergency strikes after 5:00 PM, homeowners don’t leave voicemails—they call your competitors. 
+                    <strong class="text-white font-semibold">Sarah AI</strong> answers on ring one, triages electrical &amp; mechanical hazards with codebook accuracy, secures guaranteed pre-authorization holds on their card, and books the truck directly into your workflow.
+                </p>
 
-        <!-- Trade Contractor Tabs Selector -->
-        <div class="max-w-3xl mx-auto mb-12 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl flex flex-wrap justify-center gap-1.5">
-            <button class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40">
-                ⚡ Electrical Contractors
-            </button>
-            <button class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
-                ❄️ HVAC &amp; Mechanical
-            </button>
-            <button class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
-                🔧 Emergency Plumbing
-            </button>
-            <button class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
-                🏠 Roofing &amp; Restoration
-            </button>
-        </div>
+                <!-- Contractor Trade Selector Bar -->
+                <div class="p-1 rounded-xl bg-carbon-900 border border-carbon-800 flex flex-wrap gap-1 max-w-xl mb-8">
+                    <button class="px-3.5 py-2 rounded-lg text-xs font-mono font-bold bg-amber-500 text-carbon-950 shadow-md">
+                        ⚡ Electrical
+                    </button>
+                    <button class="px-3.5 py-2 rounded-lg text-xs font-mono font-medium text-slate-400 hover:text-white hover:bg-carbon-800 transition">
+                        ❄️ HVAC &amp; Mech
+                    </button>
+                    <button class="px-3.5 py-2 rounded-lg text-xs font-mono font-medium text-slate-400 hover:text-white hover:bg-carbon-800 transition">
+                        🔧 Emergency Plumbing
+                    </button>
+                    <button class="px-3.5 py-2 rounded-lg text-xs font-mono font-medium text-slate-400 hover:text-white hover:bg-carbon-800 transition">
+                        🏠 Roofing &amp; Restoration
+                    </button>
+                </div>
 
-        <!-- CTAs -->
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <a
-                href="#demo"
-                class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold text-base transition-all shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2 group"
-            >
-                <span>Launch Interactive Demo</span>
-                <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
-            </a>
-            <a
-                href="#roi"
-                class="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-semibold text-base border border-slate-700/80 transition-all flex items-center justify-center gap-2"
-            >
-                <i data-lucide="trending-up" class="w-5 h-5 text-emerald-400"></i>
-                <span>Calculate Lost Revenue</span>
-            </a>
-        </div>
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-10">
+                    <a
+                        href="#demo"
+                        class="px-7 py-3.5 rounded-lg bg-electric-500 hover:bg-electric-400 text-carbon-950 font-display font-bold text-sm transition-all shadow-xl shadow-electric-500/25 flex items-center justify-center gap-2 group"
+                    >
+                        <span>Launch Live Interactive Demo</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                    <a
+                        href="#calculator"
+                        class="px-7 py-3.5 rounded-lg bg-carbon-900 hover:bg-carbon-800 text-slate-200 font-mono text-xs font-semibold border border-carbon-700 transition-all flex items-center justify-center gap-2"
+                    >
+                        <i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i>
+                        <span>Calculate Lost Revenue</span>
+                    </a>
+                </div>
 
-        <!-- Tech Badges -->
-        <div class="flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-slate-500 text-xs sm:text-sm font-medium max-w-4xl mx-auto border-t border-slate-800/80 pt-8">
-            <div class="flex items-center gap-2 text-slate-400">
-                <i data-lucide="phone" class="w-4 h-4 text-blue-400"></i>
-                <span>Twilio Integration</span>
+                <!-- Key Metrics Ribbon -->
+                <div class="grid grid-cols-3 gap-4 pt-6 border-t border-carbon-800 max-w-lg">
+                    <div>
+                        <div class="text-2xl font-display font-extrabold text-white">2.8s</div>
+                        <div class="text-[11px] font-mono text-slate-400">Missed-Call SMS Link</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-display font-extrabold text-emerald-400">$14.2k</div>
+                        <div class="text-[11px] font-mono text-slate-400">Avg. Recouped / Mo</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-display font-extrabold text-amber-400">100%</div>
+                        <div class="text-[11px] font-mono text-slate-400">Stripe Hold Capture</div>
+                    </div>
+                </div>
             </div>
-            <div class="flex items-center gap-2 text-slate-400">
-                <i data-lucide="credit-card" class="w-4 h-4 text-emerald-400"></i>
-                <span>Stripe Ready Holds</span>
+
+            <!-- Right Column: Tactical Live Call Triage Dossier Preview -->
+            <div class="lg:col-span-5">
+                <div class="chassis-card rounded-2xl p-6 hardware-corner relative">
+                    <!-- Card Top Header -->
+                    <div class="flex items-center justify-between pb-4 border-b border-carbon-700 mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
+                            <span class="text-xs font-mono font-bold uppercase tracking-wider text-red-400">
+                                ACTIVE EMERGENCY CALL IN PROGRESS
+                            </span>
+                        </div>
+                        <span class="text-[11px] font-mono text-slate-500">2:14:08 AM</span>
+                    </div>
+
+                    <!-- Dispatch Snapshot Details -->
+                    <div class="space-y-3.5 text-xs">
+                        <div class="bg-carbon-950 p-3.5 rounded-xl border border-carbon-800">
+                            <div class="text-[10px] font-mono uppercase text-slate-500 font-semibold mb-1">CALLER INTAKE &amp; GPS</div>
+                            <div class="font-bold text-white text-sm">Elena Rostova &bull; (555) 392-8819</div>
+                            <div class="text-slate-400 font-mono text-[11px]">84 Commonwealth Ave, Unit 3B &bull; Boston, MA</div>
+                        </div>
+
+                        <div class="bg-red-950/30 border border-red-500/30 p-3.5 rounded-xl">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-mono font-bold text-red-400 uppercase">NFPA 70E CODE RED TRIAGE</span>
+                                <span class="px-1.5 py-0.5 rounded bg-red-900 text-red-200 text-[10px] font-mono font-bold">FIRE HAZARD</span>
+                            </div>
+                            <p class="text-red-200 text-[11px] leading-relaxed">
+                                "Wall outlet behind refrigerator smoking with burning plastic odor. Breaker buzzing."
+                            </p>
+                            <div class="mt-2 text-[10px] font-mono text-emerald-400 flex items-center gap-1.5">
+                                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                                Sarah instructed resident on dry main breaker isolation.
+                            </div>
+                        </div>
+
+                        <!-- Routing & Stripe Pre-Auth Lock -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-carbon-950 p-3 rounded-xl border border-carbon-800">
+                                <div class="text-[10px] font-mono text-slate-500 uppercase">TECHNICIAN ASSIGNED</div>
+                                <div class="font-bold text-white mt-0.5">Marcus Vance</div>
+                                <div class="text-[10px] font-mono text-electric-400">Master Lead &bull; TRUCK-01</div>
+                                <div class="text-[10px] font-mono text-slate-400 mt-1">ETA: 38 min</div>
+                            </div>
+
+                            <div class="bg-carbon-950 p-3 rounded-xl border border-carbon-800">
+                                <div class="text-[10px] font-mono text-slate-500 uppercase">STRIPE PRE-AUTH</div>
+                                <div class="font-bold text-emerald-400 mt-0.5">$199.00 HOLD</div>
+                                <div class="text-[10px] font-mono text-slate-300">Visa ending in 4242</div>
+                                <div class="text-[10px] font-mono text-emerald-400 mt-1">✓ Hold Authorized</div>
+                            </div>
+                        </div>
+
+                        <!-- FSM Integration Status Bar -->
+                        <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-carbon-900 border border-carbon-800 text-[11px] font-mono text-slate-400">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+                                <span>Synced to ServiceTitan #WO-1004</span>
+                            </div>
+                            <span class="text-amber-400 font-semibold">Ready for Dispatch</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="flex items-center gap-2 text-slate-400">
-                <i data-lucide="server" class="w-4 h-4 text-indigo-400"></i>
-                <span>Python Backend</span>
+
+        </div>
+    </section>
+
+    <!-- 3. "LISTEN TO SARAH IN ACTION" AUDIO PLAYER MODULE (#audio-preview) -->
+    <section id="audio-preview" class="border-y border-carbon-800 bg-carbon-900/60 py-20 relative">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-electric-500/10 border border-electric-500/20 text-electric-400 text-xs font-mono font-bold mb-3">
+                    <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+                    AUTHENTIC DISPATCH RECORDING
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white font-display">
+                    Hear Sarah AI Handle a 2:14 AM Emergency Call
+                </h2>
+                <p class="text-slate-400 text-sm max-w-2xl mx-auto mt-2">
+                    Listen to the sub-second conversational flow. Notice how Sarah stays calm, diagnoses life safety risks according to NFPA 70E, and secures the dispatch deposit before hanging up.
+                </p>
             </div>
-            <div class="flex items-center gap-2 text-slate-400">
-                <i data-lucide="shield" class="w-4 h-4 text-cyan-400"></i>
-                <span>NFPA 70E Safety Rules</span>
+
+            <!-- Tactile Dispatch Recording Audio Player -->
+            <div class="chassis-card rounded-2xl p-6 sm:p-8 hardware-corner max-w-4xl mx-auto">
+                <div class="flex flex-col sm:flex-row items-center gap-6 mb-6">
+                    <!-- Play/Pause Big Tactile Button -->
+                    <button 
+                        id="playAudioBtn"
+                        onclick="toggleAudioSimulation()"
+                        class="w-16 h-16 rounded-2xl bg-amber-500 hover:bg-amber-400 text-carbon-950 flex items-center justify-center shadow-lg shadow-amber-500/20 transition-transform active:scale-95 flex-shrink-0"
+                        title="Click to play dispatch recording"
+                    >
+                        <i id="playIcon" data-lucide="play" class="w-7 h-7 fill-current ml-1"></i>
+                    </button>
+
+                    <!-- Meta & Animated Audio Waveform -->
+                    <div class="flex-1 w-full">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <span class="font-display font-bold text-white text-base">Call #2026-EMERG-441 &bull; Residential Thermal Hazard</span>
+                                <span class="text-xs font-mono text-slate-400 block sm:inline sm:ml-2">Inbound via Twilio SIP</span>
+                            </div>
+                            <span id="audioTimer" class="font-mono text-xs font-bold text-amber-400 bg-carbon-950 px-2.5 py-1 rounded border border-carbon-800">
+                                0:00 / 0:54
+                            </span>
+                        </div>
+
+                        <!-- 32 Animated Waveform Bars -->
+                        <div id="waveformContainer" class="h-10 bg-carbon-950 rounded-xl border border-carbon-800 px-4 flex items-center justify-between gap-1 overflow-hidden">
+                            <!-- Bars generated with varied heights -->
+                            <div class="wave-bar" style="height: 12px;"></div>
+                            <div class="wave-bar" style="height: 22px;"></div>
+                            <div class="wave-bar" style="height: 18px;"></div>
+                            <div class="wave-bar" style="height: 26px;"></div>
+                            <div class="wave-bar" style="height: 8px;"></div>
+                            <div class="wave-bar" style="height: 20px;"></div>
+                            <div class="wave-bar" style="height: 28px;"></div>
+                            <div class="wave-bar" style="height: 14px;"></div>
+                            <div class="wave-bar" style="height: 24px;"></div>
+                            <div class="wave-bar" style="height: 16px;"></div>
+                            <div class="wave-bar" style="height: 30px;"></div>
+                            <div class="wave-bar" style="height: 10px;"></div>
+                            <div class="wave-bar" style="height: 22px;"></div>
+                            <div class="wave-bar" style="height: 19px;"></div>
+                            <div class="wave-bar" style="height: 27px;"></div>
+                            <div class="wave-bar" style="height: 12px;"></div>
+                            <div class="wave-bar" style="height: 25px;"></div>
+                            <div class="wave-bar" style="height: 15px;"></div>
+                            <div class="wave-bar" style="height: 20px;"></div>
+                            <div class="wave-bar" style="height: 28px;"></div>
+                            <div class="wave-bar" style="height: 14px;"></div>
+                            <div class="wave-bar" style="height: 22px;"></div>
+                            <div class="wave-bar" style="height: 18px;"></div>
+                            <div class="wave-bar" style="height: 26px;"></div>
+                            <div class="wave-bar" style="height: 11px;"></div>
+                            <div class="wave-bar" style="height: 23px;"></div>
+                            <div class="wave-bar" style="height: 17px;"></div>
+                            <div class="wave-bar" style="height: 29px;"></div>
+                            <div class="wave-bar" style="height: 13px;"></div>
+                            <div class="wave-bar" style="height: 21px;"></div>
+                            <div class="wave-bar" style="height: 16px;"></div>
+                            <div class="wave-bar" style="height: 24px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call Transcript Log Accordion -->
+                <div class="border-t border-carbon-800 pt-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-mono uppercase text-slate-400 font-semibold">VERIFIED CALL TRANSCRIPT</span>
+                        <span class="text-[11px] font-mono text-emerald-400">100% Speech-to-Speech Accuracy</span>
+                    </div>
+
+                    <div class="space-y-3 font-mono text-xs max-h-60 overflow-y-auto pr-2">
+                        <div class="p-2.5 rounded-lg bg-carbon-950 border border-carbon-800 flex gap-3">
+                            <span class="text-amber-400 font-bold w-12 flex-shrink-0">0:01</span>
+                            <div>
+                                <span class="text-amber-400 font-bold">Sarah AI:</span>
+                                <span class="text-slate-200 ml-1">"Apex Electrical 24/7 Emergency Dispatch, this is Sarah. What electrical emergency are you experiencing?"</span>
+                            </div>
+                        </div>
+
+                        <div class="p-2.5 rounded-lg bg-carbon-850 border border-carbon-800 flex gap-3">
+                            <span class="text-slate-500 font-bold w-12 flex-shrink-0">0:08</span>
+                            <div>
+                                <span class="text-slate-400 font-bold">Caller:</span>
+                                <span class="text-slate-300 ml-1">"Hi, I woke up to a terrible burning plastic smell in the kitchen and the outlet behind my fridge is actually smoking!"</span>
+                            </div>
+                        </div>
+
+                        <div class="p-2.5 rounded-lg bg-carbon-950 border border-carbon-800 flex gap-3">
+                            <span class="text-amber-400 font-bold w-12 flex-shrink-0">0:18</span>
+                            <div>
+                                <span class="text-amber-400 font-bold">Sarah AI:</span>
+                                <span class="text-slate-200 ml-1">"Please step away from the outlet and do not touch the refrigerator cord. If you see open flame or heavy smoke, evacuate and dial 911 immediately. Are you in a safe position to shut off your kitchen breaker if the floor is completely dry?"</span>
+                            </div>
+                        </div>
+
+                        <div class="p-2.5 rounded-lg bg-carbon-850 border border-carbon-800 flex gap-3">
+                            <span class="text-slate-500 font-bold w-12 flex-shrink-0">0:32</span>
+                            <div>
+                                <span class="text-slate-400 font-bold">Caller:</span>
+                                <span class="text-slate-300 ml-1">"Yes, floor is dry, I flipped it off. Can you please send an electrician right now?"</span>
+                            </div>
+                        </div>
+
+                        <div class="p-2.5 rounded-lg bg-carbon-950 border border-carbon-800 flex gap-3">
+                            <span class="text-amber-400 font-bold w-12 flex-shrink-0">0:41</span>
+                            <div>
+                                <span class="text-amber-400 font-bold">Sarah AI:</span>
+                                <span class="text-slate-200 ml-1">"I have our on-call lead Marcus Vance dispatched with an ETA of 38 minutes. I have placed an emergency diagnostic hold of $199 on your card. You'll receive live truck GPS updates via SMS now."</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Live Demo 3D macOS Browser Wrapper Section (#demo) -->
-    <section id="demo" class="max-w-6xl mx-auto px-4 sm:px-6 pb-32">
+    <!-- 4. LIVE INTERACTIVE DEMO (TACTILE CARBON CHASSIS) (#demo) -->
+    <section id="demo" class="max-w-7xl mx-auto px-4 sm:px-6 py-20">
         <div class="text-center mb-8">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mb-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold mb-3">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                LIVE PRODUCTION APP SANDBOX
+                LIVE PRODUCTION SANDBOX &bull; FULL RENDER APP
             </div>
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                Try Sarah AI on Your Actual Call Flow
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-white font-display">
+                Operate JobLatch AI Live in Your Browser
             </h2>
             <p class="text-slate-400 text-sm sm:text-base mt-2 max-w-2xl mx-auto">
-                Interact with the live dispatch engine below. Test caller scenarios, inspect live Stripe pre-authorizations, and monitor automated work order generation in real time.
+                Trigger emergency calls, view live automated triage dossiers, inspect Stripe pre-auth holds, and check technician routing in real-time.
             </p>
         </div>
 
-        <div class="relative group">
-            <!-- Glowing Backdrop Aura -->
-            <div class="absolute -inset-1.5 bg-gradient-to-r from-blue-500 via-cyan-500 to-indigo-600 rounded-2xl blur-xl opacity-25 group-hover:opacity-45 transition duration-1000"></div>
-            
-            <!-- Browser Window Mockup -->
-            <div class="relative rounded-xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden flex flex-col h-[760px]">
-                <!-- macOS Browser Header -->
-                <div class="h-12 bg-slate-800 border-b border-slate-700 flex items-center px-4 gap-3 select-none">
-                    <!-- Traffic Light Dots -->
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full bg-red-500/90 shadow-sm"></div>
-                        <div class="w-3 h-3 rounded-full bg-yellow-500/90 shadow-sm"></div>
-                        <div class="w-3 h-3 rounded-full bg-green-500/90 shadow-sm"></div>
-                    </div>
+        <!-- Quick 1-Click Scenario Trigger Pills Bar -->
+        <div class="max-w-4xl mx-auto mb-6 flex flex-wrap items-center justify-center gap-2">
+            <span class="text-xs font-mono text-slate-400 font-semibold mr-2">Quick Scenarios:</span>
+            <button 
+                onclick="document.getElementById('demoIframe').src = '/dashboard';"
+                class="px-3 py-1.5 rounded-lg text-xs font-mono bg-carbon-900 hover:bg-carbon-800 text-slate-200 border border-carbon-700 flex items-center gap-1.5 transition"
+            >
+                <span>⚡ 200A Panel Arcing</span>
+            </button>
+            <button 
+                onclick="document.getElementById('demoIframe').src = '/dashboard';"
+                class="px-3 py-1.5 rounded-lg text-xs font-mono bg-carbon-900 hover:bg-carbon-800 text-slate-200 border border-carbon-700 flex items-center gap-1.5 transition"
+            >
+                <span>❄️ HVAC Compressor Lockout</span>
+            </button>
+            <button 
+                onclick="document.getElementById('demoIframe').src = '/dashboard';"
+                class="px-3 py-1.5 rounded-lg text-xs font-mono bg-carbon-900 hover:bg-carbon-800 text-slate-200 border border-carbon-700 flex items-center gap-1.5 transition"
+            >
+                <span>🔧 2.8s Dropped-Call SMS Recovery</span>
+            </button>
+            <button 
+                onclick="document.getElementById('demoIframe').src = '/dashboard';"
+                class="px-3 py-1.5 rounded-lg text-xs font-mono bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition"
+            >
+                <span>💳 $199 Emergency Pre-Auth</span>
+            </button>
+        </div>
 
-                    <!-- URL Address Bar -->
-                    <div class="mx-auto bg-slate-950 border border-slate-700 rounded-md px-4 py-1.5 text-xs text-slate-300 flex items-center gap-2 font-mono shadow-inner max-w-md w-full justify-between">
-                        <div class="flex items-center gap-2 truncate">
-                            <i data-lucide="shield" class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0"></i>
-                            <span class="text-slate-500">https://</span>
-                            <span class="text-slate-100 font-semibold">joblatchai.com/dashboard</span>
-                        </div>
-                        <button
-                            onclick="document.getElementById('demoIframe').src = '/dashboard';"
-                            class="text-slate-500 hover:text-white transition ml-2"
-                            title="Reload live demo sandbox"
-                        >
-                            <i data-lucide="rotate-cw" class="w-3 h-3"></i>
-                        </button>
-                    </div>
-
-                    <!-- Header Right Fullscreen Button -->
-                    <div class="flex items-center gap-2">
-                        <a
-                            href="/dashboard"
-                            target="_blank"
-                            class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition"
-                            title="Open in new window"
-                        >
-                            <span>Fullscreen</span>
-                            <i data-lucide="maximize-2" class="w-3 h-3 text-slate-400"></i>
-                        </a>
-                    </div>
+        <!-- Tactile Carbon Hardware Frame -->
+        <div class="chassis-card rounded-2xl overflow-hidden shadow-2xl hardware-corner max-w-6xl mx-auto border-2 border-carbon-700">
+            <!-- Hardware Frame Header -->
+            <div class="h-14 bg-carbon-950 border-b border-carbon-800 px-4 sm:px-6 flex items-center justify-between gap-4 select-none">
+                <!-- macOS Style Traffic Control Dots -->
+                <div class="flex items-center gap-2.5">
+                    <div class="w-3.5 h-3.5 rounded-full bg-red-500/80 shadow-sm border border-red-400/40"></div>
+                    <div class="w-3.5 h-3.5 rounded-full bg-amber-500/80 shadow-sm border border-amber-400/40"></div>
+                    <div class="w-3.5 h-3.5 rounded-full bg-emerald-500/80 shadow-sm border border-emerald-400/40"></div>
                 </div>
-                
-                <!-- The Actual Render App -->
-                <div class="flex-1 bg-slate-950 relative overflow-hidden">
-                    <!-- Embedded Iframe with relative /dashboard path -->
-                    <iframe 
-                        id="demoIframe"
-                        src="/dashboard" 
-                        class="absolute inset-0 w-full h-full border-none bg-slate-950"
-                        title="JobLatch AI Live Demo"
-                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                    ></iframe>
+
+                <!-- URL Bar with Official Logo & Verified SSL Shield -->
+                <div class="bg-carbon-900 border border-carbon-700 rounded-lg px-4 py-1.5 text-xs text-slate-300 flex items-center gap-2.5 font-mono shadow-inner max-w-md w-full justify-between">
+                    <div class="flex items-center gap-2 truncate">
+                        <img src="/assets/joblatch_ai_logo.jpg" alt="Logo" class="w-4 h-4 rounded-sm object-cover">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0"></i>
+                        <span class="text-slate-500">https://</span>
+                        <span class="text-slate-100 font-semibold">joblatchai.com</span>
+                        <span class="text-electric-400 font-mono">/dashboard</span>
+                    </div>
+                    <button
+                        onclick="document.getElementById('demoIframe').src = '/dashboard';"
+                        class="text-slate-500 hover:text-white transition"
+                        title="Reload live dispatch console"
+                    >
+                        <i data-lucide="rotate-cw" class="w-3 h-3"></i>
+                    </button>
+                </div>
+
+                <!-- Frame Actions: Telemetry Pip & Fullscreen Button -->
+                <div class="flex items-center gap-3">
+                    <span class="hidden md:inline-flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        LIVE WEBHOOK
+                    </span>
+                    <a
+                        href="/dashboard"
+                        target="_blank"
+                        class="inline-flex items-center gap-1 px-3 py-1 rounded bg-carbon-900 hover:bg-carbon-800 text-slate-200 text-xs font-mono font-medium border border-carbon-700 transition"
+                        title="Open in new window"
+                    >
+                        <span>Popout</span>
+                        <i data-lucide="external-link" class="w-3 h-3 text-slate-400"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- The Actual Embedded Render App via /dashboard -->
+            <div class="relative bg-carbon-950 h-[780px]">
+                <iframe 
+                    id="demoIframe"
+                    src="/dashboard" 
+                    class="absolute inset-0 w-full h-full border-none bg-carbon-950"
+                    title="JobLatch AI Live Interactive Console"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                ></iframe>
+            </div>
+
+            <!-- Hardware Chassis Bottom Telemetry Footer -->
+            <div class="h-10 bg-carbon-950 border-t border-carbon-800 px-4 flex items-center justify-between text-[11px] font-mono text-slate-500">
+                <div class="flex items-center gap-3">
+                    <span class="text-slate-400">HOST: <strong class="text-slate-200">joblatchai.com</strong></span>
+                    <span class="hidden sm:inline">&bull;</span>
+                    <span class="hidden sm:inline text-slate-400">DISPATCH API: <strong class="text-emerald-400">ONLINE (200 OK)</strong></span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-400">
+                    <i data-lucide="lock" class="w-3 h-3 text-emerald-400"></i>
+                    <span>256-Bit TLS &bull; PCI-DSS Level 1 Encrypted</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Contractor ROI Impact Section (#roi) -->
-    <section id="roi" class="border-y border-white/10 bg-slate-900/50 backdrop-blur-sm py-20">
-        <div class="max-w-7xl mx-auto px-6">
+    <!-- 5. INTERACTIVE CONTRACTOR LOST REVENUE CALCULATOR (#calculator) -->
+    <section id="calculator" class="py-20 border-t border-carbon-800 bg-carbon-900/40">
+        <div class="max-w-5xl mx-auto px-6">
             <div class="text-center mb-14">
-                <h3 class="text-xs uppercase tracking-widest text-blue-400 font-bold mb-2">Quantified Contractor Economics</h3>
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-white">The Cost of 1 Missed Call After 5:00 PM</h2>
-                <p class="text-slate-400 text-sm sm:text-base mt-2 max-w-2xl mx-auto">
-                    When an emergency strikes, homeowners call down Google Local Services Ads until someone picks up. Here is how JobLatch locks the job first.
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono font-bold mb-3">
+                    <i data-lucide="dollar-sign" class="w-3.5 h-3.5"></i>
+                    EXACT CONTRACTOR BUSINESS MATH
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white font-display">
+                    Calculate Your Exact Lost Revenue After 5:00 PM
+                </h2>
+                <p class="text-slate-400 text-sm max-w-2xl mx-auto mt-2">
+                    Adjust the sliders below to match your shop's actual weekly call volume and emergency ticket size.
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="glass-card rounded-2xl p-6 text-center hover:border-blue-500/40 transition">
-                    <div class="text-4xl font-extrabold text-cyan-400 mb-1">2.8s</div>
-                    <div class="text-sm font-bold text-white mb-2">Missed-Call SMS Recovery</div>
-                    <p class="text-xs text-slate-400 leading-relaxed">
-                        Homeowner gets an instant 1-tap self-scheduling link texted before they can click your competitor.
-                    </p>
-                </div>
+            <div class="chassis-card rounded-2xl p-6 sm:p-10 hardware-corner max-w-4xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                    
+                    <!-- Sliders Column -->
+                    <div class="space-y-8">
+                        <!-- Slider 1: Weekly Missed Calls -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="callsSlider" class="text-xs font-mono text-slate-300 font-semibold uppercase tracking-wider">
+                                    Missed After-Hours Calls / Week
+                                </label>
+                                <span id="callsValue" class="text-xl font-display font-bold text-amber-400 bg-carbon-950 px-3 py-1 rounded-lg border border-carbon-800">
+                                    5 calls
+                                </span>
+                            </div>
+                            <input 
+                                type="range" 
+                                id="callsSlider" 
+                                min="1" 
+                                max="20" 
+                                value="5" 
+                                class="w-full"
+                                oninput="updateCalculator()"
+                            >
+                            <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
+                                <span>1 call / wk</span>
+                                <span>10 calls / wk</span>
+                                <span>20 calls / wk</span>
+                            </div>
+                        </div>
 
-                <div class="glass-card rounded-2xl p-6 text-center hover:border-emerald-500/40 transition">
-                    <div class="text-4xl font-extrabold text-emerald-400 mb-1">$14,200</div>
-                    <div class="text-sm font-bold text-white mb-2">Avg. Recouped Revenue / Mo</div>
-                    <p class="text-xs text-slate-400 leading-relaxed">
-                        Capturing 4–6 after-hours emergency electrical/HVAC calls per month that normally bounce to voicemail.
-                    </p>
-                </div>
+                        <!-- Slider 2: Average Job Ticket -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="ticketSlider" class="text-xs font-mono text-slate-300 font-semibold uppercase tracking-wider">
+                                    Average Emergency Ticket Value
+                                </label>
+                                <span id="ticketValue" class="text-xl font-display font-bold text-electric-400 bg-carbon-950 px-3 py-1 rounded-lg border border-carbon-800">
+                                    $2,500
+                                </span>
+                            </div>
+                            <input 
+                                type="range" 
+                                id="ticketSlider" 
+                                min="500" 
+                                max="5000" 
+                                step="100" 
+                                value="2500" 
+                                class="w-full"
+                                oninput="updateCalculator()"
+                            >
+                            <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
+                                <span>$500</span>
+                                <span>$2,500 (Diagnostic + Repair)</span>
+                                <span>$5,000+ (Panel / Unit Replacement)</span>
+                            </div>
+                        </div>
 
-                <div class="glass-card rounded-2xl p-6 text-center hover:border-blue-500/40 transition">
-                    <div class="text-4xl font-extrabold text-blue-400 mb-1">100%</div>
-                    <div class="text-sm font-bold text-white mb-2">Pre-Auth Hold Capture</div>
-                    <p class="text-xs text-slate-400 leading-relaxed">
-                        Pre-authorized deposit hold ($89–$199) locks the job commitment. Zero phantom rollouts or ghosted appointments.
-                    </p>
-                </div>
+                        <div class="bg-carbon-950 p-4 rounded-xl border border-carbon-800 text-xs font-mono text-slate-400 leading-relaxed">
+                            <span class="text-amber-400 font-bold">Calculation Rule:</span> Based on industry average 85% emergency conversion rate when calls are answered on 1st ring with credit card hold authorized.
+                        </div>
+                    </div>
 
-                <div class="glass-card rounded-2xl p-6 text-center hover:border-purple-500/40 transition">
-                    <div class="text-4xl font-extrabold text-indigo-400 mb-1">$7,800/yr</div>
-                    <div class="text-sm font-bold text-white mb-2">Call Center Savings</div>
-                    <p class="text-xs text-slate-400 leading-relaxed">
-                        Replaces sluggish $650/mo human answering services with instant, trade-literate AI triage and booking.
-                    </p>
+                    <!-- Output Results Column -->
+                    <div class="bg-carbon-950 p-6 sm:p-8 rounded-2xl border border-carbon-800 space-y-6">
+                        <div>
+                            <span class="text-xs font-mono uppercase text-slate-500 font-semibold block mb-1">
+                                ANNUAL REVENUE CURRENTLY LOST TO VOICEMAIL
+                            </span>
+                            <div id="annualLost" class="text-4xl sm:text-5xl font-display font-extrabold text-red-400">
+                                $650,000
+                            </div>
+                            <span class="text-xs font-mono text-red-400/80 mt-1 block">
+                                Lost directly to competitors on Google LSA
+                            </span>
+                        </div>
+
+                        <div class="pt-6 border-t border-carbon-800">
+                            <span class="text-xs font-mono uppercase text-slate-500 font-semibold block mb-1">
+                                ESTIMATED NET RECOUPED WITH JOBLATCH AI
+                            </span>
+                            <div id="netRecouped" class="text-4xl sm:text-5xl font-display font-extrabold text-emerald-400">
+                                +$552,500<span class="text-lg font-sans font-normal text-slate-400">/yr</span>
+                            </div>
+                            <span class="text-xs font-mono text-emerald-400/80 mt-1 block">
+                                In confirmed, card-secured dispatch work orders
+                            </span>
+                        </div>
+
+                        <div class="pt-4 border-t border-carbon-800 flex items-center justify-between text-xs font-mono">
+                            <span class="text-slate-400">ROI Multiplier:</span>
+                            <span class="text-amber-400 font-bold text-sm">34x - 62x Net Return</span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- How It Works 3-Step Pipeline (#how-it-works) -->
-    <section id="how-it-works" class="py-24 max-w-7xl mx-auto px-6">
-        <div class="text-center mb-16">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold mb-3 border border-blue-500/20">
-                AUTONOMOUS PIPELINE
-            </div>
-            <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-                How JobLatch Locks In Jobs While You're in the Field
-            </h2>
-            <p class="text-slate-400 max-w-2xl mx-auto mt-3 text-sm sm:text-base">
-                From first ring to signed work order, your trucks stay booked with zero administrative friction.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="glass-card rounded-2xl p-8 flex flex-col justify-between">
-                <div>
-                    <div class="w-12 h-12 rounded-xl bg-blue-600/20 text-blue-400 font-extrabold text-xl flex items-center justify-center border border-blue-500/30 mb-6">
-                        1
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-3">1-Ring Voice Pickup or 2.8s SMS Recovery</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
-                        Sarah AI answers with sub-second latency voice. If a caller hangs up before connecting, JobLatch automatically fires an SMS self-scheduling link in under 3 seconds.
-                    </p>
-                </div>
-                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs font-mono text-cyan-300 flex items-center gap-2">
-                    <i data-lucide="message-square" class="w-4 h-4 flex-shrink-0 text-cyan-400"></i>
-                    <span>SMS recovery link sent to homeowner in 2.8s</span>
-                </div>
-            </div>
-
-            <div class="glass-card rounded-2xl p-8 flex flex-col justify-between">
-                <div>
-                    <div class="w-12 h-12 rounded-xl bg-cyan-600/20 text-cyan-400 font-extrabold text-xl flex items-center justify-center border border-cyan-500/30 mb-6">
-                        2
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-3">NFPA 70E Safety Triage &amp; Tech Dispatch</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
-                        Diagnoses thermal hazards, burning odors, or arcing panels. Gives real-time life-safety directions and matches qualified electricians based on certifications and vehicle GPS.
-                    </p>
-                </div>
-                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs font-mono text-emerald-400 flex items-center gap-2">
-                    <i data-lucide="user-check" class="w-4 h-4 flex-shrink-0 text-emerald-400"></i>
-                    <span>Marcus Vance assigned (Master Lead &bull; TRUCK-01)</span>
-                </div>
-            </div>
-
-            <div class="glass-card rounded-2xl p-8 flex flex-col justify-between">
-                <div>
-                    <div class="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 font-extrabold text-xl flex items-center justify-center border border-indigo-500/30 mb-6">
-                        3
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-3">$89–$199 Stripe Pre-Auth &amp; FSM Push</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
-                        Secures an authorization hold without charging immediately. Automatically pushes the job ticket into ServiceTitan, Housecall Pro, or Jobber with customer credentials.
-                    </p>
-                </div>
-                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs font-mono text-indigo-300 flex items-center gap-2">
-                    <i data-lucide="credit-card" class="w-4 h-4 flex-shrink-0 text-indigo-400"></i>
-                    <span>Stripe Pre-Auth Active &bull; Synced to ServiceTitan #ST-1002</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Core Features Grid (#features) -->
-    <section id="features" class="py-20 bg-slate-900/40 border-t border-slate-800/80">
+    <!-- 6. FIELD TECH DISPATCH DOSSIER MODULE (#dossier) -->
+    <section id="dossier" class="py-20 border-t border-carbon-800">
         <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-16">
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                    Engineered Exclusively for Trade Contractors
+                <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-carbon-800 text-slate-300 text-xs font-mono font-bold mb-3 border border-carbon-700">
+                    <i data-lucide="tablet" class="w-3.5 h-3.5 text-amber-400"></i>
+                    RUGGED IN-VEHICLE TECH VIEW
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white font-display">
+                    What Your Electricians &amp; Techs See in the Truck
                 </h2>
-                <p class="text-slate-400 max-w-xl mx-auto mt-2 text-sm sm:text-base">
-                    Generic chatbots stumble on trade terms. JobLatch AI is trained on trade codebooks, hazard tiers, and real contracting business math.
+                <p class="text-slate-400 text-sm max-w-2xl mx-auto mt-2">
+                    Zero phone tags with dispatch. Techs get clean customer dossiers, gate codes, panel photos, and pre-auth receipts directly on their mobile tablet.
                 </p>
             </div>
 
+            <!-- 3 Tactical Columns: Intake -> Dossier -> On-Site Signature -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="glass-card rounded-2xl p-6 hover:border-blue-500/40 transition">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20 mb-4">
-                        <i data-lucide="mic" class="w-5 h-5"></i>
+                <!-- Column 1: Voice Intake -->
+                <div class="chassis-card rounded-2xl p-6 hardware-corner">
+                    <div class="w-10 h-10 rounded-xl bg-electric-500/10 text-electric-400 flex items-center justify-center font-bold mb-4 border border-electric-500/20">
+                        01
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Natural Conversational Flow</h3>
-                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                        Powered by Gemini 2.0 Flash. Sarah sounds like your most experienced shop dispatcher. Handles interruptions, background noise, and caller panic smoothly.
+                    <h3 class="font-display font-bold text-white text-lg mb-2">Instant Inbound Triage</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                        Sarah detects technical issue severity, pulls customer history from ServiceTitan or Housecall Pro, and checks panel manufacturer recall databases.
                     </p>
+                    <div class="bg-carbon-950 p-3 rounded-lg border border-carbon-800 text-[11px] font-mono text-slate-300">
+                        <div class="text-amber-400 font-bold">✓ Panel Hazard: Zinsco 150A</div>
+                        <div class="text-slate-500">Known busbar failure risk identified</div>
+                    </div>
                 </div>
 
-                <div class="glass-card rounded-2xl p-6 hover:border-red-500/40 transition">
-                    <div class="w-10 h-10 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center border border-red-500/20 mb-4">
-                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                <!-- Column 2: Tech Route Matrix -->
+                <div class="chassis-card rounded-2xl p-6 hardware-corner">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold mb-4 border border-amber-500/20">
+                        02
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-2">NFPA 70E Code Red Triage</h3>
-                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                        Detects electrical smoke, water near live panels, and arcing. Instructs callers on breaker isolation and triggers immediate priority alert emails with ICS calendar links.
+                    <h3 class="font-display font-bold text-white text-lg mb-2">Automated Tech Routing</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                        Matches qualified master electricians by license type and real-time vehicle GPS proximity. Sends instant push alert with turn-by-turn navigation.
                     </p>
+                    <div class="bg-carbon-950 p-3 rounded-lg border border-carbon-800 text-[11px] font-mono text-slate-300">
+                        <div class="text-emerald-400 font-bold">✓ Marcus Vance Assigned</div>
+                        <div class="text-slate-500">TRUCK-01 &bull; 6.2 miles away &bull; ETA 38m</div>
+                    </div>
                 </div>
 
-                <div class="glass-card rounded-2xl p-6 hover:border-emerald-500/40 transition">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20 mb-4">
-                        <i data-lucide="credit-card" class="w-5 h-5"></i>
+                <!-- Column 3: Secured Pre-Auth -->
+                <div class="chassis-card rounded-2xl p-6 hardware-corner">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold mb-4 border border-emerald-500/20">
+                        03
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-2">7-Day Stripe Pre-Auth Holds</h3>
-                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                        Places temporary pre-authorization holds ($89 standard, $199 emergency). Settles instantly when tech logs on-site arrival on their tablet.
+                    <h3 class="font-display font-bold text-white text-lg mb-2">Stripe Pre-Auth Capture</h3>
+                    <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                        Locks the homeowner's card with an authorization hold. When the tech arrives on site, 1 tap converts the hold into a verified payment.
                     </p>
-                </div>
-
-                <div class="glass-card rounded-2xl p-6 hover:border-indigo-500/40 transition">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20 mb-4">
-                        <i data-lucide="webhook" class="w-5 h-5"></i>
+                    <div class="bg-carbon-950 p-3 rounded-lg border border-carbon-800 text-[11px] font-mono text-slate-300">
+                        <div class="text-emerald-400 font-bold">✓ $199 Hold Secured</div>
+                        <div class="text-slate-500">Zero ghosted appointments or wasted gas</div>
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Native FSM Webhook Sync</h3>
-                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                        Zero double entry. Dispatches convert into standard API payloads for ServiceTitan, Housecall Pro, Jobber, and QuickBooks Online instantly.
-                    </p>
-                </div>
-
-                <div class="glass-card rounded-2xl p-6 hover:border-purple-500/40 transition">
-                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20 mb-4">
-                        <i data-lucide="calendar" class="w-5 h-5"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Two-Way Google Calendar Sync</h3>
-                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                        Reads busy blocks from each electrician's calendar. Generates RFC 5545 master calendar feeds and individual tech alerts automatically.
-                    </p>
-                </div>
-
-                <div class="glass-card rounded-2xl p-6 hover:border-amber-500/40 transition">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20 mb-4">
-                        <i data-lucide="tablet" class="w-5 h-5"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Field Tech Rugged Tablet View</h3>
-                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                        Electricians in the truck receive instant dispatch dossiers, access codes, customer panel pictures, and on-site digital signature sign-offs.
-                    </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Integrations Strip (#integrations) -->
-    <section id="integrations" class="py-20 border-t border-slate-800/80">
+    <!-- 7. INTEGRATIONS ECOSYSTEM (#integrations) -->
+    <section id="integrations" class="py-16 border-t border-carbon-800 bg-carbon-950">
         <div class="max-w-7xl mx-auto px-6 text-center">
-            <h3 class="text-xs uppercase tracking-widest text-slate-500 font-bold mb-3">Seamless Compatibility</h3>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-8">Works with Your Existing Contractor Tech Stack</h2>
-            
+            <span class="text-xs font-mono uppercase tracking-widest text-slate-500 font-semibold block mb-2">
+                ZERO DISRUPTION INTEGRATION
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-display mb-8">
+                Seamlessly Plugs Into Your Existing Contractor Software
+            </h2>
+
             <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 max-w-4xl mx-auto">
-                <div class="px-5 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold text-sm flex items-center gap-2">
-                    <i data-lucide="layers" class="w-4 h-4 text-blue-400"></i>
+                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
+                    <i data-lucide="layers" class="w-4 h-4 text-electric-400"></i>
                     <span>ServiceTitan</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold text-sm flex items-center gap-2">
+                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
                     <i data-lucide="home" class="w-4 h-4 text-emerald-400"></i>
                     <span>Housecall Pro</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold text-sm flex items-center gap-2">
+                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
                     <i data-lucide="briefcase" class="w-4 h-4 text-amber-400"></i>
                     <span>Jobber</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold text-sm flex items-center gap-2">
+                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
                     <i data-lucide="file-text" class="w-4 h-4 text-green-400"></i>
                     <span>QuickBooks Online</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold text-sm flex items-center gap-2">
+                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
                     <i data-lucide="calendar" class="w-4 h-4 text-purple-400"></i>
-                    <span>Google Calendar</span>
+                    <span>Google Calendar (RFC 5545)</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold text-sm flex items-center gap-2">
+                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
                     <i data-lucide="phone-call" class="w-4 h-4 text-cyan-400"></i>
-                    <span>Twilio Voice</span>
+                    <span>Twilio Voice SIP</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold text-sm flex items-center gap-2">
+                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
                     <i data-lucide="credit-card" class="w-4 h-4 text-blue-400"></i>
                     <span>Stripe Connect</span>
                 </div>
@@ -469,63 +857,134 @@
         </div>
     </section>
 
-    <!-- Bottom Call-To-Action Banner -->
-    <section class="py-24 bg-gradient-to-b from-slate-950 via-blue-950/20 to-slate-950 border-t border-slate-800 relative">
-        <div class="max-w-5xl mx-auto px-6 text-center">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-500/20 border border-blue-400/40">
-                <i data-lucide="phone-incoming" class="w-8 h-8 text-white"></i>
+    <!-- 8. BOTTOM CALL-TO-ACTION SECTION -->
+    <section class="py-20 border-t border-carbon-800 bg-gradient-to-b from-carbon-950 via-carbon-900 to-carbon-950 relative">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <div class="relative inline-block mb-6">
+                <img 
+                    src="/assets/joblatch_ai_logo.jpg" 
+                    alt="JobLatch AI" 
+                    class="w-16 h-16 rounded-2xl object-cover ring-2 ring-amber-500/40 shadow-2xl shadow-amber-500/20 mx-auto"
+                >
             </div>
-            <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-6">
-                Stop Losing Emergency Revenue to Voicemail.
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-white font-display tracking-tight mb-4">
+                Stop Losing Midnight Emergency Revenue to Voicemail.
             </h2>
-            <p class="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-                Deploy JobLatch AI on your shop's phone line today. Answer every midnight emergency, capture guaranteed upfront pre-auth holds, and keep your crews fully booked.
+            <p class="text-slate-400 text-base max-w-xl mx-auto mb-8 leading-relaxed">
+                Connect your shop's phone number to JobLatch AI in 15 minutes. Capture every after-hours call, secure deposit holds, and keep your trucks generating revenue.
             </p>
 
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a
                     href="#demo"
-                    class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-bold text-base transition-all shadow-xl shadow-blue-500/25 flex items-center justify-center gap-2"
+                    class="w-full sm:w-auto px-8 py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-base transition-all shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2"
                 >
                     <i data-lucide="play" class="w-5 h-5 fill-current"></i>
-                    <span>Test Live Interactive Demo</span>
+                    <span>Test Sarah AI Demo</span>
                 </a>
                 <a
                     href="/dashboard"
                     target="_blank"
-                    class="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-semibold text-base border border-slate-700 transition flex items-center justify-center gap-2"
+                    class="w-full sm:w-auto px-8 py-4 rounded-xl bg-carbon-900 hover:bg-carbon-800 text-slate-200 font-mono text-sm font-semibold border border-carbon-700 transition flex items-center justify-center gap-2"
                 >
-                    <i data-lucide="external-link" class="w-5 h-5 text-slate-400"></i>
-                    <span>Launch Fullscreen Console</span>
+                    <i data-lucide="external-link" class="w-4 h-4 text-slate-400"></i>
+                    <span>Fullscreen Dispatch Console</span>
                 </a>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-800/80 py-12 bg-slate-950 text-xs text-slate-500">
-        <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+    <!-- 9. INDUSTRIAL FOOTER -->
+    <footer class="border-t border-carbon-800 py-12 bg-carbon-950 text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <!-- Brand & Info -->
             <div class="flex items-center gap-3">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-blue-500/20">
-                    <i data-lucide="mic" class="w-4 h-4"></i>
-                </div>
+                <img src="/assets/joblatch_ai_logo.jpg" alt="JobLatch AI" class="w-8 h-8 rounded-lg object-cover">
                 <div>
-                    <span class="font-bold text-slate-300">JobLatch AI</span>
-                    <span class="text-slate-500 ml-1">&bull; Autonomous Voice Dispatch for Trade Contractors</span>
+                    <span class="font-bold text-slate-300 font-display">JobLatch AI</span>
+                    <span class="text-slate-500 ml-1">&bull; Autonomous 24/7 Voice Dispatch for Trade Contractors</span>
                 </div>
             </div>
-            <div class="flex flex-wrap items-center gap-6">
+
+            <!-- Links -->
+            <div class="flex flex-wrap items-center gap-6 font-mono text-[11px]">
                 <a href="/dashboard" class="hover:text-slate-300 transition">Live Demo Console</a>
-                <a href="/monitor" class="hover:text-slate-300 transition">Dispatch Monitor</a>
-                <a href="/api/dispatches" class="hover:text-slate-300 transition">REST API</a>
+                <a href="/monitor" class="hover:text-slate-300 transition">REST Monitor</a>
+                <a href="/api/dispatches" class="hover:text-slate-300 transition">JSON API</a>
+                <span class="text-slate-700">|</span>
                 <span class="text-slate-600">&copy; 2026 JobLatch AI. All rights reserved.</span>
             </div>
         </div>
     </footer>
 
-    <!-- Initialize Lucide Icons -->
+    <!-- INTERACTIVE JAVASCRIPT LOGIC -->
     <script>
+        // 1. Initialize Lucide Icons
         lucide.createIcons();
+
+        // 2. Interactive Lost Revenue Calculator Logic
+        function updateCalculator() {
+            const calls = parseInt(document.getElementById('callsSlider').value);
+            const ticket = parseInt(document.getElementById('ticketSlider').value);
+
+            // Update Label Displays
+            document.getElementById('callsValue').innerText = `${calls} call${calls > 1 ? 's' : ''}`;
+            document.getElementById('ticketValue').innerText = `$${ticket.toLocaleString()}`;
+
+            // Hard Calculations
+            const annualCalls = calls * 52;
+            const annualLost = annualCalls * ticket;
+            const netRecouped = Math.round(annualLost * 0.85); // 85% capture rate
+
+            document.getElementById('annualLost').innerText = `$${annualLost.toLocaleString()}`;
+            document.getElementById('netRecouped').innerHTML = `+$${netRecouped.toLocaleString()}<span class="text-lg font-sans font-normal text-slate-400">/yr</span>`;
+        }
+
+        // Initialize Calculator with Defaults
+        updateCalculator();
+
+        // 3. Audio Player Simulation Logic
+        let isAudioPlaying = false;
+        let audioTimerInterval = null;
+        let currentSeconds = 0;
+
+        function toggleAudioSimulation() {
+            const btn = document.getElementById('playAudioBtn');
+            const icon = document.getElementById('playIcon');
+            const container = document.getElementById('waveformContainer');
+            const timer = document.getElementById('audioTimer');
+
+            if (!isAudioPlaying) {
+                // START PLAYING
+                isAudioPlaying = true;
+                container.classList.add('playing');
+                icon.setAttribute('data-lucide', 'pause');
+                btn.classList.remove('bg-amber-500');
+                btn.classList.add('bg-electric-500');
+                lucide.createIcons();
+
+                // Simple simulated time counter
+                audioTimerInterval = setInterval(() => {
+                    currentSeconds++;
+                    if (currentSeconds > 54) {
+                        currentSeconds = 0;
+                    }
+                    const mins = Math.floor(currentSeconds / 60);
+                    const secs = currentSeconds % 60;
+                    timer.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs} / 0:54`;
+                }, 1000);
+            } else {
+                // STOP PLAYING
+                isAudioPlaying = false;
+                container.classList.remove('playing');
+                icon.setAttribute('data-lucide', 'play');
+                btn.classList.remove('bg-electric-500');
+                btn.classList.add('bg-amber-500');
+                lucide.createIcons();
+
+                clearInterval(audioTimerInterval);
+            }
+        }
     </script>
 </body>
 </html>
