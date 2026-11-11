@@ -144,113 +144,161 @@
 <body class="selection:bg-amber-500/30 selection:text-amber-200 antialiased overflow-x-hidden min-h-screen technical-grid">
 
     <!-- TOP TELEMETRY RIBBON -->
-    <div class="border-b border-carbon-800 bg-carbon-950/90 text-[11px] font-mono text-slate-400 py-1.5 px-4 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <span class="flex items-center gap-1.5 text-emerald-400 font-semibold">
+    <div class="border-b border-carbon-800 bg-carbon-950/90 text-[10px] sm:text-[11px] font-mono text-slate-400 py-1.5 px-3 sm:px-4 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 sm:gap-4 truncate">
+                <span class="flex items-center gap-1.5 text-emerald-400 font-semibold whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    DISPATCH CORE v2.4 OPERATIONAL
+                    <span class="hidden sm:inline">DISPATCH CORE v2.4 OPERATIONAL</span>
+                    <span class="sm:hidden">SYSTEM LIVE</span>
                 </span>
                 <span class="hidden md:inline text-carbon-700">|</span>
-                <span class="hidden md:inline text-slate-400">
-                    <strong class="text-slate-200 font-semibold">Twilio SIP Trunk:</strong> Connected (US-East / Sub-1s Route)
+                <span class="hidden md:inline text-slate-400 truncate">
+                    <strong class="text-slate-200 font-semibold">Twilio SIP:</strong> Sub-1s Route
                 </span>
                 <span class="hidden lg:inline text-carbon-700">|</span>
                 <span class="hidden lg:inline text-slate-400">
-                    <strong class="text-slate-200 font-semibold">Gemini 2.0 Streaming:</strong> 180ms TTS Latency
+                    <strong class="text-slate-200 font-semibold">Gemini 2.0:</strong> 180ms TTS
                 </span>
             </div>
-            <div class="flex items-center gap-3">
-                <span class="text-amber-400/90 font-medium">NFPA 70E Code Red Protocols Armed</span>
-                <span class="text-carbon-700">|</span>
-                <a href="#demo" class="text-electric-400 hover:text-electric-300 font-semibold underline underline-offset-2">
-                    Test Live Sandbox &rarr;
+            <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                <span class="hidden sm:inline text-amber-400/90 font-medium">NFPA 70E Code Red Armed</span>
+                <span class="hidden sm:inline text-carbon-700">|</span>
+                <a href="#demo" class="text-electric-400 hover:text-electric-300 font-semibold underline underline-offset-2 whitespace-nowrap">
+                    Live Demo &rarr;
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- 1. STICKY NAVIGATION BAR WITH OFFICIAL LOGO -->
-    <nav class="border-b border-carbon-800/80 bg-carbon-950/85 backdrop-blur-xl sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <!-- Brand Logo & Wordmark -->
-            <a href="/" class="flex items-center gap-3.5 group">
-                <div class="relative">
+    <!-- 1. STICKY NAVIGATION BAR WITH OFFICIAL LOGO & UN-CRAMMED LAYOUT -->
+    <nav class="border-b border-carbon-800/80 bg-carbon-950/90 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-18 sm:h-20 flex items-center justify-between gap-4">
+            <!-- Brand Logo & Clean Title -->
+            <a href="/" class="flex items-center gap-2.5 sm:gap-3 group flex-shrink-0">
+                <div class="relative flex-shrink-0">
                     <img 
                         src="/assets/joblatch_ai_logo.jpg" 
                         alt="JobLatch AI Official Logo" 
-                        class="w-11 h-11 rounded-xl object-cover ring-2 ring-electric-500/30 group-hover:ring-electric-400 transition-all shadow-lg shadow-electric-500/10"
-                        onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white text-lg\'>JL</div>';"
+                        class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover ring-1 ring-electric-500/30 group-hover:ring-electric-400 transition-all shadow-md shadow-electric-500/10"
+                        onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white text-sm\'>JL</div>';"
                     >
-                    <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-carbon-950"></span>
+                    <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-carbon-950"></span>
                 </div>
-                <div class="flex flex-col">
-                    <div class="flex items-center gap-2">
-                        <span class="text-2xl font-extrabold tracking-tight text-white font-display">
-                            JobLatch<span class="text-electric-400">.ai</span>
-                        </span>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                            PRO TRADE
-                        </span>
-                    </div>
-                    <span class="text-[11px] font-mono text-slate-400 tracking-tight">
-                        Autonomous 24/7 Voice Dispatch
+                <div class="flex items-center gap-2">
+                    <span class="text-xl sm:text-2xl font-extrabold tracking-tight text-white font-display">
+                        JobLatch<span class="text-electric-400">.ai</span>
+                    </span>
+                    <span class="hidden md:inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                        PRO TRADE
                     </span>
                 </div>
             </a>
 
-            <!-- Navigation Links -->
-            <div class="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
-                <a href="#demo" class="hover:text-electric-400 transition-colors flex items-center gap-1.5 font-semibold text-white">
+            <!-- Un-Crammed Navigation Links (Visible on XL screens with whitespace-nowrap) -->
+            <div class="hidden xl:flex items-center gap-6 2xl:gap-8 text-sm font-medium text-slate-300">
+                <a href="#demo" class="hover:text-electric-400 transition-colors flex items-center gap-1.5 font-semibold text-white whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Live Dispatch Demo
+                    Live Demo
                 </a>
-                <a href="#audio-preview" class="hover:text-white transition-colors">Call Audio</a>
-                <a href="#calculator" class="hover:text-white transition-colors">Lost Revenue Calculator</a>
-                <a href="#dossier" class="hover:text-white transition-colors">Tech Dossier</a>
-                <a href="#integrations" class="hover:text-white transition-colors">Integrations</a>
+                <a href="#audio-preview" class="hover:text-white transition-colors whitespace-nowrap">Call Audio</a>
+                <a href="#calculator" class="hover:text-white transition-colors whitespace-nowrap">ROI Calculator</a>
+                <a href="#dossier" class="hover:text-white transition-colors whitespace-nowrap">Tech Dossier</a>
+                <a href="#integrations" class="hover:text-white transition-colors whitespace-nowrap">Integrations</a>
             </div>
 
-            <!-- Header Action Buttons -->
-            <div class="flex items-center gap-3">
-                <a
-                    href="/dashboard"
-                    target="_blank"
-                    class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-mono font-semibold bg-carbon-900 hover:bg-carbon-800 text-slate-300 border border-carbon-700 transition"
-                    title="Open Dispatch Console in new tab"
-                >
-                    <i data-lucide="maximize-2" class="w-3.5 h-3.5 text-slate-400"></i>
-                    <span>Fullscreen App</span>
-                </a>
+            <!-- Header Action Buttons & Mobile Hamburger -->
+            <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 <a
                     href="#demo"
-                    class="bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold px-5 py-2.5 rounded-lg text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center gap-1.5 group"
+                    class="bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 whitespace-nowrap group"
                 >
                     <span>Test Sarah AI</span>
-                    <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform"></i>
                 </a>
+
+                <!-- Mobile Menu Button (visible < xl) -->
+                <button
+                    id="mobileMenuBtn"
+                    onclick="toggleMobileMenu()"
+                    class="xl:hidden p-2 rounded-lg bg-carbon-900 border border-carbon-700 text-slate-300 hover:text-white transition flex items-center justify-center"
+                    aria-label="Toggle Navigation Menu"
+                >
+                    <i id="menuIcon" data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer Dropdown -->
+        <div id="mobileMenu" class="hidden xl:hidden border-t border-carbon-800 bg-carbon-950/98 backdrop-blur-2xl px-6 py-5 shadow-2xl transition-all">
+            <div class="max-w-md mx-auto flex flex-col gap-2 font-mono text-sm">
+                <a href="#demo" onclick="closeMobileMenu()" class="flex items-center justify-between text-white p-2.5 rounded-lg hover:bg-carbon-900 transition">
+                    <span class="flex items-center gap-2 font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Live Dispatch Demo
+                    </span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                </a>
+                <a href="#audio-preview" onclick="closeMobileMenu()" class="flex items-center justify-between text-slate-300 hover:text-white p-2.5 rounded-lg hover:bg-carbon-900 transition">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="volume-2" class="w-4 h-4 text-electric-400"></i>
+                        Call Audio Recording
+                    </span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                </a>
+                <a href="#calculator" onclick="closeMobileMenu()" class="flex items-center justify-between text-slate-300 hover:text-white p-2.5 rounded-lg hover:bg-carbon-900 transition">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i>
+                        Lost Revenue Calculator
+                    </span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                </a>
+                <a href="#dossier" onclick="closeMobileMenu()" class="flex items-center justify-between text-slate-300 hover:text-white p-2.5 rounded-lg hover:bg-carbon-900 transition">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="tablet" class="w-4 h-4 text-emerald-400"></i>
+                        Field Tech Dossier
+                    </span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                </a>
+                <a href="#integrations" onclick="closeMobileMenu()" class="flex items-center justify-between text-slate-300 hover:text-white p-2.5 rounded-lg hover:bg-carbon-900 transition">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>
+                        Software Integrations
+                    </span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                </a>
+
+                <div class="pt-3 mt-2 border-t border-carbon-800 flex flex-col gap-2">
+                    <a href="#demo" onclick="closeMobileMenu()" class="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-center text-sm shadow-md shadow-amber-500/20">
+                        Test Sarah AI Demo &rarr;
+                    </a>
+                    <a href="/dashboard" target="_blank" class="w-full py-2 rounded-lg bg-carbon-900 hover:bg-carbon-800 text-slate-300 font-mono text-xs text-center border border-carbon-700 flex items-center justify-center gap-1.5">
+                        <span>Launch Fullscreen Console</span>
+                        <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-400"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
 
     <!-- 2. HERO SECTION -->
-    <section class="relative max-w-7xl mx-auto px-6 pt-16 pb-20">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+    <section class="relative max-w-7xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-16 sm:pb-20">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             <!-- Left Column: Copy & Value Proposition -->
             <div class="lg:col-span-7 text-left">
                 <!-- Tactical Badges -->
-                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-carbon-900 border border-carbon-700 text-slate-300 text-xs font-mono mb-6 shadow-sm">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-carbon-900 border border-carbon-700 text-slate-300 text-xs font-mono mb-6 shadow-sm">
                     <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                     <span class="text-amber-400 font-bold">FIELD-TESTED</span>
                     <span class="text-carbon-600">•</span>
                     <span>Zero Voicemails</span>
                     <span class="text-carbon-600">•</span>
-                    <span class="text-electric-400 font-semibold">$89–$199 Stripe Pre-Auth Holds</span>
+                    <span class="text-electric-400 font-semibold">$89–$199 Holds</span>
                 </div>
 
                 <!-- Main Industrial Headline -->
-                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-[1.12] font-display text-white">
+                <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-[1.14] font-display text-white">
                     The 24/7 AI Voice Dispatch Engine Built for 
                     <span class="block mt-1 text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-electric-400">
                         High-Volume Trade Contractors.
@@ -280,17 +328,17 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-10">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-10">
                     <a
                         href="#demo"
-                        class="px-7 py-3.5 rounded-lg bg-electric-500 hover:bg-electric-400 text-carbon-950 font-display font-bold text-sm transition-all shadow-xl shadow-electric-500/25 flex items-center justify-center gap-2 group"
+                        class="px-6 py-3.5 rounded-lg bg-electric-500 hover:bg-electric-400 text-carbon-950 font-display font-bold text-sm transition-all shadow-xl shadow-electric-500/25 flex items-center justify-center gap-2 group text-center"
                     >
                         <span>Launch Live Interactive Demo</span>
                         <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
                     </a>
                     <a
                         href="#calculator"
-                        class="px-7 py-3.5 rounded-lg bg-carbon-900 hover:bg-carbon-800 text-slate-200 font-mono text-xs font-semibold border border-carbon-700 transition-all flex items-center justify-center gap-2"
+                        class="px-6 py-3.5 rounded-lg bg-carbon-900 hover:bg-carbon-800 text-slate-200 font-mono text-xs font-semibold border border-carbon-700 transition-all flex items-center justify-center gap-2 text-center"
                     >
                         <i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i>
                         <span>Calculate Lost Revenue</span>
@@ -298,25 +346,25 @@
                 </div>
 
                 <!-- Key Metrics Ribbon -->
-                <div class="grid grid-cols-3 gap-4 pt-6 border-t border-carbon-800 max-w-lg">
+                <div class="grid grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-carbon-800 max-w-lg">
                     <div>
-                        <div class="text-2xl font-display font-extrabold text-white">2.8s</div>
-                        <div class="text-[11px] font-mono text-slate-400">Missed-Call SMS Link</div>
+                        <div class="text-xl sm:text-2xl font-display font-extrabold text-white">2.8s</div>
+                        <div class="text-[10px] sm:text-[11px] font-mono text-slate-400">Missed-Call SMS Link</div>
                     </div>
                     <div>
-                        <div class="text-2xl font-display font-extrabold text-emerald-400">$14.2k</div>
-                        <div class="text-[11px] font-mono text-slate-400">Avg. Recouped / Mo</div>
+                        <div class="text-xl sm:text-2xl font-display font-extrabold text-emerald-400">$14.2k</div>
+                        <div class="text-[10px] sm:text-[11px] font-mono text-slate-400">Avg. Recouped / Mo</div>
                     </div>
                     <div>
-                        <div class="text-2xl font-display font-extrabold text-amber-400">100%</div>
-                        <div class="text-[11px] font-mono text-slate-400">Stripe Hold Capture</div>
+                        <div class="text-xl sm:text-2xl font-display font-extrabold text-amber-400">100%</div>
+                        <div class="text-[10px] sm:text-[11px] font-mono text-slate-400">Hold Capture Rate</div>
                     </div>
                 </div>
             </div>
 
             <!-- Right Column: Tactical Live Call Triage Dossier Preview -->
             <div class="lg:col-span-5">
-                <div class="chassis-card rounded-2xl p-6 hardware-corner relative">
+                <div class="chassis-card rounded-2xl p-4 sm:p-6 hardware-corner relative">
                     <!-- Card Top Header -->
                     <div class="flex items-center justify-between pb-4 border-b border-carbon-700 mb-4">
                         <div class="flex items-center gap-2.5">
@@ -571,17 +619,17 @@
                 </div>
 
                 <!-- URL Bar with Official Logo & Verified SSL Shield -->
-                <div class="bg-carbon-900 border border-carbon-700 rounded-lg px-4 py-1.5 text-xs text-slate-300 flex items-center gap-2.5 font-mono shadow-inner max-w-md w-full justify-between">
+                <div class="bg-carbon-900 border border-carbon-700 rounded-lg px-2.5 sm:px-4 py-1.5 text-xs text-slate-300 flex items-center gap-2 font-mono shadow-inner max-w-[200px] sm:max-w-md w-full justify-between">
                     <div class="flex items-center gap-2 truncate">
-                        <img src="/assets/joblatch_ai_logo.jpg" alt="Logo" class="w-4 h-4 rounded-sm object-cover">
+                        <img src="/assets/joblatch_ai_logo.jpg" alt="Logo" class="w-4 h-4 rounded-sm object-cover flex-shrink-0">
                         <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0"></i>
-                        <span class="text-slate-500">https://</span>
-                        <span class="text-slate-100 font-semibold">joblatchai.com</span>
-                        <span class="text-electric-400 font-mono">/dashboard</span>
+                        <span class="text-slate-500 hidden sm:inline">https://</span>
+                        <span class="text-slate-100 font-semibold truncate">joblatchai.com</span>
+                        <span class="text-electric-400 font-mono hidden sm:inline">/dashboard</span>
                     </div>
                     <button
                         onclick="document.getElementById('demoIframe').src = '/dashboard';"
-                        class="text-slate-500 hover:text-white transition"
+                        class="text-slate-500 hover:text-white transition flex-shrink-0"
                         title="Reload live dispatch console"
                     >
                         <i data-lucide="rotate-cw" class="w-3 h-3"></i>
@@ -589,7 +637,7 @@
                 </div>
 
                 <!-- Frame Actions: Telemetry Pip & Fullscreen Button -->
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                     <span class="hidden md:inline-flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                         LIVE WEBHOOK
@@ -597,7 +645,7 @@
                     <a
                         href="/dashboard"
                         target="_blank"
-                        class="inline-flex items-center gap-1 px-3 py-1 rounded bg-carbon-900 hover:bg-carbon-800 text-slate-200 text-xs font-mono font-medium border border-carbon-700 transition"
+                        class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded bg-carbon-900 hover:bg-carbon-800 text-slate-200 text-xs font-mono font-medium border border-carbon-700 transition"
                         title="Open in new window"
                     >
                         <span>Popout</span>
@@ -606,8 +654,8 @@
                 </div>
             </div>
 
-            <!-- The Actual Embedded Render App via /dashboard -->
-            <div class="relative bg-carbon-950 h-[780px]">
+            <!-- The Actual Embedded Render App via /dashboard (Responsive Mobile Height) -->
+            <div class="relative bg-carbon-950 h-[520px] sm:h-[640px] lg:h-[780px]">
                 <iframe 
                     id="demoIframe"
                     src="/dashboard" 
@@ -712,27 +760,27 @@
                     </div>
 
                     <!-- Output Results Column -->
-                    <div class="bg-carbon-950 p-6 sm:p-8 rounded-2xl border border-carbon-800 space-y-6">
+                    <div class="bg-carbon-950 p-5 sm:p-8 rounded-2xl border border-carbon-800 space-y-5 sm:space-y-6">
                         <div>
-                            <span class="text-xs font-mono uppercase text-slate-500 font-semibold block mb-1">
+                            <span class="text-[11px] sm:text-xs font-mono uppercase text-slate-500 font-semibold block mb-1">
                                 ANNUAL REVENUE CURRENTLY LOST TO VOICEMAIL
                             </span>
-                            <div id="annualLost" class="text-4xl sm:text-5xl font-display font-extrabold text-red-400">
+                            <div id="annualLost" class="text-3xl sm:text-4xl lg:text-5xl font-display font-extrabold text-red-400 tracking-tight">
                                 $650,000
                             </div>
-                            <span class="text-xs font-mono text-red-400/80 mt-1 block">
+                            <span class="text-[11px] sm:text-xs font-mono text-red-400/80 mt-1 block">
                                 Lost directly to competitors on Google LSA
                             </span>
                         </div>
 
-                        <div class="pt-6 border-t border-carbon-800">
-                            <span class="text-xs font-mono uppercase text-slate-500 font-semibold block mb-1">
+                        <div class="pt-5 sm:pt-6 border-t border-carbon-800">
+                            <span class="text-[11px] sm:text-xs font-mono uppercase text-slate-500 font-semibold block mb-1">
                                 ESTIMATED NET RECOUPED WITH JOBLATCH AI
                             </span>
-                            <div id="netRecouped" class="text-4xl sm:text-5xl font-display font-extrabold text-emerald-400">
-                                +$552,500<span class="text-lg font-sans font-normal text-slate-400">/yr</span>
+                            <div id="netRecouped" class="text-3xl sm:text-4xl lg:text-5xl font-display font-extrabold text-emerald-400 tracking-tight">
+                                +$552,500<span class="text-base sm:text-lg font-sans font-normal text-slate-400">/yr</span>
                             </div>
-                            <span class="text-xs font-mono text-emerald-400/80 mt-1 block">
+                            <span class="text-[11px] sm:text-xs font-mono text-emerald-400/80 mt-1 block">
                                 In confirmed, card-secured dispatch work orders
                             </span>
                         </div>
@@ -937,7 +985,7 @@
             const netRecouped = Math.round(annualLost * 0.85); // 85% capture rate
 
             document.getElementById('annualLost').innerText = `$${annualLost.toLocaleString()}`;
-            document.getElementById('netRecouped').innerHTML = `+$${netRecouped.toLocaleString()}<span class="text-lg font-sans font-normal text-slate-400">/yr</span>`;
+            document.getElementById('netRecouped').innerHTML = `+$${netRecouped.toLocaleString()}<span class="text-base sm:text-lg font-sans font-normal text-slate-400">/yr</span>`;
         }
 
         // Initialize Calculator with Defaults
@@ -984,6 +1032,33 @@
 
                 clearInterval(audioTimerInterval);
             }
+        }
+
+        // 4. Mobile Menu Drawer Toggle Logic
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const icon = document.getElementById('menuIcon');
+            const isOpen = !menu.classList.contains('hidden');
+            if (isOpen) {
+                menu.classList.add('hidden');
+                icon.setAttribute('data-lucide', 'menu');
+            } else {
+                menu.classList.remove('hidden');
+                icon.setAttribute('data-lucide', 'x');
+            }
+            lucide.createIcons();
+        }
+
+        function closeMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const icon = document.getElementById('menuIcon');
+            if (menu) {
+                menu.classList.add('hidden');
+            }
+            if (icon) {
+                icon.setAttribute('data-lucide', 'menu');
+            }
+            lucide.createIcons();
         }
     </script>
 </body>
