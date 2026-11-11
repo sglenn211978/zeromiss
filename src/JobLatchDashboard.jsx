@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 // Default Render or local backend URL (configurable via UI input as well)
-const DEFAULT_API_BASE_URL = 'https://joblatchai.com';
+const DEFAULT_API_BASE_URL = (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null') ? window.location.origin : 'https://joblatchai.com';
 const LOCAL_API_BASE_URL = 'http://localhost:8080';
 
 export default function JobLatchDashboard({ initialApiUrl = DEFAULT_API_BASE_URL }) {

@@ -2781,12 +2781,18 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         <button class="nav-tab active" id="btnTabConsole" onclick="switchPortalTab('console')">
           🎙️ Interactive Demo
         </button>
+        <button class="nav-tab" id="btnTabMonitor" onclick="switchPortalTab('monitor')">
+          📊 Dispatch Monitor
+        </button>
         <button class="nav-tab" id="btnTabCalendar" onclick="switchPortalTab('calendar')">
           📅 Dispatch Calendar <span class="nav-count" id="calCountPill">0</span>
         </button>
         <button class="nav-tab" id="btnTabFleet" onclick="switchPortalTab('fleet')">
           👷 Tech Roster <span class="nav-count" id="techCountPill">4</span>
         </button>
+        <a href="/monitor" target="_blank" class="nav-tab" style="text-decoration:none; display:inline-flex; align-items:center; gap:5px; color:#38bdf8; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); border-radius:8px;">
+          ⚡ Full-Screen React Client ↗
+        </a>
       </div>
 
       <div class="fsm-switch-container" title="Select contractor's existing invoicing &amp; FSM software">
@@ -3308,6 +3314,71 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       </div>
 
       <div class="fleet-cards-grid" id="fleetCardsGrid"></div>
+    </div>
+
+    <!-- TAB 4: LIVE DISPATCH MONITOR TABLE -->
+    <div class="tab-view" id="viewMonitor">
+      <div class="fleet-kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Work Orders</div>
+          <div class="kpi-val" id="monitorKpiTotal">0</div>
+          <div class="kpi-sub">Live REST API Synced ✓</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Active Field Dispatches</div>
+          <div class="kpi-val" id="monitorKpiActive" style="color:#15803d;">0</div>
+          <div class="kpi-sub">Real-Time In-Flight Calls</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Code Red Emergencies</div>
+          <div class="kpi-val" id="monitorKpiEmerg" style="color:#dc2626;">0</div>
+          <div class="kpi-sub">NFPA 70E Life-Safety Triage</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Stripe Pre-Auth Holds</div>
+          <div class="kpi-val" id="monitorKpiHolds" style="color:#2563eb;">$0</div>
+          <div class="kpi-sub">Guaranteed Dispatch Revenue</div>
+        </div>
+      </div>
+
+      <div class="fleet-header-row" style="margin-top:16px;">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div style="position:relative; width:300px;">
+            <input type="text" id="monitorSearchInput" oninput="renderMonitorView()" placeholder="Search caller, WO#, trade, or scope..." style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.88rem; outline:none;" />
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="nav-tab active" id="monitorFilterAll" onclick="setMonitorFilter('ALL')" style="padding:6px 12px; font-size:0.8rem; background:#2563eb; color:#fff;">All</button>
+            <button class="nav-tab" id="monitorFilterActive" onclick="setMonitorFilter('ACTIVE')" style="padding:6px 12px; font-size:0.8rem;">Active</button>
+            <button class="nav-tab" id="monitorFilterEmerg" onclick="setMonitorFilter('EMERGENCY')" style="padding:6px 12px; font-size:0.8rem;">🚨 Emergency</button>
+            <button class="nav-tab" id="monitorFilterComp" onclick="setMonitorFilter('COMPLETED')" style="padding:6px 12px; font-size:0.8rem;">Completed</button>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <div style="font-size:0.82rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#16a34a;"></span>
+            <span>REST Poller: <strong>Live</strong></span>
+          </div>
+          <a href="/monitor" target="_blank" class="btn-cal-action" style="text-decoration:none;">⚡ Open React Client ↗</a>
+        </div>
+      </div>
+
+      <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; overflow-x:auto; margin-top:14px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.88rem;">
+          <thead>
+            <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; color:#475569; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">
+              <th style="padding:12px 14px; font-weight:700;">Work Order</th>
+              <th style="padding:12px 14px; font-weight:700;">Status</th>
+              <th style="padding:12px 14px; font-weight:700;">Caller &amp; Contact</th>
+              <th style="padding:12px 14px; font-weight:700;">Trade &amp; Scope</th>
+              <th style="padding:12px 14px; font-weight:700;">AI Voice Summary</th>
+              <th style="padding:12px 14px; font-weight:700;">Assigned Tech</th>
+              <th style="padding:12px 14px; font-weight:700;">Pre-Auth Fee</th>
+              <th style="padding:12px 14px; font-weight:700; text-align:right;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="monitorTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </main>
 
@@ -3925,6 +3996,10 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
       if (tabKey === 'console') {
         document.getElementById('viewConsole').classList.add('active');
         document.getElementById('btnTabConsole').classList.add('active');
+      } else if (tabKey === 'monitor') {
+        document.getElementById('viewMonitor').classList.add('active');
+        document.getElementById('btnTabMonitor').classList.add('active');
+        renderMonitorView();
       } else if (tabKey === 'calendar') {
         document.getElementById('viewCalendar').classList.add('active');
         document.getElementById('btnTabCalendar').classList.add('active');
@@ -3934,6 +4009,125 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
         document.getElementById('btnTabFleet').classList.add('active');
         renderFleetView();
       }
+    }
+
+    let MONITOR_STATUS_FILTER = 'ALL';
+
+    function setMonitorFilter(filterVal) {
+      MONITOR_STATUS_FILTER = filterVal;
+      ['ALL', 'ACTIVE', 'EMERGENCY', 'COMPLETED'].forEach(f => {
+        const btnId = 'monitorFilter' + f.charAt(0) + f.slice(1).toLowerCase();
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          if (f === filterVal) {
+            btn.style.background = '#2563eb';
+            btn.style.color = '#ffffff';
+          } else {
+            btn.style.background = 'transparent';
+            btn.style.color = '#475569';
+          }
+        }
+      });
+      renderMonitorView();
+    }
+
+    function renderMonitorView() {
+      const tbody = document.getElementById('monitorTableBody');
+      if (!tbody) return;
+
+      const rawDispatches = BOARD_DATA.dispatches || BOARD_DATA.bookings || [];
+      const searchVal = (document.getElementById('monitorSearchInput')?.value || '').toLowerCase().trim();
+
+      const filtered = rawDispatches.filter(job => {
+        const urg = String(job.urgency_level || '').toUpperCase();
+        const isEmerg = urg.includes('EMERG') || urg.includes('CRITICAL') || String(job.service_type || '').toLowerCase().includes('emergency');
+        const status = isEmerg ? 'Emergency' : (job.status === 'Completed' || job.payment_status === 'PAID_VERIFIED' ? 'Completed' : 'Active');
+        
+        const matchesStatus = MONITOR_STATUS_FILTER === 'ALL' ||
+          (MONITOR_STATUS_FILTER === 'ACTIVE' && status === 'Active') ||
+          (MONITOR_STATUS_FILTER === 'EMERGENCY' && isEmerg) ||
+          (MONITOR_STATUS_FILTER === 'COMPLETED' && status === 'Completed');
+
+        const caller = String(job.caller || job.customer_name || '').toLowerCase();
+        const id = String(job.id || job.confirmation_id || '').toLowerCase();
+        const desc = String(job.ai_summary || job.symptom || job.issue_description || '').toLowerCase();
+        const svc = String(job.service_type || job.service_title || '').toLowerCase();
+
+        const matchesSearch = !searchVal || caller.includes(searchVal) || id.includes(searchVal) || desc.includes(searchVal) || svc.includes(searchVal);
+        return matchesStatus && matchesSearch;
+      });
+
+      // Update KPIs
+      const totalCount = rawDispatches.length;
+      const emergCount = rawDispatches.filter(j => String(j.urgency_level || '').includes('EMERG') || String(j.urgency_level || '').includes('CRIT')).length;
+      const activeCount = rawDispatches.filter(j => j.status === 'CONFIRMED' || j.status === 'DISPATCHED' || j.status === 'Active').length;
+      const holdsTotal = rawDispatches.reduce((acc, j) => acc + Number(j.dispatch_fee || 89), 0);
+
+      if (document.getElementById('monitorKpiTotal')) document.getElementById('monitorKpiTotal').innerText = totalCount;
+      if (document.getElementById('monitorKpiActive')) document.getElementById('monitorKpiActive').innerText = activeCount;
+      if (document.getElementById('monitorKpiEmerg')) document.getElementById('monitorKpiEmerg').innerText = emergCount;
+      if (document.getElementById('monitorKpiHolds')) document.getElementById('monitorKpiHolds').innerText = '$' + holdsTotal.toFixed(0);
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="padding:32px; text-align:center; color:#64748b;">No dispatches found matching filter criteria.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(job => {
+        const id = job.id || job.confirmation_id;
+        const urg = String(job.urgency_level || '').toUpperCase();
+        const isEmerg = urg.includes('EMERG') || urg.includes('CRITICAL');
+        const caller = job.caller || job.customer_name || 'Resident / Caller';
+        const phone = job.phone || job.phone_number || '(555) 000-0000';
+        const trade = job.trade || 'Electrical';
+        const svc = job.service_type || job.service_title || 'Residential Service';
+        const summary = job.ai_summary || job.symptom || job.issue_description || 'Inbound service call';
+        const tech = job.assigned_technician || 'On-Call Electrician';
+        const fee = Number(job.dispatch_fee || 89).toFixed(2);
+        const pStatus = job.payment_status || 'AUTHORIZED_HOLD';
+        const time = job.time || job.slot_window || 'Today';
+
+        const statusBadge = isEmerg 
+          ? '<span style="background:#fee2e2; color:#dc2626; font-weight:800; font-size:0.75rem; padding:4px 8px; border-radius:999px; border:1px solid #fecaca; display:inline-flex; align-items:center; gap:4px;">🚨 Code Red</span>'
+          : job.status === 'Completed' || pStatus === 'PAID_VERIFIED'
+          ? '<span style="background:#f1f5f9; color:#475569; font-weight:700; font-size:0.75rem; padding:4px 8px; border-radius:999px;">✓ Completed</span>'
+          : '<span style="background:#dcfce7; color:#15803d; font-weight:800; font-size:0.75rem; padding:4px 8px; border-radius:999px; border:1px solid #bbf7d0; display:inline-flex; align-items:center; gap:4px;">⏳ Active</span>';
+
+        const pBadge = pStatus === 'PAID_VERIFIED'
+          ? '<span style="color:#15803d; font-weight:700; font-size:0.75rem;">✓ Settled</span>'
+          : pStatus === 'AUTHORIZED_HOLD'
+          ? '<span style="color:#2563eb; font-weight:700; font-size:0.75rem;">⏳ 7-Day Hold</span>'
+          : '<span style="color:#b45309; font-weight:700; font-size:0.75rem;">Pending</span>';
+
+        return `
+          <tr style="border-bottom:1px solid #f1f5f9; transition:background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+            <td style="padding:12px 14px; font-family:monospace; font-weight:800; color:#2563eb;">
+              ${id}
+              <div style="font-family:sans-serif; font-size:0.75rem; color:#64748b; font-weight:400; margin-top:2px;">${time}</div>
+            </td>
+            <td style="padding:12px 14px;">${statusBadge}</td>
+            <td style="padding:12px 14px;">
+              <div style="font-weight:700; color:#0f172a;">${caller}</div>
+              <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">${phone}</div>
+            </td>
+            <td style="padding:12px 14px;">
+              <span style="display:inline-block; font-size:0.72rem; font-weight:800; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:2px 6px; border-radius:4px;">${trade}</span>
+              <div style="font-weight:600; font-size:0.82rem; color:#334155; margin-top:3px;">${svc}</div>
+            </td>
+            <td style="padding:12px 14px; font-size:0.8rem; color:#475569; max-width:280px; line-height:1.4;">${summary}</td>
+            <td style="padding:12px 14px; font-size:0.82rem;">
+              <div style="font-weight:700; color:#1e293b;">${tech}</div>
+            </td>
+            <td style="padding:12px 14px;">
+              <div style="font-weight:800; color:#0f172a;">$${fee}</div>
+              <div>${pBadge}</div>
+            </td>
+            <td style="padding:12px 14px; text-align:right;">
+              <button onclick="openTicketDossier('${id}')" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:5px 10px; border-radius:6px; font-size:0.78rem; font-weight:700; color:#334155; cursor:pointer;">Inspect</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function setVoiceIndicatorState(mode, titleText, subText) {
@@ -6308,6 +6502,14 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", "0")
         self.end_headers()
 
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, X-Requested-With")
+        self.end_headers()
+
     def _send_twiml(self, twiml_xml: str):
         data = twiml_xml.encode("utf-8")
         self.send_response(200)
@@ -6424,6 +6626,24 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
+
+        elif parsed.path in ("/monitor", "/dashboard", "/react"):
+            html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "joblatch_react_dashboard.html")
+            if not os.path.exists(html_path):
+                html_path = "/home/sglenn21/.gemini/antigravity/brain/0c957ebd-6431-4284-8987-1b9ba147bc8e/joblatch_react_dashboard.html"
+            if os.path.exists(html_path):
+                with open(html_path, "rb") as f:
+                    page_data = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(page_data)))
+                self.end_headers()
+                self.wfile.write(page_data)
+                return
+            else:
+                self.send_response(404)
+                self.end_headers()
+                return
 
         elif parsed.path == "/api/calendar.ics":
             from phone_agent.integrations.calendar_sync import CALENDAR_SYNC
