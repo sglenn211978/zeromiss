@@ -11,7 +11,7 @@ import sys
 import urllib.parse
 from datetime import datetime, timedelta
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 from phone_agent.agent.voice_agent import VoiceDispatchAgent
 from phone_agent.config import DEFAULT_CONFIG
@@ -6290,12 +6290,23 @@ HTML_DASHBOARD = r"""<!DOCTYPE html>
 class DemoRequestHandler(BaseHTTPRequestHandler):
     """Handles web requests for the JobLatch AI Client Demonstration Dashboard."""
 
-    def _send_json(self, data: Dict[str, Any], status: int = 200):
+    def _send_json(self, data: Any, status: int = 200):
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, X-Requested-With")
         self.end_headers()
-        self.wfile.write(json.dumps(data).encode("utf-8"))
+        self.wfile.write(json.dumps(data, default=str).encode("utf-8"))
+
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, X-Requested-With")
+        self.send_header("Access-Control-Max-Age", "86400")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
 
     def _send_twiml(self, twiml_xml: str):
         data = twiml_xml.encode("utf-8")
@@ -6305,9 +6316,49 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def _get_dispatches_list(self) -> List[Dict[str, Any]]:
+        dispatches = []
+        for b_obj in DB.bookings.values():
+            b = enrich_booking_dict(b_obj)
+            urg = str(b.get("urgency_level", "")).upper()
+            is_emerg = "EMERG" in urg or "emergency" in str(b.get("service_type", "")).lower()
+            status_raw = str(b.get("status", "CONFIRMED")).upper()
+            if is_emerg:
+                status_display = "Active"
+            elif status_raw in ("CONFIRMED", "DISPATCHED"):
+                status_display = "Active"
+            elif status_raw in ("COMPLETED", "PAID_VERIFIED"):
+                status_display = "Completed"
+            else:
+                status_display = status_raw.title()
+
+            dispatches.append({
+                "id": b.get("confirmation_id", "WO-1000"),
+                "status": status_display,
+                "caller": b.get("customer_name", "Resident / Caller"),
+                "phone": b.get("phone_number", "(555) 000-0000"),
+                "address": b.get("service_address", "Local Service Area"),
+                "trade": "Electrical",
+                "service_type": b.get("service_title") or b.get("service_type") or "Residential Electrical Service",
+                "ai_summary": b.get("symptom") or b.get("issue_description") or "Electrical service call",
+                "time": b.get("slot_window") or b.get("slot_time") or "Today",
+                "assigned_technician": b.get("assigned_technician", "On-Call Electrician"),
+                "truck_id": b.get("truck_id", "TRUCK-01"),
+                "urgency_level": b.get("urgency_level", "STANDARD"),
+                "payment_status": b.get("payment_status", "PENDING_AUTHORIZATION"),
+                "dispatch_fee": float(b.get("dispatch_fee", 89.0)),
+                "created_at": str(b.get("created_at", "")),
+                # Canonical alias keys for immediate access
+                "confirmation_id": b.get("confirmation_id", "WO-1000"),
+                "customer_name": b.get("customer_name", "Resident / Caller"),
+                "issue_description": b.get("issue_description", "Electrical service call"),
+            })
+        return dispatches
+
     def _get_board_payload(self) -> Dict[str, Any]:
         roi = DB.calculate_contractor_roi_metrics()
         return {
+            "dispatches": self._get_dispatches_list(),
             "bookings": [enrich_booking_dict(b) for b in DB.bookings.values()],
             "emergencies": [e.__dict__ for e in DB.emergency_reports.values()],
             "technicians": [t.__dict__ for t in DB.technicians.values()],
@@ -6341,6 +6392,9 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
 
         elif parsed.path == "/api/board":
             self._send_json(self._get_board_payload())
+
+        elif parsed.path == "/api/dispatches":
+            self._send_json(self._get_dispatches_list())
 
         elif parsed.path == "/api/fsm/payload":
             qs = urllib.parse.parse_qs(parsed.query)
