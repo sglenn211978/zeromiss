@@ -2,8 +2,8 @@
   "triage_case_id": "EMERG-5002",
   "contractor_email": "sean.glenn21@gmail.com",
   "severity": "LEVEL_1_CRITICAL_LIFE_SAFETY",
-  "hazard_type": "water_electrical_contact",
-  "timestamp": "2026-11-10T12:21:18.453768",
+  "hazard_type": "electric_shock_injury",
+  "timestamp": "2026-11-11T06:48:43.028363",
   "eml_path": "sent_emails/contractor_emergency_EMERG-5002.eml",
   "status": "DELIVERED_TO_CONTRACTOR"
 }

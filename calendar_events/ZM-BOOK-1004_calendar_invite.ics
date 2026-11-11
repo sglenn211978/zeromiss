@@ -5,9 +5,9 @@ CALSCALE:GREGORIAN
 METHOD:REQUEST
 BEGIN:VEVENT
 UID:ZM-BOOK-1004@joblatchai.com
-DTSTAMP:20261110T172100Z
-DTSTART:20261112T120000
-DTEND:20261112T160000
+DTSTAMP:20261111T114800Z
+DTSTART:20261113T120000
+DTEND:20261113T160000
 SUMMARY:JobLatch AI Electrical: 200A Main Breaker Panel Upgrad
 DESCRIPTION:JobLatch AI Electrical Service Call\nConfirmation: ZM-BOOK-1004\nCustomer: Tom Haverford\nTechnician: Dave Miller (Journeyman Electrician)\nArrival Window: 12:00 PM - 04:00 PM\nFee: $89 Diagnostic Fee\nScope: 200A Main Breaker Panel Upgrade — flickering lights under load\nSupport: (800) 555-LATCH
 LOCATION:28 Newbury St, Suite 2B, Boston

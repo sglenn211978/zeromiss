@@ -6580,17 +6580,48 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         global DEMO_DISPLAY_EMAIL
         parsed = urllib.parse.urlparse(self.path)
-        if parsed.path in ("/", "/index.html"):
+        if parsed.path in ("/", "/index.html", "/landing", "/home"):
+            html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
+            if os.path.exists(html_path):
+                with open(html_path, "rb") as f:
+                    page_data = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Content-Length", str(len(page_data)))
+                self.end_headers()
+                self.wfile.write(page_data)
+                return
             board_json = json.dumps(self._get_board_payload())
             page_html = HTML_DASHBOARD.replace(
                 "let BOARD_DATA = { bookings: [], technicians: [], slots: [], roi_metrics: {} };",
                 f"let BOARD_DATA = {board_json};",
                 1,
             )
+            data = page_html.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(data)))
             self.end_headers()
-            self.wfile.write(page_html.encode("utf-8"))
+            self.wfile.write(data)
+            return
+
+        elif parsed.path in ("/dashboard", "/console", "/app", "/demo"):
+            board_json = json.dumps(self._get_board_payload())
+            page_html = HTML_DASHBOARD.replace(
+                "let BOARD_DATA = { bookings: [], technicians: [], slots: [], roi_metrics: {} };",
+                f"let BOARD_DATA = {board_json};",
+                1,
+            )
+            data = page_html.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
 
         elif parsed.path == "/api/board":
             self._send_json(self._get_board_payload())
@@ -6627,7 +6658,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
 
-        elif parsed.path in ("/monitor", "/dashboard", "/react"):
+        elif parsed.path in ("/monitor", "/react"):
             html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "joblatch_react_dashboard.html")
             if not os.path.exists(html_path):
                 html_path = "/home/sglenn21/.gemini/antigravity/brain/0c957ebd-6431-4284-8987-1b9ba147bc8e/joblatch_react_dashboard.html"
@@ -6636,24 +6667,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                     page_data = f.read()
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
-                self.send_header("Content-Length", str(len(page_data)))
-                self.end_headers()
-                self.wfile.write(page_data)
-                return
-            else:
-                self.send_response(404)
-                self.end_headers()
-                return
-
-        elif parsed.path in ("/landing", "/home", "/about"):
-            html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "joblatch_landing.html")
-            if not os.path.exists(html_path):
-                html_path = "/home/sglenn21/.gemini/antigravity/brain/0c957ebd-6431-4284-8987-1b9ba147bc8e/joblatch_landing.html"
-            if os.path.exists(html_path):
-                with open(html_path, "rb") as f:
-                    page_data = f.read()
-                self.send_response(200)
-                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
                 self.send_header("Content-Length", str(len(page_data)))
                 self.end_headers()
                 self.wfile.write(page_data)
