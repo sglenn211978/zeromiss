@@ -6687,8 +6687,19 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
-        elif parsed.path in ("/assets/joblatch_ai_logo.jpg", "/assets/logo.jpg", "/favicon.ico"):
-            logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "joblatch_ai_logo.jpg")
+        elif parsed.path in (
+            "/assets/joblatch_ai_logo.jpg",
+            "/assets/joblatch_soundwave_icon.jpg",
+            "/assets/joblatch_soundwave_latch.jpg",
+            "/assets/logo.jpg",
+            "/favicon.ico",
+        ):
+            asset_filename = os.path.basename(parsed.path)
+            if asset_filename in ("logo.jpg", "favicon.ico"):
+                asset_filename = "joblatch_soundwave_icon.jpg"
+            logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", asset_filename)
+            if not os.path.exists(logo_path):
+                logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "joblatch_ai_logo.jpg")
             if os.path.exists(logo_path):
                 with open(logo_path, "rb") as f:
                     img_data = f.read()
@@ -6696,6 +6707,7 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 content_type = "image/x-icon" if parsed.path == "/favicon.ico" else "image/jpeg"
                 self.send_header("Content-Type", content_type)
                 self.send_header("Content-Length", str(len(img_data)))
+                self.send_header("Access-Control-Allow-Origin", "*")
                 self.send_header("Cache-Control", "public, max-age=86400")
                 self.end_headers()
                 self.wfile.write(img_data)
