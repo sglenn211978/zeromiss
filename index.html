@@ -50,6 +50,31 @@
         };
     </script>
 
+    <!-- 0. CENTRALIZED CONVERSION & ONBOARDING CONFIGURATION -->
+    <script>
+        const CONVERSION_CONFIG = {
+            bookingUrl: "", // e.g., "https://calendly.com/joblatch/15min"
+            tiers: {
+                starter: {
+                    name: "Starter Dispatch",
+                    price: "$299/mo",
+                    checkoutUrl: "" // e.g., "https://buy.stripe.com/starter"
+                },
+                pro: {
+                    name: "Pro Trade",
+                    price: "$599/mo",
+                    checkoutUrl: "" // e.g., "https://buy.stripe.com/pro"
+                },
+                multiTruck: {
+                    name: "Multi-Truck Fleet",
+                    price: "$1,199/mo",
+                    checkoutUrl: "" // e.g., "https://buy.stripe.com/fleet"
+                }
+            }
+        };
+        window.CONVERSION_CONFIG = CONVERSION_CONFIG;
+    </script>
+
     <style>
         body {
             background-color: #06090e;
@@ -392,13 +417,14 @@
                     <!-- Secondary "Book 15-Min Shop Setup" CTA Link -->
                     <div class="mt-3.5 pt-3 border-t border-carbon-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
                         <span class="text-slate-400">Prefer a tailored dispatch demo?</span>
-                        <a 
-                            href="#pricing"
-                            class="text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 group"
+                        <button 
+                            type="button"
+                            onclick="handleBookSetupClick()"
+                            class="text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 group transition-colors text-left"
                         >
                             <span>Book 15-Min Shop Setup</span>
                             <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
-                        </a>
+                        </button>
                     </div>
                 </div>
 
@@ -1161,10 +1187,14 @@
                         </div>
                     </div>
                     <div class="pt-8">
-                        <a href="#callMeForm" class="w-full py-3.5 rounded-xl bg-carbon-800 hover:bg-carbon-700 text-white font-mono text-xs font-bold transition flex items-center justify-center gap-2 border border-carbon-700">
+                        <button 
+                            type="button"
+                            onclick="handleTierClick('starter')" 
+                            class="w-full py-3.5 rounded-xl bg-carbon-800 hover:bg-carbon-700 text-white font-mono text-xs font-bold transition flex items-center justify-center gap-2 border border-carbon-700 active:scale-95"
+                        >
                             <span>Start 14-Day Pilot</span>
                             <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                        </a>
+                        </button>
                     </div>
                 </div>
 
@@ -1213,10 +1243,14 @@
                         </div>
                     </div>
                     <div class="pt-8">
-                        <a href="#callMeForm" class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 active:scale-95">
+                        <button 
+                            type="button"
+                            onclick="handleTierClick('pro')" 
+                            class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 active:scale-95"
+                        >
                             <span>Deploy Pro Trade</span>
                             <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                        </a>
+                        </button>
                     </div>
                 </div>
 
@@ -1262,10 +1296,14 @@
                         </div>
                     </div>
                     <div class="pt-8">
-                        <a href="#callMeForm" class="w-full py-3.5 rounded-xl bg-carbon-800 hover:bg-carbon-700 text-white font-mono text-xs font-bold transition flex items-center justify-center gap-2 border border-carbon-700">
+                        <button 
+                            type="button"
+                            onclick="handleTierClick('multiTruck')" 
+                            class="w-full py-3.5 rounded-xl bg-carbon-800 hover:bg-carbon-700 text-white font-mono text-xs font-bold transition flex items-center justify-center gap-2 border border-carbon-700 active:scale-95"
+                        >
                             <span>Schedule Fleet Onboarding</span>
                             <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1423,6 +1461,320 @@
         </div>
     </footer>
 
+    <!-- =========================================================================
+         CONVERSION & ONBOARDING MODALS (DARK-MODE CONTRACTOR TECH)
+         ========================================================================= -->
+
+    <!-- 1. BOOK 15-MIN SHOP SETUP MODAL (#bookSetupModal) -->
+    <div 
+        id="bookSetupModal" 
+        onclick="if (event.target === this) closeBookSetupModal()"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-carbon-950/85 backdrop-blur-md hidden transition-all duration-200"
+    >
+        <div class="relative w-full max-w-lg rounded-2xl bg-carbon-900 border border-carbon-700 shadow-2xl p-6 sm:p-8 hardware-corner max-h-[92vh] overflow-y-auto">
+            <!-- Close Button -->
+            <button 
+                type="button" 
+                onclick="closeBookSetupModal()" 
+                class="absolute top-5 right-5 text-slate-400 hover:text-white p-2 rounded-lg bg-carbon-950 border border-carbon-800 transition"
+                aria-label="Close modal"
+            >
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Form State -->
+            <div id="setupFormState">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold mb-3">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-400"></i>
+                    15-MINUTE SHOP SETUP
+                </div>
+                <h3 class="text-2xl font-bold font-display text-white mb-2">Book 15-Min Shop Setup</h3>
+                <p class="text-xs text-slate-300 font-mono mb-6 leading-relaxed">
+                    Schedule a 1-on-1 walkthrough with an on-call systems engineer to connect your phone number and test live dispatch routing.
+                </p>
+
+                <form id="bookSetupForm" onsubmit="handleBookSetupSubmit(event)" class="space-y-4 font-mono text-xs">
+                    <div>
+                        <label for="setupName" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
+                            Full Name *
+                        </label>
+                        <input 
+                            type="text" 
+                            id="setupName" 
+                            required 
+                            placeholder="Marcus Vance" 
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-carbon-950 border border-carbon-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="setupShopName" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
+                            Shop / Company Name *
+                        </label>
+                        <input 
+                            type="text" 
+                            id="setupShopName" 
+                            required 
+                            placeholder="Apex Electrical & Mechanical" 
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-carbon-950 border border-carbon-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                        >
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="setupPhone" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
+                                Direct Phone *
+                            </label>
+                            <input 
+                                type="tel" 
+                                id="setupPhone" 
+                                required 
+                                placeholder="(555) 482-9104" 
+                                class="w-full px-3.5 py-2.5 rounded-xl bg-carbon-950 border border-carbon-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                            >
+                        </div>
+                        <div>
+                            <label for="setupEmail" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
+                                Work Email *
+                            </label>
+                            <input 
+                                type="email" 
+                                id="setupEmail" 
+                                required 
+                                placeholder="marcus@apexelectric.com" 
+                                class="w-full px-3.5 py-2.5 rounded-xl bg-carbon-950 border border-carbon-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="setupTrade" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
+                                Primary Trade *
+                            </label>
+                            <select 
+                                id="setupTrade" 
+                                required 
+                                class="w-full px-3.5 py-2.5 rounded-xl bg-carbon-950 border border-carbon-700 text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                            >
+                                <option value="Electrical">Electrical (Resi / Comm)</option>
+                                <option value="HVAC">HVAC &amp; Mechanical</option>
+                                <option value="Plumbing">Plumbing &amp; Drains</option>
+                                <option value="Roofing">Roofing &amp; Restoration</option>
+                                <option value="Multi-Trade">Multi-Trade Contractor</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="setupTimeWindow" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
+                                Preferred Window *
+                            </label>
+                            <select 
+                                id="setupTimeWindow" 
+                                required 
+                                class="w-full px-3.5 py-2.5 rounded-xl bg-carbon-950 border border-carbon-700 text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                            >
+                                <option value="Morning (8am - 12pm)">Morning (8am – 12pm)</option>
+                                <option value="Afternoon (12pm - 5pm)">Afternoon (12pm – 5pm)</option>
+                                <option value="Evening (After 5pm)">Evening (After 5pm)</option>
+                                <option value="Earliest Available Today">Earliest Available Today</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="setupModalError" class="hidden text-xs font-mono rounded-lg p-3 bg-red-500/10 border border-red-500/30 text-red-300"></div>
+
+                    <div class="pt-2">
+                        <button 
+                            type="submit" 
+                            id="setupSubmitBtn"
+                            class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 active:scale-95"
+                        >
+                            <span id="setupSubmitBtnText">Confirm Setup Request</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <p class="text-[11px] text-center text-slate-400 pt-1">
+                        🔒 No long-term contract &bull; Zero downtime &bull; Keep existing numbers
+                    </p>
+                </form>
+            </div>
+
+            <!-- Confirmation State -->
+            <div id="setupConfirmationState" class="hidden text-center py-4 space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
+                    <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold font-display text-white">15-Min Setup Requested!</h3>
+                <p class="text-xs font-mono text-slate-300 max-w-sm mx-auto leading-relaxed">
+                    We've received your request for <strong id="confirmSetupShop" class="text-white"></strong>. An onboarding engineer will confirm your slot via SMS to <strong id="confirmSetupPhone" class="text-emerald-400"></strong> and email calendar invite.
+                </p>
+                <div class="bg-carbon-950 p-4 rounded-xl border border-carbon-800 text-left font-mono text-xs space-y-1.5 max-w-sm mx-auto text-slate-300">
+                    <div><span class="text-slate-400">Contact:</span> <strong id="confirmSetupName" class="text-white"></strong></div>
+                    <div><span class="text-slate-400">Trade:</span> <strong id="confirmSetupTrade" class="text-amber-400"></strong></div>
+                    <div><span class="text-slate-400">Requested Window:</span> <strong id="confirmSetupWindow" class="text-electric-400"></strong></div>
+                </div>
+                <button 
+                    type="button" 
+                    onclick="closeBookSetupModal()" 
+                    class="px-6 py-2.5 rounded-xl bg-carbon-800 hover:bg-carbon-700 text-white font-mono text-xs font-bold border border-carbon-700 transition"
+                >
+                    Done &bull; Back to JobLatch
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. TIER ONBOARDING MODAL (#tierOnboardingModal) -->
+    <div 
+        id="tierOnboardingModal" 
+        onclick="if (event.target === this) closeTierModal()"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-carbon-950/85 backdrop-blur-md hidden transition-all duration-200"
+    >
+        <div class="relative w-full max-w-lg rounded-2xl bg-carbon-900 border border-carbon-700 shadow-2xl p-6 sm:p-8 hardware-corner max-h-[92vh] overflow-y-auto">
+            <!-- Close Button -->
+            <button 
+                type="button" 
+                onclick="closeTierModal()" 
+                class="absolute top-5 right-5 text-slate-400 hover:text-white p-2 rounded-lg bg-carbon-950 border border-carbon-800 transition"
+                aria-label="Close modal"
+            >
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Form State -->
+            <div id="tierFormState">
+                <div id="tierModalBadge" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold mb-3">
+                    <i data-lucide="tag" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span id="tierModalBadgeText">Pro Trade • $599/mo</span>
+                </div>
+                <h3 class="text-2xl font-bold font-display text-white mb-2">
+                    Start Your <span id="tierModalTitle" class="text-amber-400">Pro Trade</span> Deployment
+                </h3>
+                <p class="text-xs text-slate-300 font-mono mb-6 leading-relaxed">
+                    14-day zero-risk trial. Keep your current phone numbers, field techs, and accounting software.
+                </p>
+
+                <form id="tierOnboardingForm" onsubmit="handleTierSubmit(event)" class="space-y-4 font-mono text-xs">
+                    <input type="hidden" id="tierSelectedKey" value="pro">
+
+                    <div>
+                        <label for="tierShopName" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
+                            Shop / Company Name *
+                        </label>
+                        <input 
+                            type="text" 
+                            id="tierShopName" 
+                            required 
+                            placeholder="Lone Star Electric & Mechanical" 
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-carbon-950 border border-carbon-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="tierContactName" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
+                            Contact Name *
+                        </label>
+                        <input 
+                            type="text" 
+                            id="tierContactName" 
+                            required 
+                            placeholder="Sean Glenn" 
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-carbon-950 border border-carbon-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                        >
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="tierEmail" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
+                                Work Email *
+                            </label>
+                            <input 
+                                type="email" 
+                                id="tierEmail" 
+                                required 
+                                placeholder="sean@lonestarelectric.com" 
+                                class="w-full px-3.5 py-2.5 rounded-xl bg-carbon-950 border border-carbon-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                            >
+                        </div>
+                        <div>
+                            <label for="tierPhone" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
+                                Direct Phone *
+                            </label>
+                            <input 
+                                type="tel" 
+                                id="tierPhone" 
+                                required 
+                                placeholder="(555) 482-9104" 
+                                class="w-full px-3.5 py-2.5 rounded-xl bg-carbon-950 border border-carbon-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="tierFSM" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
+                            Current Field Service Software (FSM) *
+                        </label>
+                        <select 
+                            id="tierFSM" 
+                            required 
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-carbon-950 border border-carbon-700 text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition"
+                        >
+                            <option value="ServiceTitan">ServiceTitan</option>
+                            <option value="Housecall Pro">Housecall Pro</option>
+                            <option value="Jobber">Jobber</option>
+                            <option value="FieldEdge">FieldEdge</option>
+                            <option value="QuickBooks Online">QuickBooks Online</option>
+                            <option value="Other">Other / Custom Dispatch Board</option>
+                            <option value="None">None (Pen &amp; Paper / Spreadsheets)</option>
+                        </select>
+                    </div>
+
+                    <div id="tierModalError" class="hidden text-xs font-mono rounded-lg p-3 bg-red-500/10 border border-red-500/30 text-red-300"></div>
+
+                    <div class="pt-2">
+                        <button 
+                            type="submit" 
+                            id="tierSubmitBtn"
+                            class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 active:scale-95"
+                        >
+                            <span id="tierSubmitBtnText">Start 14-Day Pilot →</span>
+                        </button>
+                    </div>
+
+                    <p class="text-[11px] text-center text-slate-400 pt-1">
+                        💳 Zero commitment &bull; Keep 100% of recouped revenue &bull; 15-min phone onboarding
+                    </p>
+                </form>
+            </div>
+
+            <!-- Confirmation State -->
+            <div id="tierConfirmationState" class="hidden text-center py-4 space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
+                    <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold font-display text-white">
+                    Onboarding Initiated for <span id="confirmTierName" class="text-amber-400">Pro Trade</span>!
+                </h3>
+                <p class="text-xs font-mono text-slate-300 max-w-sm mx-auto leading-relaxed">
+                    We are provisioning the Sarah AI dispatch environment for <strong id="confirmTierShop" class="text-white"></strong>. A specialist will contact <strong id="confirmTierContact" class="text-white"></strong> at <strong id="confirmTierPhone" class="text-emerald-400"></strong> to link your <strong id="confirmTierFSM" class="text-electric-400"></strong> account and configure emergency escalation rules.
+                </p>
+                <div class="bg-carbon-950 p-4 rounded-xl border border-carbon-800 text-left font-mono text-xs space-y-1.5 max-w-sm mx-auto text-slate-300">
+                    <div><span class="text-slate-400">Tier Selected:</span> <strong id="confirmTierPrice" class="text-amber-400"></strong></div>
+                    <div><span class="text-slate-400">Integration:</span> <strong id="confirmTierFSMDetail" class="text-electric-400"></strong></div>
+                    <div><span class="text-slate-400">Contact Email:</span> <strong id="confirmTierEmail" class="text-white"></strong></div>
+                </div>
+                <button 
+                    type="button" 
+                    onclick="closeTierModal()" 
+                    class="px-6 py-2.5 rounded-xl bg-carbon-800 hover:bg-carbon-700 text-white font-mono text-xs font-bold border border-carbon-700 transition"
+                >
+                    Done &bull; Return to Landing Page
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- INTERACTIVE JAVASCRIPT LOGIC -->
     <script>
         // Centralized Pricing & Plans Configuration
@@ -1436,8 +1788,7 @@
                 description: "Ideal for solo master tradesmen & 1-truck emergency shops capturing midnight calls.",
                 includedDispatches: 50,
                 includedMinutes: 200,
-                ctaText: "Start 14-Day Pilot",
-                ctaUrl: "#callMeForm"
+                ctaText: "Start 14-Day Pilot"
             },
             pro: {
                 id: "pro",
@@ -1450,8 +1801,7 @@
                 description: "Built for growing HVAC, electrical, and plumbing shops ready to automate after-hours dispatch.",
                 includedDispatches: 150,
                 includedMinutes: 600,
-                ctaText: "Deploy Pro Trade",
-                ctaUrl: "#callMeForm"
+                ctaText: "Deploy Pro Trade"
             },
             multiTruck: {
                 id: "multiTruck",
@@ -1462,8 +1812,7 @@
                 description: "High-volume 24/7 service operations requiring custom dispatch zones and multi-crew coordination.",
                 includedDispatches: 400,
                 includedMinutes: 1600,
-                ctaText: "Schedule Fleet Onboarding",
-                ctaUrl: "#callMeForm"
+                ctaText: "Schedule Fleet Onboarding"
             }
         };
 
@@ -1510,40 +1859,293 @@
         // Initialize Calculator with Defaults
         updateCalculator();
 
-        // 3. Handle Hero Inline "Have Sarah Call Your Phone Now" Form
-        function handleCallMeSubmit(event) {
+        // 3. Conversion Path 1: "Book 15-Min Shop Setup" Handler
+        function handleBookSetupClick() {
+            const config = window.CONVERSION_CONFIG;
+            if (config && config.bookingUrl && config.bookingUrl.trim() !== "") {
+                window.open(config.bookingUrl, '_blank', 'noopener,noreferrer');
+            } else {
+                openBookSetupModal();
+            }
+        }
+
+        function openBookSetupModal() {
+            const modal = document.getElementById('bookSetupModal');
+            const formState = document.getElementById('setupFormState');
+            const confirmState = document.getElementById('setupConfirmationState');
+            const errorDiv = document.getElementById('setupModalError');
+            if (formState) formState.classList.remove('hidden');
+            if (confirmState) confirmState.classList.add('hidden');
+            if (errorDiv) errorDiv.classList.add('hidden');
+            if (modal) modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeBookSetupModal() {
+            const modal = document.getElementById('bookSetupModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function handleBookSetupSubmit(event) {
             event.preventDefault();
-            const phoneInput = document.getElementById('callMePhone');
+            const name = document.getElementById('setupName').value.trim();
+            const shopName = document.getElementById('setupShopName').value.trim();
+            const phone = document.getElementById('setupPhone').value.trim();
+            const email = document.getElementById('setupEmail').value.trim();
+            const trade = document.getElementById('setupTrade').value;
+            const timeWindow = document.getElementById('setupTimeWindow').value;
+            const btn = document.getElementById('setupSubmitBtn');
+            const btnText = document.getElementById('setupSubmitBtnText');
+            const errorDiv = document.getElementById('setupModalError');
+
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            if (btnText) btnText.innerText = 'Submitting Request...';
+            if (errorDiv) errorDiv.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/shop-setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contact_name: name,
+                        shop_name: shopName,
+                        phone: phone,
+                        email: email,
+                        trade: trade,
+                        time_window: timeWindow
+                    })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.status === 'ERROR') {
+                    throw new Error(data.message || 'Server error submitting shop setup request.');
+                }
+
+                document.getElementById('confirmSetupShop').innerText = shopName;
+                document.getElementById('confirmSetupName').innerText = name;
+                document.getElementById('confirmSetupPhone').innerText = phone;
+                document.getElementById('confirmSetupTrade').innerText = trade;
+                document.getElementById('confirmSetupWindow').innerText = timeWindow;
+
+                document.getElementById('setupFormState').classList.add('hidden');
+                document.getElementById('setupConfirmationState').classList.remove('hidden');
+                lucide.createIcons();
+            } catch (err) {
+                if (errorDiv) {
+                    errorDiv.innerText = err.message || 'Failed to submit request. Please try again.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                if (btnText) btnText.innerText = 'Confirm Setup Request';
+            }
+        }
+
+        // 4. Conversion Path 2: Pricing Tier CTAs Handler
+        function handleTierClick(tierKey) {
+            const config = window.CONVERSION_CONFIG && window.CONVERSION_CONFIG.tiers ? window.CONVERSION_CONFIG.tiers[tierKey] : null;
+            if (config && config.checkoutUrl && config.checkoutUrl.trim() !== "") {
+                window.location.href = config.checkoutUrl;
+            } else {
+                openTierModal(tierKey);
+            }
+        }
+
+        function openTierModal(tierKey) {
+            const modal = document.getElementById('tierOnboardingModal');
+            const formState = document.getElementById('tierFormState');
+            const confirmState = document.getElementById('tierConfirmationState');
+            const errorDiv = document.getElementById('tierModalError');
+            if (formState) formState.classList.remove('hidden');
+            if (confirmState) confirmState.classList.add('hidden');
+            if (errorDiv) errorDiv.classList.add('hidden');
+
+            const tier = (window.CONVERSION_CONFIG && window.CONVERSION_CONFIG.tiers && window.CONVERSION_CONFIG.tiers[tierKey]) 
+                         || { name: "Pro Trade", price: "$599/mo" };
+
+            const tierKeyInput = document.getElementById('tierSelectedKey');
+            const badgeText = document.getElementById('tierModalBadgeText');
+            const modalTitle = document.getElementById('tierModalTitle');
+            const submitBtnText = document.getElementById('tierSubmitBtnText');
+
+            if (tierKeyInput) tierKeyInput.value = tierKey;
+            if (badgeText) badgeText.innerText = `${tier.name} • ${tier.price}`;
+            if (modalTitle) modalTitle.innerText = tier.name;
+            if (submitBtnText) submitBtnText.innerText = `Start ${tier.name} Pilot →`;
+
+            if (modal) modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeTierModal() {
+            const modal = document.getElementById('tierOnboardingModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function handleTierSubmit(event) {
+            event.preventDefault();
+            const tierKey = document.getElementById('tierSelectedKey').value;
+            const tier = (window.CONVERSION_CONFIG && window.CONVERSION_CONFIG.tiers && window.CONVERSION_CONFIG.tiers[tierKey]) 
+                         || { name: "Pro Trade", price: "$599/mo" };
+            const shopName = document.getElementById('tierShopName').value.trim();
+            const contactName = document.getElementById('tierContactName').value.trim();
+            const email = document.getElementById('tierEmail').value.trim();
+            const phone = document.getElementById('tierPhone').value.trim();
+            const fsm = document.getElementById('tierFSM').value;
+            const btn = document.getElementById('tierSubmitBtn');
+            const btnText = document.getElementById('tierSubmitBtnText');
+            const errorDiv = document.getElementById('tierModalError');
+
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            if (btnText) btnText.innerText = 'Initiating...';
+            if (errorDiv) errorDiv.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/tier-onboard', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tier_key: tierKey,
+                        shop_name: shopName,
+                        contact_name: contactName,
+                        email: email,
+                        phone: phone,
+                        fsm: fsm
+                    })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.status === 'ERROR') {
+                    throw new Error(data.message || 'Server error initiating onboarding.');
+                }
+
+                document.getElementById('confirmTierName').innerText = tier.name;
+                document.getElementById('confirmTierShop').innerText = shopName;
+                document.getElementById('confirmTierContact').innerText = contactName;
+                document.getElementById('confirmTierPhone').innerText = phone;
+                document.getElementById('confirmTierFSM').innerText = fsm;
+                document.getElementById('confirmTierFSMDetail').innerText = fsm;
+                document.getElementById('confirmTierPrice').innerText = `${tier.name} (${tier.price})`;
+                document.getElementById('confirmTierEmail').innerText = email;
+
+                document.getElementById('tierFormState').classList.add('hidden');
+                document.getElementById('tierConfirmationState').classList.remove('hidden');
+                lucide.createIcons();
+            } catch (err) {
+                if (errorDiv) {
+                    errorDiv.innerText = err.message || 'Failed to submit onboarding. Please try again.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                if (btnText) btnText.innerText = `Start ${tier.name} Pilot →`;
+            }
+        }
+
+        // Global Modal Keyboard Escape Key Listener
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeBookSetupModal();
+                closeTierModal();
+            }
+        });
+
+        // 5. Conversion Path 3: #callMeForm Strictly for Live Phone Demo (With Robust Error States)
+        async function handleCallMeSubmit(event) {
+            event.preventDefault();
+            const phoneInput = document.getElementById('contractorPhone') || document.getElementById('callMePhone');
             const submitBtn = document.getElementById('callMeBtn');
             const btnText = document.getElementById('callMeBtnText');
             const statusDiv = document.getElementById('callMeStatus');
-            const phone = phoneInput ? phoneInput.value.trim() : '';
 
-            if (!phone) return;
+            if (!phoneInput) {
+                console.error("Phone input element not found in DOM");
+                return;
+            }
 
-            // Loading state
-            submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
-            if (btnText) btnText.innerText = 'Connecting SIP...';
+            const phone = phoneInput.value.trim();
+            const digits = phone.replace(/\D/g, '');
 
-            setTimeout(() => {
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-                if (btnText) btnText.innerText = 'Call My Phone';
-
+            if (digits.length < 10) {
                 if (statusDiv) {
-                    statusDiv.className = 'text-xs font-mono rounded-lg p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center gap-2';
+                    statusDiv.className = 'text-xs font-mono rounded-lg p-3 bg-red-500/10 border border-red-500/30 text-red-300 flex items-start gap-2.5';
                     statusDiv.innerHTML = `
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                        <span><strong>Sarah AI is calling ${phone} now.</strong> Please answer your phone to experience the live 2:00 AM emergency dispatch sequence!</span>
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <span class="font-bold text-white block mb-0.5">Invalid Mobile Number</span>
+                            <span>Please enter a full 10-digit mobile number (e.g. (555) 000-0000) so Sarah AI can place the live test call.</span>
+                        </div>
                     `;
                     statusDiv.classList.remove('hidden');
                     lucide.createIcons();
                 }
-            }, 1200);
+                return;
+            }
+
+            // Explicit Loading State
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            if (btnText) btnText.innerText = 'Connecting SIP...';
+
+            if (statusDiv) {
+                statusDiv.className = 'text-xs font-mono rounded-lg p-3 bg-carbon-800 border border-carbon-700 text-slate-300 flex items-center gap-2.5';
+                statusDiv.innerHTML = `
+                    <span class="w-3.5 h-3.5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin flex-shrink-0"></span>
+                    <span>Routing to Twilio Voice SIP gateway &amp; queuing Sarah AI dispatch...</span>
+                `;
+                statusDiv.classList.remove('hidden');
+            }
+
+            try {
+                const response = await fetch('/api/call-demo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: phone })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || data.status === 'ERROR') {
+                    throw new Error(data.message || `SIP gateway returned HTTP error ${response.status}`);
+                }
+
+                // Explicit Success State
+                if (statusDiv) {
+                    statusDiv.className = 'text-xs font-mono rounded-lg p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-start gap-2.5';
+                    statusDiv.innerHTML = `
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <span class="font-bold text-white block mb-0.5">Sarah is dialing you now at ${phone}.</span>
+                            <span>Please answer your phone to experience the live 2:00 AM emergency voice dispatch sequence!</span>
+                        </div>
+                    `;
+                    statusDiv.classList.remove('hidden');
+                    lucide.createIcons();
+                }
+            } catch (err) {
+                // Explicit Error State (Never Fails Silently)
+                if (statusDiv) {
+                    statusDiv.className = 'text-xs font-mono rounded-lg p-3 bg-red-500/10 border border-red-500/30 text-red-300 flex items-start gap-2.5';
+                    statusDiv.innerHTML = `
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <span class="font-bold text-white block mb-0.5">Unable to Connect Sarah Voice Call</span>
+                            <span>${err.message || "Failed to route call through Twilio SIP trunk. Please verify your phone number or call our direct line at (609) 972-4328."}</span>
+                        </div>
+                    `;
+                    statusDiv.classList.remove('hidden');
+                    lucide.createIcons();
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                if (btnText) btnText.innerText = 'Call My Phone';
+            }
         }
 
-        // 4. Audio Player Simulation Logic
+        // 6. Audio Player Simulation Logic
         let isAudioPlaying = false;
         let audioTimerInterval = null;
         let currentSeconds = 0;
@@ -1586,7 +2188,7 @@
             }
         }
 
-        // 5. Mobile Menu Drawer Toggle Logic
+        // 7. Mobile Menu Drawer Toggle Logic
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileMenu');
             const icon = document.getElementById('menuIcon');

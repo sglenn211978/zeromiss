@@ -7132,6 +7132,45 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             roi = DB.calculate_contractor_roi_metrics()
             self._send_json({"status": "RESET_COMPLETED", "roi_metrics": roi})
 
+        elif parsed.path == "/api/call-demo":
+            phone = req_data.get("phone", "").strip()
+            digits = re.sub(r"\D", "", phone)
+            if len(digits) < 10:
+                self._send_json({"status": "ERROR", "message": "Please enter a valid 10-digit mobile phone number."}, 400)
+                return
+            print(f"[DEMO CALL INITIATED] Sarah AI dispatch dialing {phone}...")
+            self._send_json({
+                "status": "SUCCESS",
+                "phone": phone,
+                "message": f"Sarah is dialing you now at {phone}. Answer your phone for the live emergency dispatch demo!"
+            })
+
+        elif parsed.path == "/api/shop-setup":
+            shop_name = req_data.get("shop_name", "").strip() or "Trade Contractor Shop"
+            contact_name = req_data.get("contact_name", "").strip() or "Shop Owner"
+            phone = req_data.get("phone", "").strip()
+            email = req_data.get("email", "").strip()
+            trade = req_data.get("trade", "Electrical").strip()
+            window = req_data.get("time_window", "Morning").strip()
+            print(f"[SHOP SETUP REQUESTED] {shop_name} ({contact_name}, {phone}, {email}, {trade}, {window})")
+            self._send_json({
+                "status": "SUCCESS",
+                "message": f"Shop setup requested for {shop_name}. An engineer will confirm your slot at {phone}."
+            })
+
+        elif parsed.path == "/api/tier-onboard":
+            tier_key = req_data.get("tier_key", "pro").strip()
+            shop_name = req_data.get("shop_name", "").strip() or "Trade Contractor Shop"
+            contact_name = req_data.get("contact_name", "").strip() or "Shop Owner"
+            phone = req_data.get("phone", "").strip()
+            email = req_data.get("email", "").strip()
+            fsm = req_data.get("fsm", "ServiceTitan").strip()
+            print(f"[TIER ONBOARDING] {tier_key.upper()} - {shop_name} ({contact_name}, {phone}, {email}, FSM: {fsm})")
+            self._send_json({
+                "status": "SUCCESS",
+                "message": f"Onboarding initiated for {tier_key} tier for {shop_name}."
+            })
+
         else:
             self.send_response(404)
             self.end_headers()
