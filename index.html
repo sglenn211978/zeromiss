@@ -54,21 +54,31 @@
     <script>
         const CONVERSION_CONFIG = {
             bookingUrl: "", // e.g., "https://calendly.com/joblatch/15min"
+            flatRate: {
+                name: "All-In Shop Plan",
+                price: "$499/mo",
+                checkoutUrl: "" // e.g., "https://buy.stripe.com/joblatch-flat-rate"
+            },
             tiers: {
+                flatRate: {
+                    name: "All-In Shop Plan",
+                    price: "$499/mo",
+                    checkoutUrl: ""
+                },
                 starter: {
-                    name: "Starter Dispatch",
-                    price: "$299/mo",
-                    checkoutUrl: "" // e.g., "https://buy.stripe.com/starter"
+                    name: "All-In Shop Plan",
+                    price: "$499/mo",
+                    checkoutUrl: ""
                 },
                 pro: {
-                    name: "Pro Trade",
-                    price: "$599/mo",
-                    checkoutUrl: "" // e.g., "https://buy.stripe.com/pro"
+                    name: "All-In Shop Plan",
+                    price: "$499/mo",
+                    checkoutUrl: ""
                 },
                 multiTruck: {
-                    name: "Multi-Truck Fleet",
-                    price: "$1,199/mo",
-                    checkoutUrl: "" // e.g., "https://buy.stripe.com/fleet"
+                    name: "All-In Shop Plan",
+                    price: "$499/mo",
+                    checkoutUrl: ""
                 }
             }
         };
@@ -1147,182 +1157,75 @@
                 </p>
             </div>
 
-            <!-- Pricing Cards Grid (Driven by PRICING_CONFIG) -->
-            <div id="pricingCards" class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto items-stretch">
-                <!-- Tier 1: Starter Dispatch -->
-                <div class="chassis-card rounded-2xl p-6 sm:p-8 hardware-corner flex flex-col justify-between border border-carbon-800 bg-carbon-900/60">
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Starter Dispatch</span>
-                            <span class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-carbon-800 text-slate-300 border border-carbon-700">Solo / 1-Truck</span>
+            <!-- Single Flat-Rate Pricing Card (#pricingCard) -->
+            <div id="pricingCard" class="max-w-xl mx-auto">
+                <div class="chassis-card rounded-2xl p-7 sm:p-10 hardware-corner border-2 border-amber-500/80 bg-carbon-900 shadow-2xl shadow-amber-500/10 relative text-left">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-mono font-bold mb-5 tracking-wide">
+                        <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <span>ALL-IN SHOP PLAN &bull; NO PER-TRUCK FEES</span>
+                    </div>
+                    <div class="pb-6 border-b border-carbon-800">
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-5xl sm:text-6xl font-display font-extrabold text-white tracking-tight">$499</span>
+                            <span class="text-slate-400 font-mono text-base sm:text-lg font-semibold">/ mo</span>
                         </div>
-                        <div class="flex items-baseline gap-1 mb-2">
-                            <span class="text-4xl sm:text-5xl font-display font-extrabold text-white">$299</span>
-                            <span class="text-slate-400 font-mono text-sm">/mo</span>
-                        </div>
-                        <p class="text-slate-300 text-xs font-mono leading-relaxed mb-6">
-                            Ideal for solo master tradesmen &amp; 1-truck emergency shops capturing midnight calls.
+                        <p class="text-xs sm:text-sm text-slate-300 font-mono font-medium mt-2 leading-relaxed">
+                            One flat rate per shop phone line. One saved emergency job pays for the month.
                         </p>
-                        <div class="border-t border-carbon-800 pt-5 space-y-3 font-mono text-xs text-slate-200">
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                                <span>Up to <strong>50 dispatches</strong> / month</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                                <span><strong>200 voice minutes</strong> included</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                                <span>Twilio SIP call-forwarding</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                                <span>Instant SMS tech push alerts</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                                <span>Google Calendar &amp; basic scheduling</span>
-                            </div>
+                    </div>
+                    <div class="py-6 space-y-3.5 font-mono text-xs sm:text-sm text-slate-200">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Unlimited after-hours calls &amp; dispatches</strong> <span class="text-slate-400 text-xs">(subject to normal fair-use)</span></span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Unlimited techs &amp; trucks</strong> on your roster</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>24/7 Ring-1 AI voice answer</strong> &amp; NFPA 70E safety triage</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Automated Stripe pre-auth deposit holds</strong> ($89–$199 configurable)</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Instant SMS tech dispatch alerts</strong> &amp; customer tracking links</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>ServiceTitan, Housecall Pro, Jobber &amp; Google Calendar sync</strong></span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Keep your existing shop phone number</strong> (15-min setup)</span>
                         </div>
                     </div>
-                    <div class="pt-8">
+                    <div class="pt-6 border-t border-carbon-800 space-y-4">
                         <button 
                             type="button"
-                            onclick="handleTierClick('starter')" 
-                            class="w-full py-3.5 rounded-xl bg-carbon-800 hover:bg-carbon-700 text-white font-mono text-xs font-bold transition flex items-center justify-center gap-2 border border-carbon-700 active:scale-95"
+                            onclick="handleTierClick('flatRate')" 
+                            class="w-full py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-base transition-all shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2 active:scale-95 group cursor-pointer"
                         >
                             <span>Start 14-Day Pilot</span>
-                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i>
                         </button>
-                    </div>
-                </div>
-
-                <!-- Tier 2: Pro Trade (Featured / Highlighted) -->
-                <div class="chassis-card rounded-2xl p-6 sm:p-8 hardware-corner flex flex-col justify-between border-2 border-amber-500/80 bg-carbon-900 shadow-2xl shadow-amber-500/10 relative transform lg:-translate-y-2">
-                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-amber-500 text-carbon-950 text-[10px] font-mono font-extrabold uppercase tracking-wider shadow-md whitespace-nowrap">
-                        Most Popular &bull; 2-5 Trucks
-                    </div>
-                    <div>
-                        <div class="flex items-center justify-between mb-4 mt-1">
-                            <span class="text-xs font-mono font-bold uppercase tracking-wider text-amber-300">Pro Trade</span>
-                            <span class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">Full Automation</span>
+                        <div class="text-center">
+                            <button 
+                                type="button"
+                                onclick="handleBookSetupClick()"
+                                class="text-xs sm:text-sm font-mono text-slate-400 hover:text-amber-400 transition-colors inline-flex items-center gap-1 group cursor-pointer"
+                            >
+                                <span>Running multiple shop locations? Book a 15-min call</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
+                            </button>
                         </div>
-                        <div class="flex items-baseline gap-1 mb-2">
-                            <span class="text-4xl sm:text-5xl font-display font-extrabold text-white">$599</span>
-                            <span class="text-slate-400 font-mono text-sm">/mo</span>
-                        </div>
-                        <p class="text-slate-300 text-xs font-mono leading-relaxed mb-6">
-                            Built for growing HVAC, electrical, and plumbing shops ready to automate after-hours dispatch.
-                        </p>
-                        <div class="border-t border-carbon-800 pt-5 space-y-3 font-mono text-xs text-slate-200">
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
-                                <span>Up to <strong>150 dispatches</strong> / month</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
-                                <span><strong>600 voice minutes</strong> included</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
-                                <span><strong>Stripe $199–$499 holds</strong> pre-auth</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
-                                <span>2-way <strong>ServiceTitan &amp; Housecall Pro</strong></span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
-                                <span>Live GPS tech dispatch &amp; customer SMS tracking</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
-                                <span>Custom safety triage &amp; panel recall scripts</span>
-                            </div>
+                        <div class="pt-2 text-center text-xs font-mono text-slate-400 border-t border-carbon-800/60 mt-3">
+                            <span>No long-term contract &bull; Cancel anytime &bull; Zero hidden telephony markups</span>
                         </div>
                     </div>
-                    <div class="pt-8">
-                        <button 
-                            type="button"
-                            onclick="handleTierClick('pro')" 
-                            class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 active:scale-95"
-                        >
-                            <span>Deploy Pro Trade</span>
-                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Tier 3: Multi-Truck Fleet -->
-                <div class="chassis-card rounded-2xl p-6 sm:p-8 hardware-corner flex flex-col justify-between border border-carbon-800 bg-carbon-900/60">
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Multi-Truck Fleet</span>
-                            <span class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-carbon-800 text-slate-300 border border-carbon-700">6+ Trucks</span>
-                        </div>
-                        <div class="flex items-baseline gap-1 mb-2">
-                            <span class="text-4xl sm:text-5xl font-display font-extrabold text-white">$1,199</span>
-                            <span class="text-slate-400 font-mono text-sm">/mo</span>
-                        </div>
-                        <p class="text-slate-300 text-xs font-mono leading-relaxed mb-6">
-                            High-volume 24/7 service operations requiring custom dispatch zones and multi-crew coordination.
-                        </p>
-                        <div class="border-t border-carbon-800 pt-5 space-y-3 font-mono text-xs text-slate-200">
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                                <span>Up to <strong>400 dispatches</strong> / month</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                                <span><strong>1,600 voice minutes</strong> included</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                                <span>Multi-zone &amp; multi-license tech rotation</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                                <span>Dedicated Twilio SIP trunking &amp; toll-free</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                                <span>Full REST API &amp; custom webhook intake</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
-                                <span>Dedicated 15-min SLA account manager</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="pt-8">
-                        <button 
-                            type="button"
-                            onclick="handleTierClick('multiTruck')" 
-                            class="w-full py-3.5 rounded-xl bg-carbon-800 hover:bg-carbon-700 text-white font-mono text-xs font-bold transition flex items-center justify-center gap-2 border border-carbon-700 active:scale-95"
-                        >
-                            <span>Schedule Fleet Onboarding</span>
-                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Grounded Trust Strip Inside Pricing Section -->
-            <div class="mt-12 max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-mono text-slate-300 py-3.5 px-6 rounded-2xl bg-carbon-900/80 border border-carbon-800 shadow-lg">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-                    <span>No Long-Term Contract</span>
-                </div>
-                <span class="text-carbon-600">&bull;</span>
-                <div class="flex items-center gap-2">
-                    <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
-                    <span>Live in 15 Minutes</span>
-                </div>
-                <span class="text-carbon-600">&bull;</span>
-                <div class="flex items-center gap-2">
-                    <i data-lucide="check" class="w-4 h-4 text-electric-400"></i>
-                    <span>Keep Your Existing Phone Number</span>
                 </div>
             </div>
 
@@ -1646,17 +1549,17 @@
             <div id="tierFormState">
                 <div id="tierModalBadge" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold mb-3">
                     <i data-lucide="tag" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span id="tierModalBadgeText">Pro Trade • $599/mo</span>
+                    <span id="tierModalBadgeText">All-In Shop Plan • $499/mo</span>
                 </div>
                 <h3 class="text-2xl font-bold font-display text-white mb-2">
-                    Start Your <span id="tierModalTitle" class="text-amber-400">Pro Trade</span> Deployment
+                    Start Your <span id="tierModalTitle" class="text-amber-400">All-In Shop Plan</span> Deployment
                 </h3>
                 <p class="text-xs text-slate-300 font-mono mb-6 leading-relaxed">
                     14-day zero-risk trial. Keep your current phone numbers, field techs, and accounting software.
                 </p>
 
                 <form id="tierOnboardingForm" onsubmit="handleTierSubmit(event)" class="space-y-4 font-mono text-xs">
-                    <input type="hidden" id="tierSelectedKey" value="pro">
+                    <input type="hidden" id="tierSelectedKey" value="flatRate">
 
                     <div>
                         <label for="tierShopName" class="block text-slate-200 font-bold mb-1.5 uppercase tracking-wider">
@@ -1754,7 +1657,7 @@
                     <i data-lucide="check-circle-2" class="w-8 h-8"></i>
                 </div>
                 <h3 class="text-2xl font-bold font-display text-white">
-                    Onboarding Initiated for <span id="confirmTierName" class="text-amber-400">Pro Trade</span>!
+                    Onboarding Initiated for <span id="confirmTierName" class="text-amber-400">All-In Shop Plan</span>!
                 </h3>
                 <p class="text-xs font-mono text-slate-300 max-w-sm mx-auto leading-relaxed">
                     We are provisioning the Sarah AI dispatch environment for <strong id="confirmTierShop" class="text-white"></strong>. A specialist will contact <strong id="confirmTierContact" class="text-white"></strong> at <strong id="confirmTierPhone" class="text-emerald-400"></strong> to link your <strong id="confirmTierFSM" class="text-electric-400"></strong> account and configure emergency escalation rules.
@@ -1779,40 +1682,41 @@
     <script>
         // Centralized Pricing & Plans Configuration
         const PRICING_CONFIG = {
+            flatRate: {
+                id: "flatRate",
+                name: "All-In Shop Plan",
+                priceMonthly: 499,
+                period: "/mo",
+                target: "All-In Shop Plan",
+                description: "One flat rate per shop phone line. One saved emergency job pays for the month.",
+                ctaText: "Start 14-Day Pilot"
+            },
             starter: {
                 id: "starter",
-                name: "Starter Dispatch",
-                priceMonthly: 299,
+                name: "All-In Shop Plan",
+                priceMonthly: 499,
                 period: "/mo",
                 target: "Solo / 1-Truck",
-                description: "Ideal for solo master tradesmen & 1-truck emergency shops capturing midnight calls.",
-                includedDispatches: 50,
-                includedMinutes: 200,
+                description: "One flat rate per shop phone line. One saved emergency job pays for the month.",
                 ctaText: "Start 14-Day Pilot"
             },
             pro: {
                 id: "pro",
-                name: "Pro Trade",
-                priceMonthly: 599,
+                name: "All-In Shop Plan",
+                priceMonthly: 499,
                 period: "/mo",
-                isPopular: true,
-                badge: "Most Popular • 2-5 Trucks",
                 target: "Full Automation",
-                description: "Built for growing HVAC, electrical, and plumbing shops ready to automate after-hours dispatch.",
-                includedDispatches: 150,
-                includedMinutes: 600,
-                ctaText: "Deploy Pro Trade"
+                description: "One flat rate per shop phone line. One saved emergency job pays for the month.",
+                ctaText: "Start 14-Day Pilot"
             },
             multiTruck: {
                 id: "multiTruck",
-                name: "Multi-Truck Fleet",
-                priceMonthly: 1199,
+                name: "All-In Shop Plan",
+                priceMonthly: 499,
                 period: "/mo",
                 target: "6+ Trucks",
-                description: "High-volume 24/7 service operations requiring custom dispatch zones and multi-crew coordination.",
-                includedDispatches: 400,
-                includedMinutes: 1600,
-                ctaText: "Schedule Fleet Onboarding"
+                description: "One flat rate per shop phone line. One saved emergency job pays for the month.",
+                ctaText: "Start 14-Day Pilot"
             }
         };
 
@@ -1943,8 +1847,9 @@
         }
 
         // 4. Conversion Path 2: Pricing Tier CTAs Handler
-        function handleTierClick(tierKey) {
-            const config = window.CONVERSION_CONFIG && window.CONVERSION_CONFIG.tiers ? window.CONVERSION_CONFIG.tiers[tierKey] : null;
+        function handleTierClick(tierKey = 'flatRate') {
+            const config = (window.CONVERSION_CONFIG && window.CONVERSION_CONFIG.tiers && window.CONVERSION_CONFIG.tiers[tierKey])
+                         || (window.CONVERSION_CONFIG && window.CONVERSION_CONFIG.flatRate);
             if (config && config.checkoutUrl && config.checkoutUrl.trim() !== "") {
                 window.location.href = config.checkoutUrl;
             } else {
@@ -1952,7 +1857,7 @@
             }
         }
 
-        function openTierModal(tierKey) {
+        function openTierModal(tierKey = 'flatRate') {
             const modal = document.getElementById('tierOnboardingModal');
             const formState = document.getElementById('tierFormState');
             const confirmState = document.getElementById('tierConfirmationState');
@@ -1962,7 +1867,8 @@
             if (errorDiv) errorDiv.classList.add('hidden');
 
             const tier = (window.CONVERSION_CONFIG && window.CONVERSION_CONFIG.tiers && window.CONVERSION_CONFIG.tiers[tierKey]) 
-                         || { name: "Pro Trade", price: "$599/mo" };
+                         || (window.CONVERSION_CONFIG && window.CONVERSION_CONFIG.flatRate)
+                         || { name: "All-In Shop Plan", price: "$499/mo" };
 
             const tierKeyInput = document.getElementById('tierSelectedKey');
             const badgeText = document.getElementById('tierModalBadgeText');
@@ -1985,9 +1891,10 @@
 
         async function handleTierSubmit(event) {
             event.preventDefault();
-            const tierKey = document.getElementById('tierSelectedKey').value;
+            const tierKey = document.getElementById('tierSelectedKey').value || 'flatRate';
             const tier = (window.CONVERSION_CONFIG && window.CONVERSION_CONFIG.tiers && window.CONVERSION_CONFIG.tiers[tierKey]) 
-                         || { name: "Pro Trade", price: "$599/mo" };
+                         || (window.CONVERSION_CONFIG && window.CONVERSION_CONFIG.flatRate)
+                         || { name: "All-In Shop Plan", price: "$499/mo" };
             const shopName = document.getElementById('tierShopName').value.trim();
             const contactName = document.getElementById('tierContactName').value.trim();
             const email = document.getElementById('tierEmail').value.trim();
