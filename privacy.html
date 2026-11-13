@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | JobLatch AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        carbon: {
+                            950: '#06090e',
+                            900: '#0b101b',
+                            850: '#0e1524',
+                            800: '#141d30',
+                            700: '#1e2b45',
+                            600: '#2d3d5f',
+                        },
+                        amber: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        electric: {
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bg-carbon-950 text-slate-100 font-sans antialiased selection:bg-amber-500/20 selection:text-amber-300 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation Bar -->
+    <nav class="border-b border-carbon-800 bg-carbon-950/90 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-3 group">
+                <div class="w-9 h-9 rounded-lg bg-carbon-900 border border-amber-500/40 p-0.5 flex items-center justify-center">
+                    <img src="/assets/joblatch_soundwave_icon.jpg" alt="JobLatch AI" class="w-full h-full rounded object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-amber-400 font-bold font-mono text-xs\'>JL</span>';">
+                </div>
+                <span class="text-lg font-extrabold tracking-tight text-white font-display">
+                    JobLatch<span class="text-electric-400">.ai</span>
+                </span>
+            </a>
+            <a href="/" class="text-xs font-mono text-slate-300 hover:text-white flex items-center gap-1 transition">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                <span>Back to Home</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-12 flex-1">
+        <div class="mb-10 pb-6 border-b border-carbon-800">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold mb-3">
+                <i data-lucide="shield" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span>LEGAL &bull; [TODO: legal review]</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white font-display">Privacy Policy</h1>
+            <p class="text-xs sm:text-sm font-mono text-slate-400 mt-2">
+                Last Updated: November 2026 &bull; Status: Draft [TODO: legal review]
+            </p>
+        </div>
+
+        <div class="space-y-8 text-sm text-slate-300 leading-relaxed font-sans">
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">1. Overview &amp; Data Controller</h2>
+                <p>
+                    JobLatch AI ("JobLatch", "we", "us", or "our") operates an automated AI voice dispatch platform for trade contractor businesses ("Customers"). This Privacy Policy explains how we collect, process, store, and share information when trade contractors and their end-user callers ("Callers") interact with our voice dispatch service, website, and related applications.
+                </p>
+                <p class="text-xs font-mono text-amber-400/90 bg-carbon-900 p-3 rounded-lg border border-carbon-800">
+                    [TODO: legal review: confirm registered entity name, jurisdiction, and official legal contact address].
+                </p>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">2. Information We Collect</h2>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong>Inbound Caller Audio &amp; Transcripts:</strong> Audio recordings, machine transcripts, timecodes, caller phone numbers, and caller-provided details (name, service address, description of electrical/HVAC/plumbing issue) captured during dispatch calls.</li>
+                    <li><strong>Contractor Account Data:</strong> Shop name, trade licenses, technician names, phone numbers, truck assignments, dispatch schedules, and administrative email addresses.</li>
+                    <li><strong>Payment Information:</strong> Pre-authorization deposit holds and fee processing details. Card details are processed directly by our payment processor (Stripe) via secure SMS payment links. JobLatch does not collect or store raw card numbers.</li>
+                    <li><strong>Technical Telemetry:</strong> IP addresses, browser user agents, call routing logs via telephony providers (Twilio), and diagnostic event metrics.</li>
+                </ul>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">3. AI Disclosure &amp; Call Recording Consent</h2>
+                <p>
+                    JobLatch AI provides automated conversational voice technology. At the start of an inbound call, the automated assistant identifies itself and notifies the caller that the call may be recorded for dispatch and quality assurance purposes.
+                </p>
+                <div class="bg-carbon-900 border border-amber-500/30 p-4 rounded-xl text-xs font-mono text-slate-200">
+                    <strong class="text-amber-400 block mb-1">Customer Recording Compliance Obligation [TODO: legal review]:</strong>
+                    Trade contractor customers are solely responsible for ensuring compliance with applicable federal, state, and local wiretapping, eavesdropping, and two-party/all-party call recording consent statutes in every jurisdiction where they operate.
+                </div>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">4. How We Use Information</h2>
+                <p>We process collected data to:</p>
+                <ul class="list-disc pl-5 space-y-1.5">
+                    <li>Triage and route emergency trade service requests to customer-designated on-call technicians.</li>
+                    <li>Synchronize work orders with Customer Field Service Management (FSM) systems (e.g., ServiceTitan, Housecall Pro, Jobber).</li>
+                    <li>Send automated customer dispatch confirmation SMS messages and technician tracking links.</li>
+                    <li>Facilitate pre-authorization deposit holds via Stripe to protect contractor fuel and dispatch time.</li>
+                    <li>Maintain operational reliability, detect fraud, and provide customer support.</li>
+                </ul>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">5. Third-Party Service Providers</h2>
+                <p>We partner with vetted infrastructure providers to deliver the dispatch engine:</p>
+                <ul class="list-disc pl-5 space-y-1.5">
+                    <li><strong>Telephony &amp; Voice Carriers (e.g., Twilio):</strong> Inbound SIP trunking, call routing, and SMS messaging.</li>
+                    <li><strong>AI &amp; Speech Infrastructure (e.g., Google Cloud Gemini):</strong> Speech recognition, natural language emergency triage, and text-to-speech synthesis.</li>
+                    <li><strong>Payment Processing (Stripe, Inc.):</strong> PCI-DSS Level 1 certified payment processing and card pre-authorization hold management.</li>
+                </ul>
+                <p class="text-xs font-mono text-slate-400">
+                    [TODO: legal review: confirm data processing addendum (DPA) terms with sub-processors].
+                </p>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">6. Data Retention &amp; Security</h2>
+                <p>
+                    Call audio recordings and transcripts are retained for the operational duration required by our contractor customers or as required by law. We enforce encryption in transit (TLS 1.3) and encryption at rest. Customer data is logically segregated.
+                </p>
+                <p class="text-xs font-mono text-slate-400">
+                    [TODO: legal review: specify exact retention windows, e.g., 30/60/90 days default for audio].
+                </p>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">7. Contact &amp; Privacy Inquiries</h2>
+                <p>
+                    For inquiries regarding this policy, data subject requests, or data processing agreements, contact us at:
+                </p>
+                <div class="bg-carbon-900 p-4 rounded-xl border border-carbon-800 font-mono text-xs text-slate-200">
+                    <div>Email: <a href="mailto:privacy@joblatchai.com" class="text-amber-400 underline">privacy@joblatchai.com</a> [TODO: official contact email]</div>
+                    <div>Support: <a href="mailto:contact@joblatchai.com" class="text-amber-400 underline">contact@joblatchai.com</a> [TODO: official contact email]</div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-carbon-800 py-8 bg-carbon-950 text-xs text-slate-400 font-mono">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>&copy; 2026 JobLatch AI. All rights reserved. [TODO: legal review]</div>
+            <div class="flex gap-4">
+                <a href="/privacy" class="text-amber-400 underline">Privacy Policy</a>
+                <a href="/terms" class="hover:text-white transition">Terms of Service</a>
+                <a href="/" class="hover:text-white transition">Home</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

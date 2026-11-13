@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service | JobLatch AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        carbon: {
+                            950: '#06090e',
+                            900: '#0b101b',
+                            850: '#0e1524',
+                            800: '#141d30',
+                            700: '#1e2b45',
+                            600: '#2d3d5f',
+                        },
+                        amber: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        electric: {
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bg-carbon-950 text-slate-100 font-sans antialiased selection:bg-amber-500/20 selection:text-amber-300 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation Bar -->
+    <nav class="border-b border-carbon-800 bg-carbon-950/90 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-3 group">
+                <div class="w-9 h-9 rounded-lg bg-carbon-900 border border-amber-500/40 p-0.5 flex items-center justify-center">
+                    <img src="/assets/joblatch_soundwave_icon.jpg" alt="JobLatch AI" class="w-full h-full rounded object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-amber-400 font-bold font-mono text-xs\'>JL</span>';">
+                </div>
+                <span class="text-lg font-extrabold tracking-tight text-white font-display">
+                    JobLatch<span class="text-electric-400">.ai</span>
+                </span>
+            </a>
+            <a href="/" class="text-xs font-mono text-slate-300 hover:text-white flex items-center gap-1 transition">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                <span>Back to Home</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-12 flex-1">
+        <div class="mb-10 pb-6 border-b border-carbon-800">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold mb-3">
+                <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span>LEGAL &bull; [TODO: legal review]</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white font-display">Terms of Service</h1>
+            <p class="text-xs sm:text-sm font-mono text-slate-400 mt-2">
+                Last Updated: November 2026 &bull; Status: Draft [TODO: legal review]
+            </p>
+        </div>
+
+        <div class="space-y-8 text-sm text-slate-300 leading-relaxed font-sans">
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">1. Agreement &amp; Acceptance</h2>
+                <p>
+                    These Terms of Service ("Terms") govern access to and use of the JobLatch AI automated voice dispatch software, websites, and associated APIs ("Service") provided by JobLatch AI ("JobLatch", "we", "us"). By creating an account, connecting a phone number, or subscribing, you ("Customer", "Contractor") agree to these Terms.
+                </p>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">2. Service Description &amp; Scope</h2>
+                <p>
+                    JobLatch AI provides an autonomous conversational AI voice dispatch engine designed to answer inbound after-hours telephone calls for trade contractors (e.g., electrical, HVAC, plumbing). Features include intake triage, technician notification, booking synchronization, and pre-authorization deposit hold facilitation via Stripe.
+                </p>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">3. 14-Day Pilot, Subscription, &amp; Cancellation</h2>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong>14-Day Pilot, Cancel Anytime:</strong> Eligible new contractor accounts receive a 14-day pilot period. Customers may cancel at any time during the pilot without long-term commitment.</li>
+                    <li><strong>Monthly Billing:</strong> After the pilot period, services are billed on a recurring monthly flat rate per active shop phone line ($499/mo standard plan unless agreed otherwise in writing).</li>
+                    <li><strong>Cancellation:</strong> Customers may cancel their subscription at any time via the customer billing portal. Service remains active through the end of the current paid billing cycle.</li>
+                </ul>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">4. Telephony Fair-Use Policy</h2>
+                <p>
+                    Our All-In Shop Plan includes unlimited after-hours emergency calls and dispatches subject to our standard fair-use policy.
+                </p>
+                <div class="bg-carbon-900 border border-carbon-800 p-4 rounded-xl text-xs font-mono text-slate-200">
+                    <strong class="text-amber-400 block mb-1">Fair-Use Threshold [TODO: threshold]:</strong>
+                    Usage is subject to reasonable fair-use limits intended to prevent automated robocalling, telemarketing, or non-trade dispatch volume [TODO: specify threshold, e.g. up to 500 dispatches or 1,500 voice minutes per month per line before standard telephony pass-through rates apply].
+                </div>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">5. Call Recording &amp; Consent Compliance</h2>
+                <p>
+                    The Service facilitates automated voice interactions that may be recorded and transcribed. Customers acknowledge and agree that:
+                </p>
+                <ul class="list-disc pl-5 space-y-1.5">
+                    <li>JobLatch AI equips Sarah AI with an opening automated disclosure that the call is answered by an AI assistant and may be recorded.</li>
+                    <li><strong>Customer Responsibility:</strong> Customer retains exclusive responsibility for determining whether its jurisdiction requires one-party or all-party consent for recording and ensuring all statutory notices are satisfied under applicable state and federal law.</li>
+                </ul>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">6. Emergency &amp; Life Safety Disclaimer (Not 911)</h2>
+                <div class="bg-red-950/30 border border-red-500/40 p-4 rounded-xl text-xs font-mono text-red-200">
+                    <strong class="text-red-400 block mb-1 uppercase tracking-wider">CRITICAL LIFE SAFETY DISCLAIMER:</strong>
+                    JobLatch AI is NOT a Public Safety Answering Point (PSAP) and does NOT provide 911 emergency services. Sarah AI is programmed with safety-first triage to immediately instruct callers who report active fire, heavy smoke, gas leaks, sparking, or imminent life-safety hazards to evacuate and dial 911 immediately. JobLatch AI is not liable for failures of callers to evacuate or contact civic emergency authorities.
+                </div>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">7. Payments &amp; Pre-Authorization Holds</h2>
+                <p>
+                    Payment collection and credit card pre-authorization deposit holds ($89–$199 configurable) are processed through Stripe, Inc. JobLatch does not capture card numbers over voice; card authorization requests are transmitted to callers via secure SMS link. JobLatch is not responsible for expired pre-authorization holds (~7-day banking window) or customer payment disputes between contractors and property owners.
+                </p>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">8. Limitation of Liability</h2>
+                <p>
+                    To the maximum extent permitted by applicable law, JobLatch AI and its licensors shall not be liable for indirect, incidental, special, consequential, or punitive damages, or loss of profits, revenue, or dispatch opportunities arising out of or related to telephony carrier outages, speech recognition inaccuracies, or third-party FSM integration delays.
+                </p>
+                <p class="text-xs font-mono text-slate-400">
+                    [TODO: legal review: confirm standard liability cap, e.g., fees paid in preceding 12 months].
+                </p>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">9. Governing Law &amp; Dispute Resolution</h2>
+                <p>
+                    These Terms shall be governed by and construed in accordance with the laws of [TODO: legal review: insert state / governing jurisdiction], without regard to conflict of law principles.
+                </p>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="text-xl font-bold text-white font-display">10. Contact Information</h2>
+                <p>
+                    Questions about these Terms may be directed to:
+                </p>
+                <div class="bg-carbon-900 p-4 rounded-xl border border-carbon-800 font-mono text-xs text-slate-200">
+                    <div>Legal: <a href="mailto:legal@joblatchai.com" class="text-amber-400 underline">legal@joblatchai.com</a> [TODO: official contact email]</div>
+                    <div>General: <a href="mailto:contact@joblatchai.com" class="text-amber-400 underline">contact@joblatchai.com</a> [TODO: official contact email]</div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-carbon-800 py-8 bg-carbon-950 text-xs text-slate-400 font-mono">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>&copy; 2026 JobLatch AI. All rights reserved. [TODO: legal review]</div>
+            <div class="flex gap-4">
+                <a href="/privacy" class="hover:text-white transition">Privacy Policy</a>
+                <a href="/terms" class="text-amber-400 underline">Terms of Service</a>
+                <a href="/" class="hover:text-white transition">Home</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

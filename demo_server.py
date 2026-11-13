@@ -8,6 +8,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.parse
 from datetime import datetime, timedelta
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -24,6 +25,10 @@ ACTIVE_SESSION = ACTIVE_AGENT.create_session()
 DEMO_DISPLAY_EMAIL = "dispatch@apex-electrical-demo.com"
 LAST_DIALOGUE = []
 LAST_SCENARIO_MODE = "missed_call"
+
+# Rate limiting structures for public demo calls
+DEMO_CALL_RATE_LIMIT_IP: Dict[str, List[float]] = {}
+DEMO_CALL_RATE_LIMIT_PHONE: Dict[str, List[float]] = {}
 
 
 def enrich_booking_dict(booking_obj: Any, scenario_hint: Optional[str] = None) -> Dict[str, Any]:
@@ -6677,6 +6682,38 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 return
 
+        elif parsed.path in ("/privacy", "/privacy.html"):
+            privacy_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "privacy.html")
+            if os.path.exists(privacy_path):
+                with open(privacy_path, "rb") as f:
+                    page_data = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(page_data)))
+                self.end_headers()
+                self.wfile.write(page_data)
+                return
+            else:
+                self.send_response(404)
+                self.end_headers()
+                return
+
+        elif parsed.path in ("/terms", "/terms.html"):
+            terms_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "terms.html")
+            if os.path.exists(terms_path):
+                with open(terms_path, "rb") as f:
+                    page_data = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(page_data)))
+                self.end_headers()
+                self.wfile.write(page_data)
+                return
+            else:
+                self.send_response(404)
+                self.end_headers()
+                return
+
         elif parsed.path == "/api/calendar.ics":
             from phone_agent.integrations.calendar_sync import CALENDAR_SYNC
             ics_content = CALENDAR_SYNC.generate_master_feed_ics(list(DB.bookings.values()))
@@ -7133,12 +7170,50 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             self._send_json({"status": "RESET_COMPLETED", "roi_metrics": roi})
 
         elif parsed.path == "/api/call-demo":
+            client_ip = self.client_address[0] if hasattr(self, "client_address") and self.client_address else "unknown"
             phone = req_data.get("phone", "").strip()
-            digits = re.sub(r"\D", "", phone)
-            if len(digits) < 10:
-                self._send_json({"status": "ERROR", "message": "Please enter a valid 10-digit mobile phone number."}, 400)
+            consent = req_data.get("consent", False)
+            captcha_answer = str(req_data.get("captcha_answer", "")).strip()
+
+            # 1. Require explicit consent checkbox
+            if not consent:
+                self._send_json({"status": "ERROR", "message": "Consent is required: please check the box agreeing to receive an automated demo call."}, 400)
                 return
-            print(f"[DEMO CALL INITIATED] Sarah AI dispatch dialing {phone}...")
+
+            # 2. Basic verification challenge validation
+            if captcha_answer and captcha_answer != "7":
+                self._send_json({"status": "ERROR", "message": "Security verification answer is incorrect. Please try again."}, 400)
+                return
+
+            # 3. Clean and validate 10-digit North American phone number
+            digits = re.sub(r"\D", "", phone)
+            if digits.startswith("1") and len(digits) == 11:
+                digits = digits[1:]
+            if len(digits) != 10 or digits[0] in ("0", "1") or digits[3] in ("0", "1"):
+                self._send_json({"status": "ERROR", "message": "Please enter a valid 10-digit North American mobile phone number."}, 400)
+                return
+
+            now = time.time()
+
+            # 4. IP-based rate limiting (maximum 3 demo calls per hour per IP)
+            ip_times = [t for t in DEMO_CALL_RATE_LIMIT_IP.get(client_ip, []) if now - t < 3600]
+            if len(ip_times) >= 3:
+                self._send_json({"status": "ERROR", "message": "Rate limit exceeded: maximum 3 demo calls per hour for your network. Book a 15-min shop setup for a full walkthrough."}, 429)
+                return
+
+            # 5. Phone-based rate limiting (maximum 1 demo call per 5 minutes per number)
+            phone_times = [t for t in DEMO_CALL_RATE_LIMIT_PHONE.get(digits, []) if now - t < 300]
+            if len(phone_times) >= 1:
+                self._send_json({"status": "ERROR", "message": "A demo call was recently requested for this number. Please wait 5 minutes before requesting another."}, 429)
+                return
+
+            # Record request timestamps
+            ip_times.append(now)
+            DEMO_CALL_RATE_LIMIT_IP[client_ip] = ip_times
+            phone_times.append(now)
+            DEMO_CALL_RATE_LIMIT_PHONE[digits] = phone_times
+
+            print(f"[DEMO CALL INITIATED] Sarah AI dispatch dialing {phone} (IP: {client_ip})...")
             self._send_json({
                 "status": "SUCCESS",
                 "phone": phone,

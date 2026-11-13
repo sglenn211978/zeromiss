@@ -225,28 +225,27 @@
                 </div>
             </a>
 
-            <!-- Un-Crammed Navigation Links (Visible on XL screens with whitespace-nowrap) -->
-            <div class="hidden xl:flex items-center gap-6 2xl:gap-8 mr-4 2xl:mr-8 text-sm font-medium text-slate-300">
+            <!-- Simplified Navigation Links (Max 4 Anchors) -->
+            <div class="hidden xl:flex items-center gap-7 2xl:gap-9 mr-4 2xl:mr-8 text-sm font-medium text-slate-300">
                 <a href="#demo" class="hover:text-electric-400 transition-colors flex items-center gap-1.5 font-semibold text-white whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     Live Demo
                 </a>
-                <a href="#audio-preview" class="hover:text-white transition-colors whitespace-nowrap">Call Audio</a>
+                <a href="#audio-preview" class="hover:text-white transition-colors whitespace-nowrap">Sample Call</a>
                 <a href="#calculator" class="hover:text-white transition-colors whitespace-nowrap">ROI Calculator</a>
-                <a href="#dossier" class="hover:text-white transition-colors whitespace-nowrap">Tech Dossier</a>
                 <a href="#pricing" class="hover:text-amber-400 transition-colors whitespace-nowrap font-semibold text-amber-300/90">Pricing</a>
-                <a href="#integrations" class="hover:text-white transition-colors whitespace-nowrap">Integrations</a>
             </div>
 
             <!-- Header Action Buttons & Mobile Hamburger -->
             <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                <a
-                    href="#demo"
-                    class="bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 whitespace-nowrap group"
+                <button
+                    type="button"
+                    onclick="handleBookSetupClick()"
+                    class="bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 whitespace-nowrap active:scale-95 group"
                 >
-                    <span>Test Sarah AI</span>
+                    <span>Book 15-Min Setup</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform"></i>
-                </a>
+                </button>
 
                 <!-- Mobile Menu Button (visible < xl) -->
                 <button
@@ -273,21 +272,14 @@
                 <a href="#audio-preview" onclick="closeMobileMenu()" class="flex items-center justify-between text-slate-200 hover:text-white p-2.5 rounded-lg hover:bg-carbon-900 transition">
                     <span class="flex items-center gap-2">
                         <i data-lucide="volume-2" class="w-4 h-4 text-amber-400"></i>
-                        Call Audio Recording
+                        Sample Call Audio
                     </span>
                     <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
                 </a>
                 <a href="#calculator" onclick="closeMobileMenu()" class="flex items-center justify-between text-slate-200 hover:text-white p-2.5 rounded-lg hover:bg-carbon-900 transition">
                     <span class="flex items-center gap-2">
                         <i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i>
-                        Lost Revenue Calculator
-                    </span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-                </a>
-                <a href="#dossier" onclick="closeMobileMenu()" class="flex items-center justify-between text-slate-200 hover:text-white p-2.5 rounded-lg hover:bg-carbon-900 transition">
-                    <span class="flex items-center gap-2">
-                        <i data-lucide="tablet" class="w-4 h-4 text-amber-400"></i>
-                        Field Tech Dossier
+                        ROI Calculator
                     </span>
                     <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
                 </a>
@@ -298,22 +290,15 @@
                     </span>
                     <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
                 </a>
-                <a href="#integrations" onclick="closeMobileMenu()" class="flex items-center justify-between text-slate-200 hover:text-white p-2.5 rounded-lg hover:bg-carbon-900 transition">
-                    <span class="flex items-center gap-2">
-                        <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
-                        Software Integrations
-                    </span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-                </a>
 
                 <div class="pt-3 mt-2 border-t border-carbon-800 flex flex-col gap-2">
-                    <a href="#demo" onclick="closeMobileMenu()" class="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-center text-sm shadow-md shadow-amber-500/20">
-                        Test Sarah AI Demo &rarr;
+                    <a href="#callMeForm" onclick="closeMobileMenu()" class="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-center text-sm shadow-md shadow-amber-500/20">
+                        Have Sarah Call Your Phone &rarr;
                     </a>
-                    <a href="/dashboard" target="_blank" class="w-full py-2 rounded-lg bg-carbon-900 hover:bg-carbon-800 text-slate-200 font-mono text-xs text-center border border-carbon-700 flex items-center justify-center gap-1.5">
-                        <span>Launch Fullscreen Console</span>
-                        <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-300"></i>
-                    </a>
+                    <button type="button" onclick="closeMobileMenu(); handleBookSetupClick();" class="w-full py-2 rounded-lg bg-carbon-900 hover:bg-carbon-800 text-slate-200 font-mono text-xs text-center border border-carbon-700 flex items-center justify-center gap-1.5">
+                        <span>Book 15-Min Shop Setup</span>
+                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-400"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -328,9 +313,9 @@
                 <!-- Tactical Badges -->
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-carbon-900 border border-carbon-700 text-slate-300 text-xs font-mono mb-6 shadow-sm">
                     <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                    <span class="text-amber-400 font-bold">FIELD-TESTED</span>
+                    <span class="text-amber-400 font-bold">24/7 Voice Dispatch</span>
                     <span class="text-carbon-600">•</span>
-                    <span>Zero Voicemails</span>
+                    <span>Answers on Ring 1</span>
                     <span class="text-carbon-600">•</span>
                     <span class="text-electric-400 font-semibold">$89–$199 Holds</span>
                 </div>
@@ -346,7 +331,7 @@
                 <!-- Subtitle with Hard Business Math -->
                 <p class="text-base sm:text-lg text-slate-300 max-w-2xl mb-8 leading-relaxed font-normal">
                     When an emergency strikes after 5:00 PM, homeowners don’t leave voicemails—they call your competitors. 
-                    <strong class="text-white font-semibold">Sarah AI</strong> answers on ring one, triages electrical &amp; mechanical hazards with codebook accuracy, secures guaranteed pre-authorization holds on their card, and books the truck directly into your workflow.
+                    <strong class="text-white font-semibold">Sarah AI</strong> answers on ring one, executes safety-first triage that tells callers to evacuate and dial 911 for fire or smoke, escalates to a human, secures pre-authorization holds on their card, and books the truck directly into your workflow.
                 </p>
 
                 <!-- Contractor Trade Selector Bar -->
@@ -421,6 +406,20 @@
                                 <span id="callMeBtnText">Call My Phone</span>
                             </button>
                         </div>
+
+                        <!-- Consent Checkbox & Anti-Spam Security Challenge -->
+                        <div class="space-y-2 pt-1">
+                            <label class="flex items-start gap-2 text-[11px] font-mono text-slate-300 cursor-pointer select-none">
+                                <input type="checkbox" id="callConsent" required class="mt-0.5 rounded bg-carbon-950 border-carbon-700 text-amber-500 focus:ring-amber-400">
+                                <span>I agree to receive an automated demo call at this number.</span>
+                            </label>
+                            <div class="flex items-center gap-2 text-xs font-mono text-slate-300">
+                                <span class="bg-carbon-950 px-2.5 py-1.5 rounded-lg border border-carbon-800 text-amber-400 font-bold" id="captchaLabel">Verification: 4 + 3 =</span>
+                                <input type="text" id="captchaInput" required placeholder="?" class="w-16 px-2.5 py-1.5 rounded-lg bg-carbon-950 border border-carbon-700 text-white font-mono text-xs focus:outline-none focus:border-amber-400 text-center">
+                                <span class="text-[10px] text-slate-400 font-mono">(Anti-spam check)</span>
+                            </div>
+                        </div>
+
                         <div id="callMeStatus" class="hidden text-xs font-mono rounded-lg p-3"></div>
                     </form>
 
@@ -442,7 +441,7 @@
                 <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-mono text-slate-300 py-1 mb-8">
                     <div class="flex items-center gap-1.5">
                         <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-                        <span>No Long-Term Contract</span>
+                        <span>14-day pilot, cancel anytime</span>
                     </div>
                     <span class="text-carbon-600">&bull;</span>
                     <div class="flex items-center gap-1.5">
@@ -463,12 +462,17 @@
                         <div class="text-[10px] sm:text-[11px] font-mono text-slate-300 font-medium">Missed-Call SMS Link</div>
                     </div>
                     <div>
-                        <div class="text-xl sm:text-2xl font-display font-extrabold text-emerald-400">$14.2k</div>
-                        <div class="text-[10px] sm:text-[11px] font-mono text-slate-300 font-medium">Avg. Recouped / Mo</div>
+                        <a href="#calculator" class="group block">
+                            <div class="text-base sm:text-lg font-display font-bold text-emerald-400 group-hover:underline flex items-center gap-1">
+                                <span>Calculate ROI</span>
+                                <i data-lucide="arrow-down-right" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <div class="text-[10px] sm:text-[11px] font-mono text-slate-300 font-medium">Based on your inputs below</div>
+                        </a>
                     </div>
                     <div>
-                        <div class="text-xl sm:text-2xl font-display font-extrabold text-amber-400">100%</div>
-                        <div class="text-[10px] sm:text-[11px] font-mono text-slate-300 font-medium">Hold Capture Rate</div>
+                        <div class="text-xl sm:text-2xl font-display font-extrabold text-amber-400">$89–$199</div>
+                        <div class="text-[10px] sm:text-[11px] font-mono text-slate-300 font-medium">Stripe Pre-Auth Holds</div>
                     </div>
                 </div>
             </div>
@@ -497,15 +501,15 @@
 
                         <div class="bg-red-950/30 border border-red-500/40 p-3.5 rounded-xl">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs font-mono font-bold text-red-400 uppercase">NFPA 70E CODE RED TRIAGE</span>
+                                <span class="text-xs font-mono font-bold text-red-400 uppercase">SAFETY-FIRST TRIAGE &amp; 911 ESCALATION</span>
                                 <span class="px-2 py-0.5 rounded bg-red-900 text-red-100 text-[10px] font-mono font-bold">FIRE HAZARD</span>
                             </div>
                             <p class="text-red-200 text-xs leading-relaxed">
                                 "Wall outlet behind refrigerator smoking with burning plastic odor. Breaker buzzing."
                             </p>
                             <div class="mt-2 text-xs font-mono text-emerald-400 font-medium flex items-center gap-1.5">
-                                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-                                Sarah instructed resident on dry main breaker isolation.
+                                <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-red-400"></i>
+                                <span>Sarah instructed resident to evacuate immediately, dial 911 if fire is active, and alerted on-call supervisor.</span>
                             </div>
                         </div>
 
@@ -534,6 +538,11 @@
                             </div>
                             <span class="text-amber-400 font-bold">Ready for Dispatch</span>
                         </div>
+
+                        <!-- Fictional Demo Data Disclaimer Caption -->
+                        <div class="pt-2 text-[10px] font-mono text-slate-400 text-center">
+                            * Sample / simulated call. Company, caller, and card details are fictional demo data.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -547,13 +556,13 @@
             <div class="text-center mb-12">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold mb-3">
                     <i data-lucide="volume-2" class="w-3.5 h-3.5 text-amber-400"></i>
-                    AUTHENTIC DISPATCH RECORDING
+                    SAMPLE / SIMULATED CALL
                 </div>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-white font-display">
-                    Hear Sarah AI Handle a 2:14 AM Emergency Call
+                    Hear Sarah AI Handle a Sample Emergency Call
                 </h2>
                 <p class="text-slate-200 text-sm sm:text-base max-w-2xl mx-auto mt-2">
-                    Listen to the sub-second conversational flow. Notice how Sarah stays calm, diagnoses life safety risks according to NFPA 70E, and secures the dispatch deposit before hanging up.
+                    Listen to the sub-second conversational flow. Notice how Sarah stays calm, executes safety-first triage that tells callers to evacuate and dial 911 for fire or smoke, and secures the dispatch deposit before hanging up.
                 </p>
             </div>
 
@@ -574,7 +583,7 @@
                     <div class="flex-1 w-full">
                         <div class="flex items-center justify-between mb-2">
                             <div>
-                                <span class="font-display font-bold text-white text-base">Call #2026-EMERG-441 &bull; Residential Thermal Hazard</span>
+                                <span class="font-display font-bold text-white text-base">Call #2026-EMERG-441 &bull; Residential Thermal Hazard (Simulated)</span>
                                 <span class="text-xs font-mono text-slate-300 block sm:inline sm:ml-2">Inbound via Twilio SIP</span>
                             </div>
                             <span id="audioTimer" class="font-mono text-xs font-bold text-amber-400 bg-carbon-950 px-2.5 py-1 rounded border border-carbon-800">
@@ -626,9 +635,9 @@
                     <div class="flex items-center justify-between mb-4">
                         <span class="text-xs font-mono uppercase text-slate-300 font-semibold tracking-wider flex items-center gap-2">
                             <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-400"></i>
-                            VERIFIED 2:14 AM EMERGENCY DISPATCH DIALOGUE
+                            SAMPLE / SIMULATED 2:14 AM EMERGENCY DISPATCH DIALOGUE
                         </span>
-                        <span class="text-[11px] font-mono text-emerald-400 font-medium">100% Speech-to-Speech Accurate</span>
+                        <span class="text-[11px] font-mono text-slate-400 font-medium">Fictional Demo Call</span>
                     </div>
 
                     <div class="space-y-4 max-h-80 overflow-y-auto pr-2 font-mono text-xs">
@@ -701,6 +710,11 @@
                                 "I have our on-call lead Marcus Vance dispatched with an ETA of 38 minutes. I have placed an emergency diagnostic hold of $199 on your card. You'll receive live truck GPS updates via SMS now."
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Fictional Demo Disclaimer -->
+                    <div class="mt-4 pt-3 border-t border-carbon-800 text-[10px] font-mono text-slate-400 text-center">
+                        * Sample / simulated call. The trade company (Apex Electrical), caller (Elena Rostova), and card numbers are fictional demo data.
                     </div>
                 </div>
             </div>
@@ -818,7 +832,7 @@
                 </div>
                 <div class="flex items-center gap-2 text-slate-300">
                     <i data-lucide="lock" class="w-3 h-3 text-emerald-400"></i>
-                    <span>256-Bit TLS &bull; PCI-DSS Level 1 Encrypted</span>
+                    <span>256-Bit TLS &bull; Payments processed by Stripe (PCI DSS Level 1 certified)</span>
                 </div>
             </div>
         </div>
@@ -912,7 +926,7 @@
                 <!-- Trust / UX Microcopy -->
                 <div class="mt-3.5 text-center text-[11px] font-mono text-slate-400 flex items-center justify-center gap-2">
                     <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
-                    <span>Opens in full tab &bull; No sign-up required &bull; 100% interactive</span>
+                    <span>Opens in full tab &bull; No sign-up required &bull; Fully interactive</span>
                 </div>
             </div>
         </div>
@@ -1027,8 +1041,11 @@
                                 <span>Trade Dispatcher Benchmark Rationale:</span>
                             </div>
                             <p class="text-slate-300">
-                                Trade dispatch data confirms that after-hours callers with urgent electrical, HVAC, or plumbing issues convert at <strong>60%–75%</strong> when answered live on the first ring with scheduled arrival windows and pre-authorized card holds, compared to <strong>&lt;9%</strong> for unreturned voicemails.
+                                Industry estimates suggest that after-hours callers with urgent trade requests convert significantly higher (estimated <strong>60%–75%</strong> [TODO: real figure + source]) when answered live on the first ring with pre-authorized holds, compared to unreturned voicemails (estimated <strong>&lt;9%</strong> [TODO: real figure + source]).
                             </p>
+                            <div class="mt-2 text-[10px] text-slate-400 border-t border-carbon-800/80 pt-1.5">
+                                * Industry conversion estimate. [TODO: confirm source studies].
+                            </div>
                         </div>
                     </div>
 
@@ -1123,17 +1140,22 @@
                 </div>
 
                 <!-- Column 3: Secured Pre-Auth -->
-                <div class="chassis-card rounded-2xl p-6 hardware-corner">
-                    <div class="w-10 h-10 rounded-xl bg-carbon-900 text-amber-400 flex items-center justify-center font-bold mb-4 border border-amber-500/30 font-mono">
-                        03
+                <div class="chassis-card rounded-2xl p-6 hardware-corner flex flex-col justify-between">
+                    <div>
+                        <div class="w-10 h-10 rounded-xl bg-carbon-900 text-amber-400 flex items-center justify-center font-bold mb-4 border border-amber-500/30 font-mono">
+                            03
+                        </div>
+                        <h3 class="font-display font-bold text-white text-lg mb-2">Stripe Pre-Auth Deposit Holds</h3>
+                        <p class="text-slate-300 text-xs leading-relaxed mb-3">
+                            Protects your truck roll and fuel. Callers are informed of the diagnostic hold during the call, and card details are securely collected via an SMS payment link—never spoken aloud.
+                        </p>
+                        <div class="bg-carbon-950 p-3 rounded-lg border border-carbon-800 text-[11px] font-mono text-slate-200 mb-3">
+                            <div class="text-emerald-400 font-bold">✓ $199 Hold Secured via SMS Link</div>
+                            <div class="text-slate-300 font-medium">1-tap capture upon on-site arrival</div>
+                        </div>
                     </div>
-                    <h3 class="font-display font-bold text-white text-lg mb-2">Stripe Pre-Auth Capture</h3>
-                    <p class="text-slate-300 text-xs leading-relaxed mb-4">
-                        Locks the homeowner's card with an authorization hold. When the tech arrives on site, 1 tap converts the hold into a verified payment.
-                    </p>
-                    <div class="bg-carbon-950 p-3 rounded-lg border border-carbon-800 text-[11px] font-mono text-slate-200">
-                        <div class="text-emerald-400 font-bold">✓ $199 Hold Secured</div>
-                        <div class="text-slate-300 font-medium">Zero ghosted appointments or wasted gas</div>
+                    <div class="pt-2 border-t border-carbon-800/80 text-[10px] font-mono text-slate-400 leading-normal">
+                        * Note: Hold amount is configurable by shop ($89–$199). Authorizations expire automatically if not captured (~7 days).
                     </div>
                 </div>
             </div>
@@ -1157,6 +1179,26 @@
                 </p>
             </div>
 
+            <!-- Social Proof Section (Pilot Contractor Feedback) -->
+            <div class="mb-12 max-w-2xl mx-auto">
+                <div class="chassis-card rounded-2xl p-6 sm:p-7 hardware-corner border border-carbon-700 bg-carbon-900/70 text-left">
+                    <div class="flex items-center gap-2 mb-3 text-amber-400">
+                        <i data-lucide="quote" class="w-5 h-5 fill-current"></i>
+                        <span class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">Contractor Pilot Feedback</span>
+                    </div>
+                    <blockquote class="text-slate-200 text-sm sm:text-base italic leading-relaxed mb-4">
+                        "[TODO: pilot customer quote, name, company, trade: e.g. 'JobLatch captured 3 after-hours emergency dispatches in our first week that would have gone straight to voicemail. The pre-auth hold ensures our on-call tech never rolls to a ghost call.']"
+                    </blockquote>
+                    <div class="text-xs font-mono text-slate-400 flex flex-wrap items-center gap-2">
+                        <span class="text-white font-bold">[TODO: Contractor Name]</span>
+                        <span>&bull;</span>
+                        <span class="text-amber-300">[TODO: Owner / Master Electrician / HVAC Contractor]</span>
+                        <span>&bull;</span>
+                        <span>[TODO: Company Name, City, State]</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Single Flat-Rate Pricing Card (#pricingCard) -->
             <div id="pricingCard" class="max-w-xl mx-auto">
                 <div class="chassis-card rounded-2xl p-7 sm:p-10 hardware-corner border-2 border-amber-500/80 bg-carbon-900 shadow-2xl shadow-amber-500/10 relative text-left">
@@ -1176,7 +1218,7 @@
                     <div class="py-6 space-y-3.5 font-mono text-xs sm:text-sm text-slate-200">
                         <div class="flex items-start gap-3">
                             <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
-                            <span><strong>Unlimited after-hours calls &amp; dispatches</strong> <span class="text-slate-400 text-xs">(subject to normal fair-use)</span></span>
+                            <span><strong>Unlimited after-hours calls &amp; dispatches</strong> <span class="text-slate-400 text-xs">(subject to normal fair-use*)</span></span>
                         </div>
                         <div class="flex items-start gap-3">
                             <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
@@ -1184,7 +1226,7 @@
                         </div>
                         <div class="flex items-start gap-3">
                             <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
-                            <span><strong>24/7 Ring-1 AI voice answer</strong> &amp; NFPA 70E safety triage</span>
+                            <span><strong>24/7 Ring-1 AI voice answer</strong> &amp; safety-first triage (911 evacuation escalation)</span>
                         </div>
                         <div class="flex items-start gap-3">
                             <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
@@ -1209,7 +1251,7 @@
                             onclick="handleTierClick('flatRate')" 
                             class="w-full py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-base transition-all shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2 active:scale-95 group cursor-pointer"
                         >
-                            <span>Start 14-Day Pilot</span>
+                            <span>Start 14-Day Pilot (Cancel Anytime)</span>
                             <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i>
                         </button>
                         <div class="text-center">
@@ -1222,42 +1264,15 @@
                                 <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"></i>
                             </button>
                         </div>
-                        <div class="pt-2 text-center text-xs font-mono text-slate-400 border-t border-carbon-800/60 mt-3">
-                            <span>No long-term contract &bull; Cancel anytime &bull; Zero hidden telephony markups</span>
+                        <div class="pt-2 text-center text-xs font-mono text-slate-400 border-t border-carbon-800/60 mt-3 space-y-1.5">
+                            <div>14-day pilot, cancel anytime &bull; Zero hidden telephony markups</div>
+                            <div class="text-[10px] text-slate-400 leading-normal">
+                                * Fair-use policy: [TODO: threshold, e.g. normal fair-use up to 500 dispatches or 1,500 voice minutes per month per line before standard telephony rate applies].
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- 
-            ========================================================================
-            BETA SHOP TESTIMONIAL CARD SLOT (Ready for verified contractor quotes)
-            ========================================================================
-            <div class="mt-16 max-w-3xl mx-auto chassis-card rounded-2xl p-6 sm:p-8 hardware-corner border border-carbon-700">
-                <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-carbon-800 border border-carbon-700 flex items-center justify-center text-amber-400 flex-shrink-0 font-bold font-mono">
-                        [LOGO / INITIALS]
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-1 text-amber-400 mb-2">
-                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
-                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
-                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
-                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
-                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
-                        </div>
-                        <blockquote class="text-slate-200 text-sm sm:text-base italic leading-relaxed mb-3">
-                            "[INSERT VERIFIED BETA CONTRACTOR QUOTE: e.g. JobLatch paid for its entire annual cost on the very first Friday night we turned it on. Captured two $3,200 panel replacements while our phones were on night mode.]"
-                        </blockquote>
-                        <div class="text-xs font-mono">
-                            <span class="text-white font-bold">[Contractor Name, Master Electrician / HVAC Owner]</span>
-                            <span class="text-slate-400 ml-1">&bull; [Shop Name & Metro Area, e.g. Apex Electrical, Dallas-Fort Worth, TX]</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            ========================================================================
-            -->
         </div>
     </section>
 
@@ -1271,34 +1286,41 @@
                 Seamlessly Plugs Into Your Existing Contractor Software
             </h2>
 
-            <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 max-w-4xl mx-auto">
-                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
+            <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4 max-w-4xl mx-auto">
+                <div class="px-4 py-2.5 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-2">
                     <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
                     <span>ServiceTitan</span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Live [TODO: confirm]</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
+                <div class="px-4 py-2.5 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-2">
                     <i data-lucide="home" class="w-4 h-4 text-amber-400"></i>
                     <span>Housecall Pro</span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Live [TODO: confirm]</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
+                <div class="px-4 py-2.5 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-2">
                     <i data-lucide="briefcase" class="w-4 h-4 text-amber-400"></i>
                     <span>Jobber</span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30">Coming soon [TODO: confirm]</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
+                <div class="px-4 py-2.5 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-2">
                     <i data-lucide="file-text" class="w-4 h-4 text-amber-400"></i>
                     <span>QuickBooks Online</span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30">Coming soon [TODO: confirm]</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
+                <div class="px-4 py-2.5 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-2">
                     <i data-lucide="calendar" class="w-4 h-4 text-amber-400"></i>
                     <span>Google Calendar (RFC 5545)</span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Live</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
+                <div class="px-4 py-2.5 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-2">
                     <i data-lucide="phone-call" class="w-4 h-4 text-amber-400"></i>
                     <span>Twilio Voice SIP</span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Live</span>
                 </div>
-                <div class="px-5 py-3 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-sm flex items-center gap-2.5">
+                <div class="px-4 py-2.5 rounded-xl bg-carbon-900 border border-carbon-800 text-slate-200 font-semibold text-xs sm:text-sm flex items-center gap-2">
                     <i data-lucide="credit-card" class="w-4 h-4 text-amber-400"></i>
                     <span>Stripe Connect</span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Live</span>
                 </div>
             </div>
         </div>
@@ -1323,43 +1345,55 @@
 
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a
-                    href="#demo"
-                    class="w-full sm:w-auto px-8 py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-base transition-all shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2"
+                    href="#callMeForm"
+                    class="w-full sm:w-auto px-8 py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-carbon-950 font-display font-bold text-base transition-all shadow-xl shadow-amber-500/25 flex items-center justify-center gap-2 active:scale-95 group"
                 >
-                    <i data-lucide="play" class="w-5 h-5 fill-current"></i>
-                    <span>Test Sarah AI Demo</span>
+                    <i data-lucide="phone-outgoing" class="w-5 h-5"></i>
+                    <span>Have Sarah Call Your Phone</span>
                 </a>
-                <a
-                    href="/dashboard"
-                    target="_blank"
-                    class="w-full sm:w-auto px-8 py-4 rounded-xl bg-carbon-900 hover:bg-carbon-800 text-slate-200 font-mono text-sm font-semibold border border-carbon-700 transition flex items-center justify-center gap-2"
+                <button
+                    type="button"
+                    onclick="handleBookSetupClick()"
+                    class="w-full sm:w-auto px-8 py-4 rounded-xl bg-carbon-900 hover:bg-carbon-800 text-slate-200 font-mono text-sm font-semibold border border-carbon-700 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
                 >
-                    <i data-lucide="external-link" class="w-4 h-4 text-slate-300"></i>
-                    <span>Fullscreen Dispatch Console</span>
-                </a>
+                    <i data-lucide="calendar" class="w-4 h-4 text-amber-400"></i>
+                    <span>Book 15-Min Shop Setup</span>
+                </button>
             </div>
         </div>
     </section>
 
     <!-- 10. INDUSTRIAL FOOTER -->
     <footer class="border-t border-carbon-800 py-12 bg-carbon-950 text-xs text-slate-400">
-        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-            <!-- Brand & Info -->
-            <div class="flex items-center gap-3">
-                <img src="/assets/joblatch_soundwave_icon.jpg" alt="JobLatch AI" class="w-10 h-10 rounded-xl object-cover ring-1 ring-amber-500/30">
-                <div>
-                    <span class="font-bold text-slate-200 font-display">JobLatch AI</span>
-                    <span class="text-slate-400 ml-1">&bull; Autonomous 24/7 Voice Dispatch for Trade Contractors</span>
+        <div class="max-w-7xl mx-auto px-6 space-y-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <!-- Brand & Info -->
+                <div class="flex items-center gap-3">
+                    <img src="/assets/joblatch_soundwave_icon.jpg" alt="JobLatch AI" class="w-10 h-10 rounded-xl object-cover ring-1 ring-amber-500/30">
+                    <div>
+                        <span class="font-bold text-slate-200 font-display">JobLatch AI</span>
+                        <span class="text-slate-400 ml-1">&bull; Autonomous 24/7 Voice Dispatch for Trade Contractors</span>
+                    </div>
+                </div>
+
+                <!-- Legal & Contact Links -->
+                <div class="flex flex-wrap items-center gap-4 sm:gap-6 font-mono text-[11px]">
+                    <a href="/privacy" class="text-slate-300 hover:text-white transition underline">Privacy Policy</a>
+                    <a href="/terms" class="text-slate-300 hover:text-white transition underline">Terms of Service</a>
+                    <a href="/dashboard" class="text-slate-300 hover:text-white transition">Live Demo Console</a>
+                    <span class="text-carbon-700">|</span>
+                    <a href="mailto:contact@joblatchai.com" class="text-amber-400 hover:text-amber-300 transition">contact@joblatchai.com</a>
+                    <span class="text-[10px] text-slate-400">[TODO: official contact email]</span>
                 </div>
             </div>
 
-            <!-- Links -->
-            <div class="flex flex-wrap items-center gap-6 font-mono text-[11px]">
-                <a href="/dashboard" class="text-slate-300 hover:text-white transition">Live Demo Console</a>
-                <a href="/monitor" class="text-slate-300 hover:text-white transition">REST Monitor</a>
-                <a href="/api/dispatches" class="text-slate-300 hover:text-white transition">JSON API</a>
-                <span class="text-carbon-700">|</span>
-                <span class="text-slate-400">&copy; 2026 JobLatch AI. All rights reserved.</span>
+            <!-- AI Disclosure & Call Recording Notice -->
+            <div class="pt-6 border-t border-carbon-800/80 text-[11px] font-mono text-slate-400 leading-relaxed text-center max-w-4xl mx-auto">
+                <strong class="text-slate-300">AI Disclosure &amp; Call Recording Compliance:</strong> Callers are explicitly informed at the beginning of each call that they are speaking with an automated AI dispatch assistant and that calls may be recorded for quality and dispatch accuracy. Trade contractor customers are solely responsible for compliance with all applicable local, state, and federal wiretapping and call recording consent laws in their operating jurisdictions.
+            </div>
+
+            <div class="text-center font-mono text-[11px] text-slate-400">
+                &copy; 2026 JobLatch AI. All rights reserved. &bull; 14-day pilot, cancel anytime.
             </div>
         </div>
     </footer>
@@ -1555,7 +1589,7 @@
                     Start Your <span id="tierModalTitle" class="text-amber-400">All-In Shop Plan</span> Deployment
                 </h3>
                 <p class="text-xs text-slate-300 font-mono mb-6 leading-relaxed">
-                    14-day zero-risk trial. Keep your current phone numbers, field techs, and accounting software.
+                    14-day pilot, cancel anytime. Keep your current phone numbers, field techs, and accounting software.
                 </p>
 
                 <form id="tierOnboardingForm" onsubmit="handleTierSubmit(event)" class="space-y-4 font-mono text-xs">
@@ -1959,10 +1993,12 @@
             }
         });
 
-        // 5. Conversion Path 3: #callMeForm Strictly for Live Phone Demo (With Robust Error States)
+        // 5. Conversion Path 3: #callMeForm Strictly for Live Phone Demo (With Robust Error States & Security Verification)
         async function handleCallMeSubmit(event) {
             event.preventDefault();
             const phoneInput = document.getElementById('contractorPhone') || document.getElementById('callMePhone');
+            const consentInput = document.getElementById('callConsent');
+            const captchaInput = document.getElementById('captchaInput');
             const submitBtn = document.getElementById('callMeBtn');
             const btnText = document.getElementById('callMeBtnText');
             const statusDiv = document.getElementById('callMeStatus');
@@ -1972,17 +2008,56 @@
                 return;
             }
 
-            const phone = phoneInput.value.trim();
-            const digits = phone.replace(/\D/g, '');
+            // 1. Consent verification
+            if (consentInput && !consentInput.checked) {
+                if (statusDiv) {
+                    statusDiv.className = 'text-xs font-mono rounded-lg p-3 bg-red-500/10 border border-red-500/30 text-red-300 flex items-start gap-2.5';
+                    statusDiv.innerHTML = `
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <span class="font-bold text-white block mb-0.5">Consent Required</span>
+                            <span>Please check the box agreeing to receive an automated demo call at your number.</span>
+                        </div>
+                    `;
+                    statusDiv.classList.remove('hidden');
+                    lucide.createIcons();
+                }
+                return;
+            }
 
-            if (digits.length < 10) {
+            // 2. Anti-spam math challenge verification
+            const captchaVal = captchaInput ? captchaInput.value.trim() : '';
+            if (captchaVal !== '7') {
+                if (statusDiv) {
+                    statusDiv.className = 'text-xs font-mono rounded-lg p-3 bg-red-500/10 border border-red-500/30 text-red-300 flex items-start gap-2.5';
+                    statusDiv.innerHTML = `
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <span class="font-bold text-white block mb-0.5">Security Check Required</span>
+                            <span>Please answer the verification question (4 + 3 = 7) to prove you're human.</span>
+                        </div>
+                    `;
+                    statusDiv.classList.remove('hidden');
+                    lucide.createIcons();
+                }
+                return;
+            }
+
+            // 3. Clean and validate North American 10-digit number
+            const phone = phoneInput.value.trim();
+            let digits = phone.replace(/\D/g, '');
+            if (digits.startsWith('1') && digits.length === 11) {
+                digits = digits.slice(1);
+            }
+
+            if (digits.length !== 10 || ['0', '1'].includes(digits[0]) || ['0', '1'].includes(digits[3])) {
                 if (statusDiv) {
                     statusDiv.className = 'text-xs font-mono rounded-lg p-3 bg-red-500/10 border border-red-500/30 text-red-300 flex items-start gap-2.5';
                     statusDiv.innerHTML = `
                         <i data-lucide="alert-circle" class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5"></i>
                         <div>
                             <span class="font-bold text-white block mb-0.5">Invalid Mobile Number</span>
-                            <span>Please enter a full 10-digit mobile number (e.g. (555) 000-0000) so Sarah AI can place the live test call.</span>
+                            <span>Please enter a valid 10-digit North American mobile phone number (e.g. (555) 000-0000).</span>
                         </div>
                     `;
                     statusDiv.classList.remove('hidden');
@@ -2009,10 +2084,18 @@
                 const response = await fetch('/api/call-demo', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: phone })
+                    body: JSON.stringify({
+                        phone: phone,
+                        consent: true,
+                        captcha_answer: captchaVal
+                    })
                 });
 
                 const data = await response.json().catch(() => ({}));
+
+                if (response.status === 429) {
+                    throw new Error(data.message || 'Rate limit reached. Please wait before requesting another demo call, or schedule a 15-minute shop setup.');
+                }
 
                 if (!response.ok || data.status === 'ERROR') {
                     throw new Error(data.message || `SIP gateway returned HTTP error ${response.status}`);
