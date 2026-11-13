@@ -6724,25 +6724,13 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
-        elif parsed.path in (
-            "/assets/joblatch_ai_logo.jpg",
-            "/assets/joblatch_soundwave_icon.jpg",
-            "/assets/joblatch_soundwave_latch.jpg",
-            "/assets/logo.jpg",
-            "/favicon.ico",
-        ):
-            asset_filename = os.path.basename(parsed.path)
-            if asset_filename in ("logo.jpg", "favicon.ico"):
-                asset_filename = "joblatch_soundwave_icon.jpg"
-            logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", asset_filename)
-            if not os.path.exists(logo_path):
-                logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "joblatch_ai_logo.jpg")
-            if os.path.exists(logo_path):
-                with open(logo_path, "rb") as f:
+        elif parsed.path == "/favicon.ico":
+            ico_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "joblatch_soundwave_icon.jpg")
+            if os.path.exists(ico_path):
+                with open(ico_path, "rb") as f:
                     img_data = f.read()
                 self.send_response(200)
-                content_type = "image/x-icon" if parsed.path == "/favicon.ico" else "image/jpeg"
-                self.send_header("Content-Type", content_type)
+                self.send_header("Content-Type", "image/x-icon")
                 self.send_header("Content-Length", str(len(img_data)))
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.send_header("Cache-Control", "public, max-age=86400")
@@ -6751,6 +6739,39 @@ class DemoRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
+            return
+
+        elif parsed.path.startswith("/assets/"):
+            rel_path = parsed.path[len("/assets/"):]
+            base_assets = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets"))
+            full_path = os.path.abspath(os.path.join(base_assets, rel_path))
+            # Security: avoid directory traversal
+            if full_path.startswith(base_assets) and os.path.isfile(full_path):
+                ext = os.path.splitext(full_path)[1].lower()
+                mime_map = {
+                    ".mp3": "audio/mpeg",
+                    ".wav": "audio/wav",
+                    ".json": "application/json",
+                    ".jpg": "image/jpeg",
+                    ".jpeg": "image/jpeg",
+                    ".png": "image/png",
+                    ".svg": "image/svg+xml",
+                    ".ico": "image/x-icon",
+                }
+                content_type = mime_map.get(ext, "application/octet-stream")
+                with open(full_path, "rb") as f:
+                    file_data = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", content_type)
+                self.send_header("Content-Length", str(len(file_data)))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.end_headers()
+                self.wfile.write(file_data)
+            else:
+                self.send_response(404)
+                self.end_headers()
+            return
 
         else:
             self.send_response(404)

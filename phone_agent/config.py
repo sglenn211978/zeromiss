@@ -35,6 +35,13 @@ class DispatchConfig:
     level_2_label: str = "LEVEL_2_HIGH_HAZARD"
     level_3_label: str = "LEVEL_3_MODERATE_RISK"
 
+    # Service Area filter (opt-in). When set, routine work in a caller-named town outside this list is
+    # politely declined; emergencies still get life-safety instructions. Empty = filter disabled.
+    # Example: SERVICE_AREA_TOWNS="Cherry Hill,Moorestown,Haddonfield,Voorhees"
+    service_area_towns: tuple = tuple(
+        t.strip() for t in os.getenv("SERVICE_AREA_TOWNS", "").split(",") if t.strip()
+    )
+
     def __post_init__(self):
         if self.time_windows is None:
             self.time_windows = {

@@ -50,3 +50,16 @@ VOICE DISPATCH PERSONA & RULES:
 
 Always remain calm, authoritative on safety, and helpful.
 """
+
+# Opt-in service-area rule (only appended when SERVICE_AREA_TOWNS is configured).
+from phone_agent.config import DEFAULT_CONFIG as _CFG  # noqa: E402
+
+if _CFG.service_area_towns:
+    DISPATCHER_SYSTEM_INSTRUCTION += (
+        "\n7. SERVICE AREA:\n"
+        f"   - We only schedule routine work in: {', '.join(_CFG.service_area_towns)}.\n"
+        "   - If a caller asks for routine work in a town outside this list, politely explain it is outside our "
+        "service area, do NOT call 'book_service_call', and suggest a local licensed electrician.\n"
+        "   - Emergencies always come first: give life-safety instructions (evacuate and call 911 for fire or smoke) "
+        "regardless of location.\n"
+    )

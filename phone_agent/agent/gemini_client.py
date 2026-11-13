@@ -8,6 +8,7 @@ from phone_agent.agent.prompts import DISPATCHER_SYSTEM_INSTRUCTION
 from phone_agent.config import DEFAULT_CONFIG
 from phone_agent.database import DB
 from phone_agent.tools.registry import GEMINI_FUNCTION_DECLARATIONS, execute_tool
+from phone_agent.tools.service_area import check_service_area
 
 try:
     import requests
@@ -189,17 +190,24 @@ class Gemini2FlashClient:
             )
             return {"text": spoken_response, "tool_calls": []}
 
-        has_sparking = any(w in filtered_text for w in ["spark", "sparks", "sparking", "arcing", "flame", "fire", "popping"])
-        has_smoke = any(w in filtered_text for w in [
+        # Word-boundary keyword match (allows simple inflections) so substrings like "numb" in "number"
+        # or "wet" in "between" never trigger a false hazard triage.
+        def _mentions(words: List[str]) -> bool:
+            return any(
+                re.search(rf"\b{re.escape(w)}(?:s|es|ed|ing)?\b", filtered_text) for w in words
+            )
+
+        has_sparking = _mentions(["spark", "sparks", "sparking", "arcing", "flame", "fire", "popping"])
+        has_smoke = _mentions([
             "smoke", "smoking", "burnt", "burning smell", "burning rubber", "rubber burning",
             "burning plastic", "plastic burning", "melting plastic", "melting rubber",
             "scorched", "fishy smell", "fishy odor", "electrical burning", "burning odor",
             "smells like rubber", "smells like plastic", "acrid", "rubber"
         ])
-        has_water = any(w in filtered_text for w in ["water", "flooding", "leaking", "dripping", "pipe burst", "puddle", "wet"])
-        has_shock = any(w in filtered_text for w in ["shock", "shocked", "tingling", "electrocuted", "numb"])
-        has_downed_line = any(w in filtered_text for w in ["downed wire", "power line", "tree on line", "downed line", "wire on driveway", "wire down"])
-        has_buzzing_hazard = any(w in filtered_text for w in ["loud buzzing", "sizzling", "hot outlet", "hot to touch", "blackened"])
+        has_water = _mentions(["water", "flooding", "leaking", "dripping", "pipe burst", "puddle", "wet"])
+        has_shock = _mentions(["shock", "shocked", "tingling", "electrocuted", "numb"])
+        has_downed_line = _mentions(["downed wire", "power line", "tree on line", "downed line", "wire on driveway", "wire down"])
+        has_buzzing_hazard = _mentions(["loud buzzing", "sizzling", "hot outlet", "hot to touch", "blackened"])
         has_emergency_keyword = bool(re.search(
             r"\b(?:emergency|emergencies|urgent\s+hazard|code\s+red|danger|dangerous)\b",
             filtered_text,
@@ -342,6 +350,19 @@ class Gemini2FlashClient:
         name, phone, address, email = self._extract_customer_info(user_utterances)
         category, service_type = self._detect_service_category(combined_text)
         preferred_date = self._extract_preferred_date(combined_text)
+
+        # 4a. SERVICE-AREA FILTER (routine work only — emergencies were handled above)
+        if "book_service_call" not in past_tools_called:
+            area = check_service_area(" ".join(user_utterances))
+            if area["in_service_area"] is False:
+                nearby = ", ".join(area["service_area"][:4])
+                spoken_response = (
+                    f"Thanks for calling. Unfortunately {area['town']} is outside our service area, so we're not able "
+                    f"to schedule a technician there. We cover {nearby} and the surrounding towns. "
+                    f"I'd recommend contacting a licensed electrician local to {area['town']}. "
+                    f"If you ever smell burning or see sparks, please leave the home and call 911."
+                )
+                return {"text": spoken_response, "tool_calls": []}
 
         # Check calendar if not yet checked
         if "check_calendar_availability" not in past_tools_called and "book_service_call" not in past_tools_called:

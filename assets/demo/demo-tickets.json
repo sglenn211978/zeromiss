@@ -1,0 +1,223 @@
+{
+  "generated_at": "2026-11-13T22:24:13+00:00",
+  "engine": "offline-deterministic",
+  "source": "demo_server.py /api/twilio/voice + /api/twilio/gather (in-process, side effects stubbed)",
+  "disclaimer": "Simulated calls. Callers, phone numbers (555 range) and addresses are fictional demo data.",
+  "scenarios": [
+    {
+      "id": "emergency",
+      "title": "After-Hours Emergency",
+      "subtitle": "Burning smell + buzzing breaker panel, 11:48 PM",
+      "caller_label": "Mike Reynolds",
+      "audio_src": "/assets/demo/demo-emergency.mp3",
+      "duration_seconds": 94.32,
+      "transcript": [
+        {
+          "speaker": "dispatcher",
+          "text": "Thank you for calling JobLatch AI Electrical 24/7 Dispatch. My name is Sarah. Are you reporting an electrical emergency, or calling to schedule service?"
+        },
+        {
+          "speaker": "caller",
+          "text": "Hi, this is Mike Reynolds. I smell burning plastic and there's a buzzing sound coming from the breaker panel in my basement. Half my kitchen just lost power."
+        },
+        {
+          "speaker": "dispatcher",
+          "text": "Please listen carefully for your safety. A burning rubber or plastic smell indicates electrical wire insulation is dangerously overheating. If you can safely access your breaker panel, shut off the breaker for that circuit immediately. Do NOT touch any scorched, hot, buzzing, or discolored outlets, switches, or appliances. Unplug any devices connected to that circuit only if the cords and plugs are completely cool to the touch. I am alerting our on-call master electrician right now. What is your street address and best callback phone number so I can dispatch them immediately?"
+        },
+        {
+          "speaker": "caller",
+          "text": "It's 418 Oakwood Ave, Cherry Hill, New Jersey. My callback is 856-555-0142."
+        },
+        {
+          "speaker": "dispatcher",
+          "text": "Emergency dispatch is confirmed under reference ZM-EMERG-1005. Marcus Vance (Master Electrician On-Call) is en route to 418 Oakwood Ave, Cherry Hill, New Jersey right now with an arrival window of within 45 to 60 minutes. Please step back from the electrical equipment, stay in a safe and dry location, and call 911 immediately if any open flame or smoke develops."
+        }
+      ],
+      "tools_invoked": [
+        "triage_fire_shock_emergency",
+        "book_service_call"
+      ],
+      "booking": {
+        "confirmation_id": "ZM-EMERG-1005",
+        "customer_name": "Mike Reynolds",
+        "phone_number": "(856) 555-0142",
+        "service_address": "418 Oakwood Ave, Cherry Hill, New Jersey",
+        "slot_date": "2026-11-13",
+        "slot_time": "Within 45-60 Minutes (Priority Code Red)",
+        "issue_description": "EMERGENCY: burning_plastic_insulation - HIGH HAZARD: Thermal/wire insulation degradation risk detected. Immediate circuit isolation advised. Expedited emergency dispatch initiated.",
+        "service_type": "emergency",
+        "urgency_level": "EMERGENCY_CRITICAL",
+        "assigned_technician": "Marcus Vance (Master Electrician On-Call)",
+        "dispatch_fee": 199.0,
+        "status": "DISPATCHED_CODE_RED",
+        "notes": "Immediate Code Red Dispatch to 418 Oakwood Ave, Cherry Hill, New Jersey. Callback: 856-555-0142",
+        "payment_status": "PENDING_AUTHORIZATION",
+        "estimated_job_value": 1850.0,
+        "truck_id": "TRUCK-01 (Master Emergency Van)",
+        "tech_match_reason": "Master Electrician \u2022 24/7 On-Call Lead \u2022 Nearest (14m)",
+        "connected_fsm": "HOUSECALL_PRO",
+        "fsm_ticket_id": "HCP-1005"
+      },
+      "triage": null,
+      "service_area_check": {
+        "town": "Cherry Hill",
+        "in_service_area": true
+      },
+      "suppressed_side_effects": [
+        {
+          "call": "sync_contractor_dispatch",
+          "ref": "ZM-BOOK-1003"
+        },
+        {
+          "call": "sync_booking",
+          "ref": "ZM-BOOK-1003"
+        },
+        {
+          "call": "sync_contractor_dispatch",
+          "ref": "ZM-BOOK-1004"
+        },
+        {
+          "call": "sync_booking",
+          "ref": "ZM-BOOK-1004"
+        },
+        {
+          "call": "send_emergency_contractor_alert",
+          "ref": "EMERG-5001"
+        },
+        {
+          "call": "sync_contractor_dispatch",
+          "ref": "ZM-EMERG-1005"
+        }
+      ]
+    },
+    {
+      "id": "ev-charger",
+      "title": "High-Value Estimate Lead",
+      "subtitle": "Level 2 Tesla charger install, attached garage",
+      "caller_label": "Sarah Jenkins",
+      "audio_src": "/assets/demo/demo-ev-charger.mp3",
+      "duration_seconds": 70.29,
+      "transcript": [
+        {
+          "speaker": "dispatcher",
+          "text": "Thank you for calling JobLatch AI Electrical 24/7 Dispatch. My name is Sarah. Are you reporting an electrical emergency, or calling to schedule service?"
+        },
+        {
+          "speaker": "caller",
+          "text": "Hi, I'd like a quote to install a Level 2 Tesla charger in my attached garage. I have a 200 amp main panel in the basement, so it's about a 50 to 60 foot run."
+        },
+        {
+          "speaker": "dispatcher",
+          "text": "I have an opening available on 2026-11-14 during our 12:00 PM - 04:00 PM window with Sarah Chen. To reserve that for you, may I have your full name, callback phone number, street address, and email?"
+        },
+        {
+          "speaker": "caller",
+          "text": "Sure. My name is Sarah Jenkins, address is 92 Maple St, Moorestown, New Jersey. My phone is 609-555-0188."
+        },
+        {
+          "speaker": "dispatcher",
+          "text": "You're all confirmed, Sarah Jenkins. We have Sarah Chen scheduled for 2026-11-14 during our 12:00 PM - 04:00 PM window. Your confirmation number is ZM-BOOK-1008, covered by our free on-site estimate. We will send you an arrival text when our technician is on the way."
+        }
+      ],
+      "tools_invoked": [
+        "check_calendar_availability",
+        "book_service_call"
+      ],
+      "booking": {
+        "confirmation_id": "ZM-BOOK-1008",
+        "customer_name": "Sarah Jenkins",
+        "phone_number": "(609) 555-0188",
+        "service_address": "92 Maple St, Moorestown, New Jersey",
+        "slot_date": "2026-11-14",
+        "slot_time": "12:00 PM - 04:00 PM",
+        "issue_description": "Hi, I'd like a quote to install a Level 2 Tesla charger in my attached garage. I have a 200 amp main panel in the basement, so it's about a 50 to 60 foot run.",
+        "service_type": "ev_charger",
+        "urgency_level": "STANDARD",
+        "assigned_technician": "Sarah Chen",
+        "dispatch_fee": 0.0,
+        "status": "CONFIRMED",
+        "notes": null,
+        "payment_status": "PENDING_AUTHORIZATION",
+        "estimated_job_value": 1450.0,
+        "truck_id": "TRUCK-03 (EV & Commercial Van)",
+        "tech_match_reason": "EV & Commercial Certified \u2022 240V Load Specialist",
+        "connected_fsm": "HOUSECALL_PRO",
+        "fsm_ticket_id": "HCP-1008"
+      },
+      "triage": null,
+      "service_area_check": {
+        "town": "Moorestown",
+        "in_service_area": true
+      },
+      "suppressed_side_effects": [
+        {
+          "call": "sync_contractor_dispatch",
+          "ref": "ZM-BOOK-1006"
+        },
+        {
+          "call": "sync_booking",
+          "ref": "ZM-BOOK-1006"
+        },
+        {
+          "call": "sync_contractor_dispatch",
+          "ref": "ZM-BOOK-1007"
+        },
+        {
+          "call": "sync_booking",
+          "ref": "ZM-BOOK-1007"
+        },
+        {
+          "call": "sync_contractor_dispatch",
+          "ref": "ZM-BOOK-1008"
+        }
+      ]
+    },
+    {
+      "id": "filtered",
+      "title": "Out-of-Area Filter",
+      "subtitle": "Whole-home rewiring request from Princeton, NJ",
+      "caller_label": "Caller (Princeton, NJ)",
+      "audio_src": "/assets/demo/demo-filtered.mp3",
+      "duration_seconds": 48.94,
+      "transcript": [
+        {
+          "speaker": "dispatcher",
+          "text": "Thank you for calling JobLatch AI Electrical 24/7 Dispatch. My name is Sarah. Are you reporting an electrical emergency, or calling to schedule service?"
+        },
+        {
+          "speaker": "caller",
+          "text": "Hi, I'm calling from Princeton, New Jersey. I need my whole house rewired. Do you cover my area? My number is 609-555-0199."
+        },
+        {
+          "speaker": "dispatcher",
+          "text": "Thanks for calling. Unfortunately Princeton is outside our service area, so we're not able to schedule a technician there. We cover Cherry Hill, Moorestown, Haddonfield, Voorhees and the surrounding towns. I'd recommend contacting a licensed electrician local to Princeton. If you ever smell burning or see sparks, please leave the home and call 911."
+        }
+      ],
+      "tools_invoked": [],
+      "booking": null,
+      "triage": null,
+      "service_area_check": {
+        "town": "Princeton",
+        "in_service_area": false
+      },
+      "suppressed_side_effects": [
+        {
+          "call": "sync_contractor_dispatch",
+          "ref": "ZM-BOOK-1009"
+        },
+        {
+          "call": "sync_booking",
+          "ref": "ZM-BOOK-1009"
+        },
+        {
+          "call": "sync_contractor_dispatch",
+          "ref": "ZM-BOOK-1010"
+        },
+        {
+          "call": "sync_booking",
+          "ref": "ZM-BOOK-1010"
+        }
+      ]
+    }
+  ]
+}
